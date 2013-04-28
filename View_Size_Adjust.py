@@ -552,7 +552,7 @@ class ViewManager():
         
         # File to persist data
         self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
-        self.dataFilename = self.dataDir + '/ViewSizeAdjustAddon.dat';       
+        self.dataFilename = self.dataDir + '/_ViewSizeAdjustAddon.dat';
         #self.db = mw.col.db;
         #_addSchema(self.db);
         #self.quickKeys = _loadShortcuts(self.db);

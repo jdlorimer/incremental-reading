@@ -82,7 +82,7 @@ class IRead2(object):
         
         # File to persist zoom and scroll data
         self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
-        self.dataFilename = self.dataDir + '/IncrementalReadingExtension.dat';
+        self.dataFilename = self.dataDir + '/_IncrementalReadingExtension.dat';
         if(os.path.isfile(self.dataFilename)):
             f = open(self.dataFilename, "r")
             tmp = f.read()
