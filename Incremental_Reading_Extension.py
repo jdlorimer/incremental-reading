@@ -680,7 +680,9 @@ class IRead2(object):
                 cardData['nid'] = nid;
                 note = mw.col.getNote(nid);
                     
-                if(note.model()['name'] == 'IRead2'): cardData['title'] = str(note['Title'])[:64].encode('string_escape');
+                if(note.model()['name'] == 'IRead2'):
+                    cardData['title'] = (note['Title'][:64].encode('ascii',
+                        errors='xmlcharrefreplace')).encode('string_escape')
                 else: cardData['title'] = 'No Title';
                 #cardData['title'] = 'No Title';
                 
