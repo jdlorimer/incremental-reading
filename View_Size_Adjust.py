@@ -28,7 +28,7 @@ from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings
 from PyQt4.QtNetwork import QLocalServer, QLocalSocket
-from PyQt4 import pyqtconfig
+#from PyQt4 import pyqtconfig
 from aqt.main import AnkiQt;
 
 class ViewManager():
