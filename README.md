@@ -22,7 +22,7 @@ same ISC license, GNU LGPL v3, GNU GPL v3 and GNU AGPL v3.
 ## Installation
 
 The .py files are to be put into the addons/ folder in the Anki
-folder.  See http://ankisrs.net/docs/manual.html#file-locations
+folder.  See <http://ankisrs.net/docs/manual.html#file-locations>
 for details on where the Anki folder is.
 
 ### Important
