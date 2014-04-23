@@ -4,9 +4,8 @@ Extension](https://gitorious.org/vsa_and_ire)
 This repository contains my changes of Anki 2 add-ons by Frank.
 The source code was taken from AnkiWeb:
 
-* [Incremental Reading
-* Extension](https://ankiweb.net/shared/info/2880922486)  [View
-* Size Adjust](https://ankiweb.net/shared/info/3136737107)
+* [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486)
+* [View Size Adjust](https://ankiweb.net/shared/info/3136737107)
 
 ## License
 
