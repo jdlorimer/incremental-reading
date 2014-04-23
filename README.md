@@ -17,7 +17,7 @@ Barroso.” in [this message](https://groups.google.com/d/msg/anki-
 addons/xibqDVFqQwQ/-qpxKvxurPMJ).
 
 Consider my changes to these 2 add-ons multi-licensed under the
-same ISC license, GNU LGPL v3, GNU GPL v3 and GNU AGPL v3.
+same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+.
 
 ## Installation
 
