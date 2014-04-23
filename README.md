@@ -1,5 +1,4 @@
-##  [View Size Adjust and Incremental Reading
-Extension](https://gitorious.org/vsa_and_ire)
+##  [View Size Adjust and Incremental Reading Extension](https://gitorious.org/vsa_and_ire)
 
 This repository contains my changes of Anki 2 add-ons by Frank.
 The source code was taken from AnkiWeb:
