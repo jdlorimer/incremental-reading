@@ -16,6 +16,9 @@ https://en.wikipedia.org/wiki/ISC_license, copyright to Tiago
 Barroso.” in [this message](https://groups.google.com/d/msg/anki-
 addons/xibqDVFqQwQ/-qpxKvxurPMJ).
 
+Consider my changes to these 2 add-ons multi-licensed under the
+same ISC license, GNU LGPL v3, GNU GPL v3 and GNU AGPL v3.
+
 ## Installation
 
 The .py files are to be put into the addons/ folder in the Anki
