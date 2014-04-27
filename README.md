@@ -41,9 +41,7 @@ directory in your Anki profile by prepending “_” as follows:
 
 * 2014-04-21:
 
-     Commented "import pyqtconfig" out, as it is unused
-
-     That's needed for compatibility with Qt5.
+     Commented "import pyqtconfig" out, as it is unused. That's needed for compatibility with Qt5.
 
 * 2013-04:
 
