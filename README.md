@@ -27,9 +27,10 @@ for details on where the Anki folder is.
 
 ### Important
 
-If you are switching to these versions from Frank's versions,
-rename the .dat files in the collection.media/ directory in your
-Anki profile by prepending “_” as follows:
+If you are switching to these versions from Frank's versions
+(mentioned above, they are probably the only other versions with
+these names), rename the .dat files in the collection.media/
+directory in your Anki profile by prepending “_” as follows:
 
 * _IncrementalReadingExtension.dat
 
