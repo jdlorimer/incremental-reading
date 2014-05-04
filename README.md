@@ -36,6 +36,31 @@ directory in your Anki profile by prepending “_” as follows:
 
 * _ViewSizeAdjustAddon.dat
 
+## Not in the manual
+
+Suggestions on use of IRE that I haven't found in the
+manual:
+
+1. Do not press "Show answer" on IRead2 cards.  Instead, just
+press 1 or 2.  This way you can change the queue position of
+the card without affecting statistics, and if you don't like the
+randomly chosen position, you can try again by pressing 1 or 2
+again.
+
+2. If you follow the above suggestion, you can put the IR deck
+in one subtree with your normal spaced repetition decks.  For
+example, I have a root deck which contains a SR subtree and
+after it, the IR deck:
+
+    * root deck
+
+        * spaced repetition decks
+        * incremental reading deck
+
+    The incremental reading cards appear between reviews, after
+    I view all the new cards, and with a frequency depending on
+    the daily new card limits.
+
 
 ## Changelog
 
