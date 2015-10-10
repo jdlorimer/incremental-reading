@@ -1,7 +1,7 @@
 ##  [View Size Adjust and Incremental Reading Extension](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
 
-This repository contains my changes of Anki 2 add-ons by Frank.
-The source code was taken from AnkiWeb:
+These are Aleksej's changes for Anki 2 add-ons by Frank.
+The source code was taken from AnkiWeb (links not working now):
 
 * [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486)
 * [View Size Adjust](https://ankiweb.net/shared/info/3136737107)
