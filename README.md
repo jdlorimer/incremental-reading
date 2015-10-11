@@ -19,6 +19,9 @@ addons/xibqDVFqQwQ/-qpxKvxurPMJ).
 Consider my changes to these 2 add-ons multi-licensed under the
 same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+.
 
+The licensing does not apply to the Google Groups page just because
+I copied it here.
+
 ## Installation
 
 The .py files are to be put into the addons/ folder in the Anki
@@ -36,7 +39,12 @@ directory in your Anki profile by prepending “_” as follows:
 
 * _ViewSizeAdjustAddon.dat
 
-## Not in the manual
+## Usage
+
+Please see the html file saved from Google Groups for the original
+manual (find a link to the source code near the top of here if you
+are not reading this file as a part of the source code).
+
 
 Suggestions on use of IRE that I haven't found in the
 manual:
