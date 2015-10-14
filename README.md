@@ -1,10 +1,16 @@
 ##  [View Size Adjust and Incremental Reading Extension](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
 
 These are Aleksej's changes for Anki 2 add-ons by Frank.
-The source code was taken from AnkiWeb (links not working now):
+The source code was taken from AnkiWeb (links not working now): [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486) and [View Size Adjust](https://ankiweb.net/shared/info/3136737107).
 
-* [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486)
-* [View Size Adjust](https://ankiweb.net/shared/info/3136737107)
+## What are these for
+
+View Size Adjust lets you change the font size easily using Ctrl++ and
+Ctrl+-.  It also provides some of the features necessary for the other addon.
+
+Incremental Reading Extension is for
+[incremental reading](http://www.supermemo.com/help/read.htm).  See
+"Usage" below for details.
 
 ## License
 
