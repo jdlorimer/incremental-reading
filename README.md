@@ -75,6 +75,11 @@ after it, the IR deck:
     I view all the new cards, and with a frequency depending on
     the daily new card limits.
 
+## Future
+
+Aleksej is not developing this addon.  Also do not expect this page
+and source code repository to stay up for arbitrary time; make local
+backups.
 
 ## Changelog
 
