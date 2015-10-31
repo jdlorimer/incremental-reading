@@ -8,9 +8,9 @@ The source code was taken from AnkiWeb (links not working now): [Incremental Rea
 View Size Adjust lets you change the font size easily using Ctrl++ and
 Ctrl+-.  It also provides some of the features necessary for the other addon.
 
-Incremental Reading Extension is for
-[incremental reading](http://www.supermemo.com/help/read.htm).  See
-"Usage" below for details.
+Incremental Reading Extension is for [incremental reading](http://www.supermemo.com/help/read.htm).
+See "Usage" below for details.
+
 
 ## License
 
