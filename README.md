@@ -1,7 +1,7 @@
 ##  [View Size Adjust and Incremental Reading Extension](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
 
 These are Aleksej's changes for Anki 2 add-ons by Frank.
-The source code was taken from AnkiWeb (links not working now): [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486) and [View Size Adjust](https://ankiweb.net/shared/info/3136737107).
+The source code was taken from AnkiWeb (links not working now; see the URL of my copy *above*): [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486) and [View Size Adjust](https://ankiweb.net/shared/info/3136737107).
 
 ## What are these for
 
@@ -18,8 +18,8 @@ See "Usage" below for details.
 by Tiago Barroso (tmbb). There is no license specified for any of
 the add-ons; Tiago agreed to add a license, saying also “You can
 consider all my addons released with this license
-https://en.wikipedia.org/wiki/ISC_license, copyright to Tiago
-Barroso.” in [this message](https://groups.google.com/d/msg/anki-
+<https://en.wikipedia.org/wiki/ISC_license>, copyright to Tiago
+Barroso.” in [the message that was here](https://groups.google.com/d/msg/anki-
 addons/xibqDVFqQwQ/-qpxKvxurPMJ).
 
 Consider my changes to these 2 add-ons multi-licensed under the
@@ -48,8 +48,9 @@ directory in your Anki profile by prepending “_” as follows:
 ## Usage
 
 Please see the html file saved from Google Groups for the original
-manual (find a link to the source code near the top of here if you
-are not reading this file as a part of the source code).
+manual (find a link to the source code — I mean my copy of the source
+code — near the top of here if you are not reading this file as a part
+of the source code).
 
 
 Suggestions on use of IRE that I haven't found in the
