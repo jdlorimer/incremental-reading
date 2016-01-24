@@ -17,3 +17,6 @@ README.ankiweb: README.md
 clean:
 	rm -f vsa-and-ire-to-ankiweb.zip
 	rm -rf dist
+	rm -f README.ankiweb
+	rm -f README.html
+
