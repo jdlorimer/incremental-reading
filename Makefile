@@ -1,8 +1,8 @@
 all: README.html ankiweb
 
-ankiweb: README.ankiweb vsa-and-ire-to-ankiweb.zip
+ankiweb: clean README.ankiweb vsa-and-ire-to-ankiweb.zip
 
-vsa-and-ire-to-ankiweb.zip: clean
+vsa-and-ire-to-ankiweb.zip: ankiweb
 	mkdir dist
 	cp *.py dist/
 	cd dist && zip -r ../vsa-and-ire-to-ankiweb.zip *
