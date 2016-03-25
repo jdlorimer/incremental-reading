@@ -11,6 +11,12 @@ Ctrl+-.  It also provides some of the features necessary for the other addon.
 Incremental Reading Extension is for [incremental reading](http://www.supermemo.com/help/read.htm).
 See "Usage" below for details.
 
+## Support
+
+If you have trouble running or using this addon, please use either:
+
+* <a href="https://github.com/aleksejrs/anki-2.0-suggest-starting-ease/issues">GitHub issue tracker</a>;
+* <a href="https://anki.tenderapp.com/discussions/add-ons">the TenderApp discussion area</a> (please mention the add-on name in the message title).
 
 ## License
 
