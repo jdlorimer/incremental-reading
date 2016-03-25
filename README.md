@@ -15,7 +15,7 @@ See "Usage" below for details.
 
 If you have trouble running or using this addon, please use either:
 
-* <a href="https://github.com/aleksejrs/anki-2.0-suggest-starting-ease/issues">GitHub issue tracker</a>;
+* <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire/issues">GitHub issue tracker</a>;
 * <a href="https://anki.tenderapp.com/discussions/add-ons">the TenderApp discussion area</a> (please mention the add-on name in the message title).
 
 ## License
