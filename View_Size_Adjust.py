@@ -1,8 +1,6 @@
-from stat import *
 import os
 import pickle
 import re
-import time
 
 from PyQt4 import QtCore
 from PyQt4.QtCore import *
@@ -16,6 +14,8 @@ from aqt.main import AnkiQt
 from aqt.qt import *
 from aqt.utils import tooltip, showWarning
 from aqt.webview import AnkiWebView
+
+import ir.util
 
 
 class ViewManager():
@@ -585,11 +585,9 @@ class ViewManager():
         f = open(self.dataFilename, "w")
         f.write(tmp)
         f.close();
-        #touch the media folder to force sync
-        st = os.stat(self.dataDir);
-        atime = st[ST_ATIME] #access time
-        new_mtime = time.time(); #new modification time
-        os.utime(self.dataDir,(atime,new_mtime))
+
+        # Touch the media folder to force sync
+        ir.util.updateModificationTime(self.dataDir)
 
 
 class QuickKeyModel(QtCore.QObject):
