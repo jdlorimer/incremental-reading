@@ -1,35 +1,22 @@
-# import wrap utility to bootstrap size up, size down logic
-from anki.hooks import wrap, addHook, runHook
-# import the webview that controls the browser display of html
-from aqt.webview import AnkiWebView
-# import the main window object (mw) from ankiqt
-from aqt import mw, editcurrent, addcards
-# import the "show info" tool from utils.py
-from aqt.utils import showInfo, showText, tooltip, showWarning, isMac
-from anki.sound import clearAudioQueue
-# import all of the Qt GUI library
-from anki.db import DB;
-from anki import notes, models
-from aqt.reviewer import Reviewer
-
-import re;
-import unicodedata
-import os;
 from stat import *
-import pickle;
-import copy as cp
-import string;
-from aqt.qt import *
-import tempfile
+import os
+import pickle
+import re
 import time
-# import all of the Qt GUI library
-from PyQt4.QtCore import *
+
 from PyQt4 import QtCore
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings
-from PyQt4.QtNetwork import QLocalServer, QLocalSocket
-#from PyQt4 import pyqtconfig
-from aqt.main import AnkiQt;
+from PyQt4.QtWebKit import QWebPage
+from anki import notes
+from anki.hooks import wrap, addHook, runHook
+from anki.sound import clearAudioQueue
+from aqt import mw, editcurrent, addcards
+from aqt.main import AnkiQt
+from aqt.qt import *
+from aqt.utils import tooltip, showWarning
+from aqt.webview import AnkiWebView
+
 
 class ViewManager():
     def __init__(self, main):
