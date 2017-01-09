@@ -10,11 +10,15 @@ from stat import *
 import pickle
 import time
 import random
+import re
 
 from PyQt4.QtCore import *
 from PyQt4 import QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import QWebPage
+
+from BeautifulSoup import BeautifulSoup
+
 
 IREAD_MODEL_NAME = 'IRead2'
 
@@ -125,7 +129,7 @@ class IRead2(object):
 
             # Add template
             t = mm.newTemplate('IRead2 review')
-            t['qfmt'] = "{{"+TEXT_FIELD_NAME+"}}"
+            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
             t['afmt'] = AFMT
             mm.addTemplate(iread_model, t)
             # Add model to collection:
@@ -187,20 +191,37 @@ class IRead2(object):
             mw.web.eval("highlightAllRanges()");
 
     def highlightSelectedText(self, color, doHighlightFont):
-        if(self.mw.reviewer.card and self.mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME): #Only highlight text if IRead2 model (need to make this general. Limited because of reference to 'Text' field)
-            mw.viewManager.saveScrollPosition();
-            self.updateZoomAndScroll();
-            genId = time.time();
-            genId *= 10;
-            genId = int(genId);
-            script = "markRange(" + str(genId) + ", '" + color + "', " + doHighlightFont + ");";
-            script += "highlight('" + color + "', " + doHighlightFont + ");";
-            mw.web.eval(script);
-            curNote = self.mw.reviewer.card.note();
-            curNote['Text'] = mw.web.page().mainFrame().toHtml();
-            curNote.flush();
-            mw.web.setHtml(curNote['Text']);
-            self.adjustZoomAndScroll();
+        # No obvious/easy way to do this with BeautifulSoup
+        def removeOuterDiv(html):
+            withoutOpenDiv = re.sub('^<div[^>]+>', '', str(html))
+            withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
+            return withoutCloseDiv
+
+        currentCard = self.mw.reviewer.card
+        currentModelName = currentCard.model()['name']
+        currentNote = currentCard.note()
+
+        # Need to make this general
+        # Limited because of reference to 'Text' field
+        if currentCard and currentModelName == IREAD_MODEL_NAME:
+            mw.viewManager.saveScrollPosition()
+            self.updateZoomAndScroll()
+            identifier = str(int(time.time() * 10))
+            script = "markRange(%s, '%s', %s);" % (identifier,
+                                                   color,
+                                                   doHighlightFont)
+            script += "highlight('%s', %s);" % (color, doHighlightFont)
+            mw.web.eval(script)
+
+            page = mw.web.page().mainFrame().toHtml()
+            soup = BeautifulSoup(page)
+            irTextDiv = soup.find('div', {'class': 'ir-text'})
+
+            if irTextDiv:
+                withoutDiv = removeOuterDiv(irTextDiv)
+                currentNote['Text'] = str(withoutDiv)
+                currentNote.flush()
+                self.adjustZoomAndScroll()
 
     def highlightText(self):
         self.highlightSelectedText(self.highlightColor, self.doHighlightFont);
