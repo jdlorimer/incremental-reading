@@ -178,10 +178,10 @@ class IRead2(object):
             mw.viewManager.saveScrollPosition()
             self.updateZoomAndScroll()
             identifier = str(int(time.time() * 10))
-            script = "markRange(%s, '%s', %s);" % (identifier,
-                                                   color,
-                                                   doHighlightFont)
-            script += "highlight('%s', %s);" % (color, doHighlightFont)
+            script = "markRange('%s', '%s', '%s');" % (identifier,
+                                                       color,
+                                                       doHighlightFont)
+            script += "highlight('%s', '%s');" % (color, doHighlightFont)
             mw.web.eval(script)
 
             page = mw.web.page().mainFrame().toHtml()
