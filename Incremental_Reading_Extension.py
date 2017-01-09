@@ -1,5 +1,3 @@
-import os
-import pickle
 import time
 import random
 import re
@@ -16,6 +14,7 @@ from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
+import ir.settings
 import ir.util
 
 
@@ -29,56 +28,19 @@ AFMT = "When do you want to see this card again?"
 
 
 class IRead2(object):
-
-    zoomAndScroll = {};
-    highlightColor = 'yellow';
-    doHighlightFont = 'false';
-    ir2data = {'zoomAndScroll':zoomAndScroll,'highlightColor':highlightColor, 'doHighlightFont':'false'}
-    schedIROptions = 'pct,10,true,pct,60,true';
-    schedSoonType = 'pct';
-    schedSoonInt = 20;
-    schedSoonRandom = True;
-    schedLaterType = 'pct';
-    schedLaterInt = 60;
-    schedLaterRandom = True;
-
     def __init__(self, mw):
-        self.mw = mw;
+        self.mw = mw
+        self.settingsManager = ir.settings.SettingsManager()
 
-    #Invoked when profile loaded
     def loadPluginData(self):
-        self.add_IRead_model(); #create the model if it doesn't exist
-
-        # File to persist zoom and scroll data
-        self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
-        self.dataFilename = self.dataDir + '/_IncrementalReadingExtension.dat';
-        if(os.path.isfile(self.dataFilename)):
-            f = open(self.dataFilename, "r")
-            tmp = f.read()
-            if(tmp):
-                self.ir2data = pickle.loads(tmp);
-                self.zoomAndScroll = self.ir2data['zoomAndScroll'];
-                self.highlightColor = self.ir2data.get('highlightColor', 'yellow'); #default yellow
-                self.doHighlightFont = self.ir2data.get('doHighlightFont', 'false'); #default false (highlight background)
-                self.schedIROptions = self.ir2data.get('schedIROptions', 'pct,10,true,pct,50,true'); #default soon: pct,10,true (randomize); later: pct, 50, true (randomize)
-                self.parseIROptions(self.schedIROptions);
-            f.close();
-        #Add a hook to adjust zoom and scroll when the web viewer is reset (ie. when editing is done. Typically only done when 'show question is pressed')
-        #Has to be done here because we get errors if apply this hook to reset before everything is setup.
-        addHook('reset',self.adjustZoomAndScroll);
+        self.add_IRead_model()
+        self.settings = self.settingsManager.getSettings()
+        addHook('reset', mw.IRead2.adjustZoomAndScroll)
 
     def savePluginData(self):
-        #Capture zoom and scroll if exit directly from reviewer
-        self.updateZoomAndScroll();
-        # File to persist zoom and scroll data
-        self.ir2data = {'zoomAndScroll':self.zoomAndScroll,'highlightColor':self.highlightColor,'doHighlightFont':self.doHighlightFont,'schedIROptions':self.schedIROptions}
-        tmp = pickle.dumps(self.ir2data);
-        f = open(self.dataFilename, "w")
-        f.write(tmp)
-        f.close();
-
-        # Touch the media folder to force sync
-        ir.util.updateModificationTime(self.dataDir)
+        # Capture zoom and scroll if exit directly from reviewer
+        self.updateZoomAndScroll()
+        self.settingsManager.saveSettings(self.settings)
 
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
@@ -121,7 +83,7 @@ class IRead2(object):
         clipboard = QApplication.clipboard();
         mimeData = clipboard.mimeData();
         #Highlight the text in the original document
-        self.highlightSelectedText(self.highlightColor, self.doHighlightFont);
+        self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
 
         card = mw.reviewer.card
         cur_note = card.note()
@@ -143,13 +105,13 @@ class IRead2(object):
     def updateZoomAndScroll(self):
         mw.viewManager.saveScrollPosition();
         if(mw.reviewer.card):
-            self.zoomAndScroll[mw.reviewer.card.id] = [mw.viewManager.textSizeMultiplier, mw.viewManager.verticalScrollPosition]
+            self.settings['zoomAndScroll'][mw.reviewer.card.id] = [mw.viewManager.textSizeMultiplier,mw.viewManager.verticalScrollPosition]
 
     #Added a hook to call this from 'reset'. Need to ensure it only affects IRead2 model.
     def adjustZoomAndScroll(self):
         if(mw.reviewer.card and mw.reviewer.card.model()['name'] == 'IRead2'):
             default = -1;
-            vals = self.zoomAndScroll.get(mw.reviewer.card.id, default);
+            vals = self.settings['zoomAndScroll'].get(mw.reviewer.card.id, default);
             if(vals != default):
                 zoomFactor = vals[0];
                 mw.viewManager.setZoomFactor(zoomFactor);
@@ -195,7 +157,7 @@ class IRead2(object):
                 self.adjustZoomAndScroll()
 
     def highlightText(self):
-        self.highlightSelectedText(self.highlightColor, self.doHighlightFont);
+        self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
 
     def htmlUpdated(self):
         #Called from javascript
@@ -228,7 +190,7 @@ class IRead2(object):
         };
         """
         #color text box
-        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IRead2 model only): </span><input type='text' id='color' value='" + self.highlightColor + "' />";
+        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IRead2 model only): </span><input type='text' id='color' value='" + self.settings['highlightColor'] + "' />";
         colorBackOrText = "<span style='font-weight:bold'>Apply color to: &nbsp;</span><input type='radio' id='colorBackOrText' name='colorBackOrText' value='false' checked='true' /> Background &nbsp;&nbsp;<input type='radio' name='colorBackOrText' value='true' /> Text<br />";
         html = "<html><head><script>" + getHighlightColorScript + "</script></head><body>";
         html += "<p>" + colorTextField;
@@ -248,10 +210,10 @@ class IRead2(object):
             w.eval("getHighlightColor()");
 
     def setHighlightColor(self, color):
-        self.highlightColor = color;
+        self.settings['highlightColor'] = color;
 
     def setColorText(self, stringTrueIfText):
-        self.doHighlightFont = stringTrueIfText;
+        self.settings['doHighlightFont'] = stringTrueIfText;
 
     def callIRSchedulerOptionsDialog(self):
         d = QDialog(self.mw)
@@ -289,31 +251,31 @@ class IRead2(object):
         isCntChecked = '';
         isPctChecked = '';
         isRandomChecked = '';
-        if(self.schedSoonType == 'cnt'):
+        if(self.settings['schedSoonType'] == 'cnt'):
             isCntChecked = 'checked';
             isPctChecked = '';
         else:
             isCntChecked = '';
             isPctChecked = 'checked';
-        if(self.schedSoonRandom): isRandomChecked = 'checked';
+        if(self.settings['schedSoonRandom']): isRandomChecked = 'checked';
         else: isRandomChecked = '';
         soonButtonConfig = "<span style='font-weight:bold'>Soon Button: &nbsp;</span>";
         soonButtonConfig += "<input type='radio' id='soonCntButton' name='soonCntOrPct' value='cnt' " + isCntChecked + " /> Position &nbsp;&nbsp;";
         soonButtonConfig += "<input type='radio' id='soonPctButton' name='soonCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
-        soonButtonConfig += "<input type='text' size='5' id='soonValue' value='" + str(self.schedSoonInt) + "'/>";
+        soonButtonConfig += "<input type='text' size='5' id='soonValue' value='" + str(self.settings['schedSoonInt']) + "'/>";
         soonButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='soonRandom' " + isRandomChecked + " /><br/>";
-        if(self.schedLaterType == 'cnt'):
+        if(self.settings['schedLaterType'] == 'cnt'):
             isCntChecked = 'checked';
             isPctChecked = '';
         else:
             isCntChecked = '';
             isPctChecked = 'checked';
-        if(self.schedLaterRandom): isRandomChecked = 'checked';
+        if(self.settings['schedLaterRandom']): isRandomChecked = 'checked';
         else: isRandomChecked = '';
         laterButtonConfig = "<span style='font-weight:bold'>Later Button: &nbsp;</span>";
         laterButtonConfig += "<input type='radio' id='laterCntButton' name='laterCntOrPct' value='cnt' " + isCntChecked + " /> Position &nbsp;&nbsp;";
         laterButtonConfig += "<input type='radio'  id='laterPctButton' name='laterCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
-        laterButtonConfig += "<input type='text' size='5' id='laterValue' value='" + str(self.schedLaterInt) + "'/>";
+        laterButtonConfig += "<input type='text' size='5' id='laterValue' value='" + str(self.settings['schedLaterInt']) + "'/>";
         laterButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='laterRandom' " + isRandomChecked + " /><br/>";
 
         html = "<html><head><script>" + getScript + "</script></head><body>";
@@ -336,17 +298,16 @@ class IRead2(object):
     def parseIROptions(self, optionsString):
         try:
             vals = optionsString.split(",");
-            if(len(vals) > 0): self.schedSoonType = vals[0];
-            if(len(vals) > 1): self.schedSoonInt = int(vals[1]);
+            if(len(vals) > 0): self.settings['schedSoonType'] = vals[0];
+            if(len(vals) > 1): self.settings['schedSoonInt'] = int(vals[1]);
             if(len(vals) > 2):
-                self.schedSoonRandom = False;
-                if(vals[2] == 'true'): self.schedSoonRandom = True;
-            if(len(vals) > 3): self.schedLaterType = vals[3];
-            if(len(vals) > 4): self.schedLaterInt = int(vals[4]);
+                self.settings['schedSoonRandom'] = False;
+                if(vals[2] == 'true'): self.settings['schedSoonRandom'] = True;
+            if(len(vals) > 3): self.settings['schedLaterType'] = vals[3];
+            if(len(vals) > 4): self.settings['schedLaterInt'] = int(vals[4]);
             if(len(vals) > 5):
-                self.schedLaterRandom = False;
-                if(vals[5] == 'true'): self.schedLaterRandom = True;
-            self.schedIROptions = optionsString;
+                self.settings['schedLaterRandom'] = False;
+                if(vals[5] == 'true'): self.settings['schedLaterRandom'] = True;
         except:
             self.parseIROptions('pct,10,true,pct,50,true');
 
@@ -572,19 +533,19 @@ class IRead2(object):
         pct = -1;
 
         if(ease == 1): #soon
-            if(self.schedSoonType == 'pct'):
-                if(self.schedSoonRandom == True): pct = float(random.randint(1, self.schedSoonInt))/float(100);
-                else: pct = float(self.schedSoonInt)/float(100);
+            if(self.settings['schedSoonType'] == 'pct'):
+                if(self.settings['schedSoonRandom'] == True): pct = float(random.randint(1, self.settings['schedSoonInt']))/float(100);
+                else: pct = float(self.settings['schedSoonInt'])/float(100);
             else:
-                cnt = self.schedSoonInt;
-                if(self.schedSoonRandom == True): cnt = random.randint(1, self.schedSoonInt);
+                cnt = self.settings['schedSoonInt'];
+                if(self.settings['schedSoonRandom'] == True): cnt = random.randint(1, self.settings['schedSoonInt']);
         elif(ease == 2):
-            if(self.schedSoonType == 'pct'):
-                if(self.schedLaterRandom == True): pct = float(random.randint(self.schedSoonInt, self.schedLaterInt))/float(100);
-                else: pct = float(self.schedLaterInt)/float(100);
+            if(self.settings['schedSoonType'] == 'pct'):
+                if(self.settings['schedLaterRandom'] == True): pct = float(random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt']))/float(100);
+                else: pct = float(self.settings['schedLaterInt'])/float(100);
             else:
-                cnt = self.schedLaterInt;
-                if(self.schedLaterRandom == True): cnt = random.randint(self.schedSoonInt, self.schedLaterInt);
+                cnt = self.settings['schedLaterInt'];
+                if(self.settings['schedLaterRandom'] == True): cnt = random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt']);
         elif(ease == 3):
             mw.IRead2.showIRSchedulerDialog(answeredCard);
             return;
