@@ -106,9 +106,6 @@ class IRead2(object):
         new_mtime = time.time(); #new modification time
         os.utime(self.dataDir,(atime,new_mtime))
 
-    def browseCard(self, cardId):
-        pass
-
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
         col = mw.col
