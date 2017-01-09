@@ -1,6 +1,7 @@
 import time
 import random
 import re
+import sys
 
 from BeautifulSoup import BeautifulSoup
 from PyQt4 import QtCore
@@ -17,6 +18,7 @@ from aqt.webview import AnkiWebView
 import ir.settings
 import ir.util
 
+sys.setdefaultencoding('utf8')
 
 IREAD_MODEL_NAME = 'IRead2'
 
