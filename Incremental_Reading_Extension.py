@@ -1,23 +1,22 @@
-from aqt import mw, editcurrent, addcards
-from aqt.reviewer import Reviewer
-from aqt.webview import AnkiWebView
-from aqt.utils import showInfo, tooltip
-from anki import notes
-from anki.hooks import wrap, addHook
-
 import os
-from stat import *
 import pickle
 import time
 import random
 import re
 
-from PyQt4.QtCore import *
+from BeautifulSoup import BeautifulSoup
 from PyQt4 import QtCore
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import QWebPage
+from anki import notes
+from anki.hooks import wrap, addHook
+from aqt import mw, editcurrent, addcards
+from aqt.reviewer import Reviewer
+from aqt.utils import showInfo, tooltip
+from aqt.webview import AnkiWebView
 
-from BeautifulSoup import BeautifulSoup
+import ir.util
 
 
 IREAD_MODEL_NAME = 'IRead2'
@@ -100,11 +99,9 @@ class IRead2(object):
         f = open(self.dataFilename, "w")
         f.write(tmp)
         f.close();
-        #touch the media folder to force sync
-        st = os.stat(self.dataDir);
-        atime = st[ST_ATIME] #access time
-        new_mtime = time.time(); #new modification time
-        os.utime(self.dataDir,(atime,new_mtime))
+
+        # Touch the media folder to force sync
+        ir.util.updateModificationTime(self.dataDir)
 
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
