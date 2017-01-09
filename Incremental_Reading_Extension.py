@@ -34,7 +34,7 @@ TITLE_FIELD_NAME = 'Title'
 AFMT = "When do you want to see this card again?"
 
 class IRead2(object):
-    
+
     zoomAndScroll = {};
     highlightColor = 'yellow';
     doHighlightFont = 'false';
@@ -47,14 +47,14 @@ class IRead2(object):
     schedLaterType = 'pct';
     schedLaterInt = 60;
     schedLaterRandom = True;
-    
+
     def __init__(self, mw):
         self.mw = mw;
-        
+
     #Invoked when profile loaded
-    def loadPluginData(self):        
+    def loadPluginData(self):
         self.add_IRead_model(); #create the model if it doesn't exist
-        
+
         #quick keys dialog
         if(self.setHighlightColorMenuItem != None):
             mw.disconnect(self.setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog);
@@ -68,18 +68,15 @@ class IRead2(object):
         self.setHighlightColorMenuItem = QAction("[IRead2]: Set highlight color (Alt+2)", mw);
         mw.connect(self.setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog);
         mw.form.menuEdit.addAction(self.setHighlightColorMenuItem);
-        
+
         action = QAction("Incremental Reading Organizer", mw)
         mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerDialog)
         mw.form.menuTools.addAction(action)
-        
+
         action = QAction("Incremental Reading Scheduler Options", mw)
         mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerOptionsDialog)
         mw.form.menuTools.addAction(action)
-        
-        #self.db = mw.col.db;
-        #_addSchema(self.db);
-        
+
         # File to persist zoom and scroll data
         self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
         self.dataFilename = self.dataDir + '/_IncrementalReadingExtension.dat';
@@ -97,7 +94,7 @@ class IRead2(object):
         #Add a hook to adjust zoom and scroll when the web viewer is reset (ie. when editing is done. Typically only done when 'show question is pressed')
         #Has to be done here because we get errors if apply this hook to reset before everything is setup.
         addHook('reset',self.adjustZoomAndScroll);
-    
+
     def savePluginData(self):
         #Capture zoom and scroll if exit directly from reviewer
         self.updateZoomAndScroll();
@@ -113,10 +110,10 @@ class IRead2(object):
         mtime = st[ST_MTIME] #modification time
         new_mtime = time.time(); #new modification time
         os.utime(self.dataDir,(atime,new_mtime))
-            
-    def browseCard(self, cardId):   
-        pass     
-               
+
+    def browseCard(self, cardId):
+        pass
+
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
         col = mw.col
@@ -134,7 +131,7 @@ class IRead2(object):
             source_field = mm.newField(SOURCE_FIELD_NAME)
             source_field['sticky'] = True
             mm.addField(iread_model, source_field)
-            
+
             # Add template
             t = mm.newTemplate('IRead2 review')
             t['qfmt'] = "{{"+TEXT_FIELD_NAME+"}}"
@@ -149,8 +146,8 @@ class IRead2(object):
             text_ord, text_field = fmap[TEXT_FIELD_NAME]
             source_ord, source_field = fmap[SOURCE_FIELD_NAME]
             source_field['sticky'] = True
-             
-            
+
+
     def extract(self):
         mw.viewManager.saveScrollPosition();
         #Copy text or html to clipboard and show (later will create card)
@@ -159,7 +156,7 @@ class IRead2(object):
         mimeData = clipboard.mimeData();
         #Highlight the text in the original document
         self.highlightSelectedText(self.highlightColor, self.doHighlightFont);
-    
+
         card = mw.reviewer.card
         cur_note = card.note()
         col = mw.col
@@ -171,23 +168,23 @@ class IRead2(object):
         setField(new_note, TEXT_FIELD_NAME, mimeData.html())
         setField(new_note, SOURCE_FIELD_NAME, getField(cur_note, SOURCE_FIELD_NAME))
         self.editCurrent = editcurrent.EditCurrent(mw)
-    
+
         self.addCards = addcards.AddCards(mw)
         self.addCards.editor.setNote(new_note)
         self.addCards.deckChooser.deck.setText(deckName)
         self.addCards.modelChooser.models.setText(IREAD_MODEL_NAME)
-    
+
     def updateZoomAndScroll(self):
         mw.viewManager.saveScrollPosition();
-        if(mw.reviewer.card): 
+        if(mw.reviewer.card):
             self.zoomAndScroll[mw.reviewer.card.id] = [mw.viewManager.textSizeMultiplier, mw.viewManager.verticalScrollPosition]
-    
-    #Added a hook to call this from 'reset'. Need to ensure it only affects IRead2 model. 
+
+    #Added a hook to call this from 'reset'. Need to ensure it only affects IRead2 model.
     def adjustZoomAndScroll(self):
-        if(mw.reviewer.card and mw.reviewer.card.model()['name'] == 'IRead2'): 
+        if(mw.reviewer.card and mw.reviewer.card.model()['name'] == 'IRead2'):
             default = -1;
             vals = self.zoomAndScroll.get(mw.reviewer.card.id, default);
-            if(vals != default): 
+            if(vals != default):
                 zoomFactor = vals[0];
                 mw.viewManager.setZoomFactor(zoomFactor);
                 scrollPosition = vals[1];
@@ -197,7 +194,7 @@ class IRead2(object):
             self.mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback);
             initJavaScript();
             mw.web.eval("highlightAllRanges()");
-            
+
     def highlightSelectedText(self, color, doHighlightFont):
         if(self.mw.reviewer.card and self.mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME): #Only highlight text if IRead2 model (need to make this general. Limited because of reference to 'Text' field)
             mw.viewManager.saveScrollPosition();
@@ -213,10 +210,10 @@ class IRead2(object):
             curNote.flush();
             mw.web.setHtml(curNote['Text']);
             self.adjustZoomAndScroll();
-    
+
     def highlightText(self):
         self.highlightSelectedText(self.highlightColor, self.doHighlightFont);
-        
+
     def htmlUpdated(self):
         #Called from javascript
         mw.viewManager.saveScrollPosition();
@@ -226,7 +223,7 @@ class IRead2(object):
         curNote.flush();
         mw.web.setHtml(curNote['Text']);
         self.adjustZoomAndScroll();
-    
+
     def showSetHighlightColorDialog(self):
         #Objective is a dialog to set highlight color used with 'h' key
         d = QDialog(self.mw)
@@ -266,13 +263,13 @@ class IRead2(object):
         choice = d.exec_();
         if(choice == 1):
             w.eval("getHighlightColor()");
-    
+
     def setHighlightColor(self, color):
         self.highlightColor = color;
-    
+
     def setColorText(self, stringTrueIfText):
         self.doHighlightFont = stringTrueIfText;
-    
+
     def callIRSchedulerOptionsDialog(self):
         d = QDialog(self.mw)
         l = QVBoxLayout()
@@ -309,10 +306,10 @@ class IRead2(object):
         isCntChecked = '';
         isPctChecked = '';
         isRandomChecked = '';
-        if(self.schedSoonType == 'cnt'): 
+        if(self.schedSoonType == 'cnt'):
             isCntChecked = 'checked';
             isPctChecked = '';
-        else: 
+        else:
             isCntChecked = '';
             isPctChecked = 'checked';
         if(self.schedSoonRandom): isRandomChecked = 'checked';
@@ -322,10 +319,10 @@ class IRead2(object):
         soonButtonConfig += "<input type='radio' id='soonPctButton' name='soonCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
         soonButtonConfig += "<input type='text' size='5' id='soonValue' value='" + str(self.schedSoonInt) + "'/>";
         soonButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='soonRandom' " + isRandomChecked + " /><br/>";
-        if(self.schedLaterType == 'cnt'): 
+        if(self.schedLaterType == 'cnt'):
             isCntChecked = 'checked';
             isPctChecked = '';
-        else: 
+        else:
             isCntChecked = '';
             isPctChecked = 'checked';
         if(self.schedLaterRandom): isRandomChecked = 'checked';
@@ -335,7 +332,7 @@ class IRead2(object):
         laterButtonConfig += "<input type='radio'  id='laterPctButton' name='laterCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
         laterButtonConfig += "<input type='text' size='5' id='laterValue' value='" + str(self.schedLaterInt) + "'/>";
         laterButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='laterRandom' " + isRandomChecked + " /><br/>";
-        
+
         html = "<html><head><script>" + getScript + "</script></head><body>";
         html += "<p>" + soonButtonConfig;
         html += "<p>" + laterButtonConfig;
@@ -352,7 +349,7 @@ class IRead2(object):
         choice = d.exec_();
         if(choice == 1):
             w.eval("updateIRSchedulerOptions()");
-            
+
     def parseIROptions(self, optionsString):
         try:
             vals = optionsString.split(",");
@@ -369,11 +366,11 @@ class IRead2(object):
             self.schedIROptions = optionsString;
         except:
             self.parseIROptions('pct,10,true,pct,50,true');
-        
+
     #Needed this no-arg pass thru to be able to invoke dialog from menu
     def callIRSchedulerDialog(self):
         self.showIRSchedulerDialog(None);
-        
+
     def showIRSchedulerDialog(self, currentCard):
         #Handle for dialog open without a current card from IRead2 model
         deckID = None;
@@ -384,7 +381,7 @@ class IRead2(object):
         else:
             deckID = currentCard.did;
             cardID = currentCard.id;
-        
+
         #Get the card data for the deck. Make sure it is an Incremental Reading deck (has IRead2 cards) before showing dialog
         cardDataList = self.getCardDataList(deckID, cardID);
         hasIRead2Cards = False;
@@ -393,7 +390,7 @@ class IRead2(object):
         if(hasIRead2Cards == False):
             showInfo(_("Please select an Incremental Reading deck."))
             return;
-        
+
         d = QDialog(self.mw)
         l = QVBoxLayout()
         l.setMargin(0)
@@ -404,7 +401,7 @@ class IRead2(object):
         #callback.setCard(currentCard);
         w.page().mainFrame().addToJavaScriptWindowObject("callback", callback);
         #Script functions move up / move down / delete / open
-        getIRSchedulerDialogScript = """       
+        getIRSchedulerDialogScript = """
         var cardList = new Array();
         """
         index = 0;
@@ -418,7 +415,7 @@ class IRead2(object):
             getIRSchedulerDialogScript += "card.checkbox.type = 'checkbox';";
             if(cardData['isCurrent'] == 'true'): getIRSchedulerDialogScript += "card.checkbox.setAttribute('checked', 'true');";
             getIRSchedulerDialogScript += "cardList[cardList.length] = card;";
-        
+
         getIRSchedulerDialogScript += """
         function buildCardData() {
             var container = document.getElementById('cardList');
@@ -435,35 +432,35 @@ class IRead2(object):
                 row = document.createElement('tr');
                 row.setAttribute('id','row' + i);
                 cardData = cardList[i];
-                
+
                 col = document.createElement('td');
                 col.setAttribute('style','width:4em;');
                 col.innerHTML = '' + i;
                 row.appendChild(col);
-                
+
                 col = document.createElement('td');
                 col.setAttribute('style','width:10em;');
                 col.innerHTML = '' + cardData.id;
                 row.appendChild(col);
-                
+
                 col = document.createElement('td');
                 col.setAttribute('style','width:30em;');
                 col.innerHTML = '' + cardData.title;
                 row.appendChild(col);
-                
+
                 col = document.createElement('td');
                 col.setAttribute('style','width:2em;');
                 col.appendChild(cardData.checkbox);
                 row.appendChild(col);
-                
+
                 table.appendChild(row);
             }
         }
-        
+
         function reposition(origIndex, newIndex, isTopOfRange) {
             if(newIndex < 0 || newIndex > (cardList.length-1)) return -1;
             if(cardList[newIndex].checkbox.checked) return -1;
-            
+
             if(isTopOfRange) {
                 document.getElementById('newPos').value = newIndex;
             }
@@ -471,7 +468,7 @@ class IRead2(object):
             cardList.splice(newIndex, 0, removedCards[0]);
             return newIndex;
         }
-        
+
         function moveSelectedUp() {
             var topOfRange = -1;
             for(var i = 0; i < cardList.length; i++) {
@@ -485,7 +482,7 @@ class IRead2(object):
             }
             buildCardData();
         }
-        
+
         function moveSelectedDown() {
             var topOfRange = -1;
             var bottomOfRange = -1
@@ -506,19 +503,19 @@ class IRead2(object):
             }
             buildCardData();
         }
-        
+
         function selectAll() {
             for(var i = 0; i < cardList.length; i++) {
                 cardList[i].checkbox.checked = true;
             }
         }
-        
+
         function selectNone() {
             for(var i = 0; i < cardList.length; i++) {
                 cardList[i].checkbox.checked = false;
             }
         }
-        
+
         function directMove() {
             var newIndex = document.getElementById('newPos').value;
             var topOfRange = -1;
@@ -549,7 +546,7 @@ class IRead2(object):
             }
             buildCardData();
         }
-        
+
         function updatePositions() {
             var cids = new Array();
             for(var i=0; i < cardList.length; i++) {
@@ -558,15 +555,15 @@ class IRead2(object):
             callback.updatePositions(cids);
         };
         """;
-        
+
         #Incremental Reading list as a list of nested <div> tags (like a table, but more flexible)
         #position,title,series id, sequence number,card id (hidden)
         newPosField = "<span style='font-weight:bold'>Card Position: </span><input type='text' id='newPos' size='5' value='0' />&nbsp;<span style='font-weight:bold'>of " + str(len(cardDataList)) + "</span>&nbsp;&nbsp;";
         newPosField += "<input type='button' value='Apply' onclick='directMove()' />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-weight:bold'>Pin Top/Bottom? </span><input type='checkbox' id='anchor'/>";
-        
+
         upDownButtons = "<input type='button' value='Move Up' onclick='moveSelectedUp()'/><input type='button' value='Move Down' onclick='moveSelectedDown()'/>";
         upDownButtons += "<input type='button' value='Select All' onclick='selectAll()'/><input type='button' value='Select None' onclick='selectNone()'/>";
-        
+
         html = "<html><head><script>" + getIRSchedulerDialogScript + "</script></head><body onLoad='buildCardData()'>";
         html += "<p>" + newPosField;
         html += "<p>" + upDownButtons;
@@ -586,7 +583,7 @@ class IRead2(object):
             w.eval("updatePositions()");
         else:
             if(currentCard != None): self.repositionCard(currentCard, -1);
-    
+
     def scheduleCard(self, answeredCard, ease):
         cnt = -1;
         pct = -1;
@@ -595,14 +592,14 @@ class IRead2(object):
             if(self.schedSoonType == 'pct'):
                 if(self.schedSoonRandom == True): pct = float(random.randint(1, self.schedSoonInt))/float(100);
                 else: pct = float(self.schedSoonInt)/float(100);
-            else: 
+            else:
                 cnt = self.schedSoonInt;
                 if(self.schedSoonRandom == True): cnt = random.randint(1, self.schedSoonInt);
         elif(ease == 2):
             if(self.schedSoonType == 'pct'):
                 if(self.schedLaterRandom == True): pct = float(random.randint(self.schedSoonInt, self.schedLaterInt))/float(100);
                 else: pct = float(self.schedLaterInt)/float(100);
-            else: 
+            else:
                 cnt = self.schedLaterInt;
                 if(self.schedLaterRandom == True): cnt = random.randint(self.schedSoonInt, self.schedLaterInt);
         elif(ease == 3):
@@ -621,17 +618,17 @@ class IRead2(object):
             pos = 5; #reasonable default
             tooltip(_("Card moved by default to position:  " + str(pos)), period=1500);
         self.repositionCard(answeredCard, pos);
-         
+
     def repositionCard(self, card, pos):
-        
+
         #Clear card's current status (put in NEW queue)
         cds = [];
         cds.append(card.id);
         mw.col.sched.forgetCards(cds);
-        
+
         if(pos < 0):
             return; #If opened dialog and chose not to specify a position, card ends up at end of NEW queue by default.
-        
+
         #Put card in new position
         cds = self.getIRCards(card);
         index = 0;
@@ -653,14 +650,14 @@ class IRead2(object):
             index+=1;
         #for cid in newCardOrder:
         #    print "New Card Order (" + str(card.id) + "): " + str(cid);
-        mw.col.sched.sortCards(newCardOrder);    
-    
+        mw.col.sched.sortCards(newCardOrder);
+
     def repositionCards(self, cids):
         #Clear card's current status (put in NEW queue)
         mw.col.sched.forgetCards(cids);
         #Reorder to match the list (cids) passed in
-        mw.col.sched.sortCards(cids);    
-        
+        mw.col.sched.sortCards(cids);
+
     def getIRCards(self, card):
         cds = [];
         for id, nid in mw.col.db.execute(
@@ -668,7 +665,7 @@ class IRead2(object):
                 "select id, nid from cards where did = " + str(card.did)):
                     cds.append(id);
         return cds;
-    
+
     def getCardDataList(self, deckID, cardID):
         cardDataList = [];
         note = None;
@@ -679,43 +676,43 @@ class IRead2(object):
                 cardData['id'] = id;
                 cardData['nid'] = nid;
                 note = mw.col.getNote(nid);
-                    
+
                 if(note.model()['name'] == 'IRead2'):
                     cardData['title'] = (note['Title'][:64].encode('ascii',
                         errors='xmlcharrefreplace')).encode('string_escape')
                 else: cardData['title'] = 'No Title';
                 #cardData['title'] = 'No Title';
-                
+
                 if(cardID == id): cardData['isCurrent'] = 'true';
                 else: cardData['isCurrent'] = 'false';
-                
+
                 cardDataList.append(cardData);
         return cardDataList;
 
 class IROptionsCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
-    def updateOptions(self, options):  
+    def updateOptions(self, options):
         mw.IRead2.parseIROptions(options);
 
-class IRSchedulerCallback(QtCore.QObject):     
+class IRSchedulerCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
-    def updatePositions(self, ids):  
+    def updatePositions(self, ids):
         cids = ids.split(",");
         mw.IRead2.repositionCards(cids);
-        
-class IREJavaScriptCallback(QtCore.QObject):  
-    @QtCore.pyqtSlot(str)
-    def htmlUpdated(self, context):  
-        mw.IRead2.htmlUpdated(); 
 
-class IREHighlightColorCallback(QtCore.QObject):  
+class IREJavaScriptCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
-    def setHighlightColor(self, string):  
+    def htmlUpdated(self, context):
+        mw.IRead2.htmlUpdated();
+
+class IREHighlightColorCallback(QtCore.QObject):
+    @QtCore.pyqtSlot(str)
+    def setHighlightColor(self, string):
         mw.IRead2.setHighlightColor(string);
     @QtCore.pyqtSlot(str)
     def setColorText(self, string):
         mw.IRead2.setColorText(string);
-                           
+
 def setField(note, name, content):
     ord = mw.col.models.fieldMap(note.model())[name][0]
     note.fields[ord] = content
@@ -724,7 +721,7 @@ def setField(note, name, content):
 def getField(note, name):
     ord = mw.col.models.fieldMap(note.model())[name][0]
     return note.fields[ord]
-            
+
 def initJavaScript():
     #Highlight the text selected
     javaScript = """
@@ -762,9 +759,9 @@ def initJavaScript():
             //} catch (ex) {
            //     makeEditableAndHighlight(colour)
             //}
-        } 
-    }   
-    
+        }
+    }
+
     function unhighlight(identifier, hiliteFont) {
         var startNode, endNode;
         startNode = document.getElementById('s' + identifier);
@@ -783,7 +780,7 @@ def initJavaScript():
             pyCallback.htmlUpdated('');
         }
     }
-    
+
     function markRange(identifier, color, hiliteFont) {
         var range, sel = window.getSelection();
         if(sel.rangeCount && sel.getRangeAt) {
@@ -810,9 +807,9 @@ def initJavaScript():
             range.setEndBefore(endNode);
             sel.removeAllRanges();
             sel.addRange(range);
-        } 
+        }
     }
-        
+
     function selectMarkedRange(identifier) {
         var startNode, endNode, range, sel;
         startNode = document.getElementById('s' + identifier);
@@ -827,11 +824,11 @@ def initJavaScript():
             return startNode.getAttribute('hiclr');
         } else return 'white';
     }
-    
+
     function highlightAllRanges() {
-        var startNodesXPathResult = document.evaluate('//*[@hiclr]', document, null, XPathResult.ANY_TYPE, null); 
+        var startNodesXPathResult = document.evaluate('//*[@hiclr]', document, null, XPathResult.ANY_TYPE, null);
         var sNodes = new Array();
-        var startNode = startNodesXPathResult.iterateNext(); 
+        var startNode = startNodesXPathResult.iterateNext();
         while(startNode) {
             sNodes.push(startNode);
             startNode = startNodesXPathResult.iterateNext();
@@ -847,16 +844,7 @@ def initJavaScript():
     """;
     mw.web.eval(javaScript);
 
-#Add schema to support storing IRead2 data relative to selections, cards created, last position in any card, etc.
-def _addSchema(db):
-    db.executescript("""
-    create table if not exists ire_card_info (
-        card_id              integer primary key,   
-        scroll_position      integer not null,         
-        zoom_factor          float not null      
-    );
-    """);
-                    
+
 # this will be called after Reviewer._keyHandler
 def my_reviewer_keyHandler(self, evt):
     key = unicode(evt.text())
@@ -882,7 +870,7 @@ Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
 def my_reviewer_answerButtonList(self, _old):
     answeredCard = self.card;
     #Only manipulate buttons if Incremental Reading deck
-    if(answeredCard.model()['name'] == 'IRead2'): 
+    if(answeredCard.model()['name'] == 'IRead2'):
         l = ((1, _("Soon")),)
         cnt = self.mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -891,9 +879,9 @@ def my_reviewer_answerButtonList(self, _old):
             return l + ((2, _("Later")), (3, _("Custom")))
         else:
             return l + ((2, _("Later")), (3, _("MuchLater")), (4, _("Custom")))
-    else: 
+    else:
         return _old(self);
-        
+
 def my_reviewer_buttonTime(self, i, _old):
     answeredCard = self.card;
     #Only manipulate button time if Incremental Reading deck
@@ -903,17 +891,17 @@ def my_reviewer_buttonTime(self, i, _old):
 def my_reviewer_answerCard(self, ease, _old):
     #Get the card before scheduler kicks in, else you are looking at a different card or NONE (which gives error)
     answeredCard = self.card;
-    
-    #Always do the regular Anki scheduling logic (for non-Incremental Reading decks, and also because UI behavior is assured 
+
+    #Always do the regular Anki scheduling logic (for non-Incremental Reading decks, and also because UI behavior is assured
     #to be consistent this way. Below code only manipulates the database, not the UI.)
     _old(self, ease);
-    
+
     #Only manipulate the deck if this is an Incremental Reading deck
     if(answeredCard.model()['name'] == 'IRead2'):
         #print "Ease: " + str(ease);
         #print "Card id: " + str(answeredCard.id);
         mw.IRead2.scheduleCard(answeredCard, ease);
-    
+
 Reviewer._answerCard = wrap(Reviewer._answerCard, my_reviewer_answerCard, "around")
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList, my_reviewer_answerButtonList, "around")
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, my_reviewer_buttonTime, "around")
