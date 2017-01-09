@@ -705,43 +705,31 @@ def getField(note, name):
     ord = mw.col.models.fieldMap(note.model())[name][0]
     return note.fields[ord]
 
-def initJavaScript():
-    #Highlight the text selected
-    javaScript = """
-    function makeEditableAndHighlight(colour, hiliteFont) {
-        var range, sel = window.getSelection();
-        if (sel.rangeCount && sel.getRangeAt) {
-            range = sel.getRangeAt(0);
-        }
-        document.designMode = "on";
-        if (range) {
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-        // Use HiliteColor since some browsers apply BackColor to the whole block
-        // Some wierdness with the hiliteFont variable. Sometimes a true boolean, other times a string. Check both. (FIX ME)
-        if(hiliteFont == true || hiliteFont == 'true') {
-            document.execCommand("foreColor", false, colour);
-        } else {
-            if (!document.execCommand("HiliteColor", false, colour)) {
-                document.execCommand("BackColor", false, colour);
-            }
-        }
-        document.designMode = "off";
-        sel.removeAllRanges();
-    }
 
-    function highlight(colour, hiliteFont) {
+def initJavaScript():
+    javaScript = """
+    function highlight(color, doHighlightFont) {
         if (window.getSelection) {
-            makeEditableAndHighlight(colour, hiliteFont);
-            // IE9 and non-IE
-            //try {
-            //    if (!document.execCommand("BackColor", false, colour)) {
-            //        makeEditableAndHighlight(colour, hiliteFont);
-            //    }
-            //} catch (ex) {
-           //     makeEditableAndHighlight(colour)
-            //}
+            var range, sel = window.getSelection();
+
+            if (sel.rangeCount && sel.getRangeAt) {
+                range = sel.getRangeAt(0);
+            }
+
+            document.designMode = "on";
+            if (range) {
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+            if (doHighlightFont == 'true') {
+                document.execCommand("foreColor", false, color);
+            } else {
+                document.execCommand("hiliteColor", false, color);
+            }
+
+            document.designMode = "off";
+            sel.removeAllRanges();
         }
     }
 
@@ -824,8 +812,8 @@ def initJavaScript():
             highlight(startNode.getAttribute('hiclr'), startNode.getAttribute('hifont'));
         }
     }
-    """;
-    mw.web.eval(javaScript);
+    """
+    mw.web.eval(javaScript)
 
 
 # this will be called after Reviewer._keyHandler
