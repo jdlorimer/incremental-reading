@@ -52,17 +52,17 @@ class ViewManager():
         # Track number of times vsa_reviewState function is called (should be same or 1 behind acsCount)
         self.rsCount = 0;
 
-        
+
     # Increase text size
     def sizeUp(self):
         zoomFactor = self.textSizeMultiplier * 1.2;
         self.setZoomFactor(zoomFactor);
-        
+
     # Decrease text size
     def sizeDown(self):
         zoomFactor = self.textSizeMultiplier * .83;
         self.setZoomFactor(zoomFactor);
-            
+
     def setZoomFactor(self, zoomFactor):
         self.textSizeMultiplier = zoomFactor;
         mw = self.mw;
@@ -73,19 +73,19 @@ class ViewManager():
     def saveScrollPosition(self):
         mw = self.mw;
         self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
-        
+
     # For future use:  To implement save point so page automatically scrolls to the right location when returning to a lengthy note (incremental reading)
     def restoreScrollPosition(self):
         mw = self.mw;
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
-    
+
     def getScrollPosition(self):
         return mw.web.page().mainFrame().scrollPosition().y();
-    
+
     def setScrollPosition(self, position):
         self.verticalScrollPosition = position;
         self.restoreScrollPosition();
-       
+
     # Implement page up function
     def pageUpAction(self):
         mw = self.mw;
@@ -94,8 +94,8 @@ class ViewManager():
         size = (size - (size/20));
         self.verticalScrollPosition = max(0,(self.verticalScrollPosition - size));
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
-     
-    #Implement page down function    
+
+    #Implement page down function
     def pageDownAction(self):
         mw = self.mw;
         self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
@@ -112,8 +112,8 @@ class ViewManager():
         size = (mw.web.page().viewportSize().height()/20);
         self.verticalScrollPosition = max(0,(self.verticalScrollPosition - size));
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
-       
-    #Implement arrow or line down action  
+
+    #Implement arrow or line down action
     def lineDownAction(self):
         mw = self.mw;
         self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
@@ -121,8 +121,8 @@ class ViewManager():
         size = (mw.web.page().viewportSize().height()/20);
         self.verticalScrollPosition = min(maxHeight, (self.verticalScrollPosition + size));
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
-        
-    # Define keyboard shortcuts for size up and size down. 
+
+    # Define keyboard shortcuts for size up and size down.
     #Note added Ctrl and '=' to avoid confusion when using standard keyboard (ie. without it, plus requires a shift, minus doesn't)
     def sizeAdjustSetupKeys(self):
         mw = self.mw;
@@ -144,7 +144,7 @@ class ViewManager():
         mw.connect(mw.arrowUp, SIGNAL("activated()"), self.lineUpAction);
         mw.arrowDown = QShortcut(QKeySequence("Down"), mw);
         mw.connect(mw.arrowDown, SIGNAL("activated()"), self.lineDownAction);
-        
+
         # create a size up and size down shortcuts and menu items
         if(self.sizeUpAction != None):
             mw.disconnect(self.sizeUpAction, SIGNAL("triggered()"), self.sizeUp);
@@ -162,7 +162,7 @@ class ViewManager():
         self.sizeUpAction = QAction("Zoom In  (Ctrl++)", mw)
         mw.connect(self.sizeUpAction, SIGNAL("triggered()"), self.sizeUp)
         mw.form.menuEdit.addAction(self.sizeUpAction)
-        
+
         if(self.sizeDownAction != None):
             mw.disconnect(self.sizeDownAction, SIGNAL("triggered()"), self.sizeDown);
             self.sizeDownAction.setEnabled(False);
@@ -175,7 +175,7 @@ class ViewManager():
         self.sizeDownAction = QAction("Zoom Out  (Ctrl+-)", mw)
         mw.connect(self.sizeDownAction, SIGNAL("triggered()"), self.sizeDown)
         mw.form.menuEdit.addAction(self.sizeDownAction)
-        
+
         #quick keys dialog
         if(self.createShortcutMenuItem != None):
             mw.disconnect(self.createShortcutMenuItem, SIGNAL("triggered()"), self.showAddCardQuickKeysDialog);
@@ -190,7 +190,7 @@ class ViewManager():
         mw.connect(menuItem, SIGNAL("triggered()"), self.showAddCardQuickKeysDialog);
         mw.form.menuEdit.addAction(menuItem);
         self.createShortcutMenuItem = menuItem;
-    
+
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
         keyModel['modelName'] = None;
@@ -199,17 +199,17 @@ class ViewManager():
         keyModel['shift'] = 'false';
         keyModel['alt'] = 'false';
         keyModel['keyName'] = None;
-        keyModel['color'] = 'yellow'; 
+        keyModel['color'] = 'yellow';
         keyModel['colorText'] = 'true';
         keyModel['showEditor'] = 'true';
         keyModel['showEditCurrent'] = 'false';
         keyModel['enabled'] = 'true';
-    
+
     def showAddCardQuickKeysDialog(self):
         #set values from lastDialogQuickKey or use default
         if(len(self.lastDialogQuickKey.keys()) < 1):
             self.setDefaultDialogValues(self.lastDialogQuickKey);
-        
+
         d = QDialog(self.mw)
         l = QVBoxLayout()
         l.setMargin(0)
@@ -244,21 +244,21 @@ class ViewManager():
                 fieldComboBox = fieldComboBox + ("<option value='" + field['name'] + "'>" + field['name'] + "</option>");
             fieldChooserByModel[str(model['id'])] = fieldComboBox;
         modelComboBox = modelComboBox + "</select>";
-        
+
         ctrl = '';
         if(self.lastDialogQuickKey.get('ctrl', 1) == 1): ctrl = 'checked';
         shift = '';
         if(self.lastDialogQuickKey.get('shift', 0) == 1): shift = 'checked';
         alt = '';
         if(self.lastDialogQuickKey.get('alt', 0) == 1): alt = 'checked';
-        
+
         #Ctrl checkbox
         ctrlCheckbox = "<span style='font-weight:bold'>Ctrl: </span><input type='checkbox' id='ctrl' " + ctrl + " />";
         #Shift checkbox
         shiftCheckbox = "<span style='font-weight:bold'>Shift: </span><input type='checkbox' id='shift' " + shift + "/>";
         #Alt checkbox
         altCheckbox = "<span style='font-weight:bold'>Alt: </span><input type='checkbox' id='alt' " + alt + "/>";
-        
+
         #shortcut key combo box
         keyComboBox = "<span style='font-weight:bold'>Key: </span><select id='keys'>";
         isSelected = '';
@@ -296,7 +296,7 @@ class ViewManager():
         if(self.lastDialogQuickKey.get('enabled', 1) == 1):
             doEnable = 'checked';
         enabledCheckbox = "<span style='font-weight:bold'>Enable (uncheck to disable): </span><input type='checkbox' id='enabled' " + doEnable + " />";
-        
+
         #javascript to populate field box based on selected model
         javascript = "var fieldsByModel = {};\n";
         for model in mw.col.models.all():
@@ -337,40 +337,40 @@ class ViewManager():
         #Dynamically add the javascript hook to call the setFieldsForModel function
         addHooksScript = """
         document.getElementById('models').onchange=function() {
-            var sel = document.getElementById('models'); 
+            var sel = document.getElementById('models');
             setFieldsForModel(sel.options[sel.selectedIndex].text);
         };
         function getValues() {
-            var sel = document.getElementById('decks'); 
+            var sel = document.getElementById('decks');
             quickKeyModel.setDeck(sel.options[sel.selectedIndex].text);
-            sel = document.getElementById('models'); 
+            sel = document.getElementById('models');
             quickKeyModel.setModel(sel.options[sel.selectedIndex].text);
-            sel = document.getElementById('fields'); 
+            sel = document.getElementById('fields');
             quickKeyModel.setField(sel.options[sel.selectedIndex].text);
-            sel = document.getElementById('ctrl'); 
+            sel = document.getElementById('ctrl');
             quickKeyModel.setCtrl(sel.checked);
-            sel = document.getElementById('shift'); 
+            sel = document.getElementById('shift');
             quickKeyModel.setShift(sel.checked);
-            sel = document.getElementById('alt'); 
+            sel = document.getElementById('alt');
             quickKeyModel.setAlt(sel.checked);
-            sel = document.getElementById('keys'); 
+            sel = document.getElementById('keys');
             quickKeyModel.setKey(sel.options[sel.selectedIndex].text);
             quickKeyModel.setSourceHighlightColor(document.getElementById('color').value.trim());
-            sel = document.getElementById('colorBackOrText'); 
+            sel = document.getElementById('colorBackOrText');
             if(sel.checked) {
                 quickKeyModel.setColorText('false');
             } else {
                 quickKeyModel.setColorText('true');
             }
-            sel = document.getElementById('showEditor'); 
+            sel = document.getElementById('showEditor');
             quickKeyModel.setShowEditor(sel.checked);
-            sel = document.getElementById('showEditCurrent'); 
+            sel = document.getElementById('showEditCurrent');
             quickKeyModel.setShowEditCurrent(sel.checked);
-            sel = document.getElementById('enabled'); 
+            sel = document.getElementById('enabled');
             quickKeyModel.setEnabled(sel.checked);
         };
         //Set the fields for the selected model
-	    var sel = document.getElementById('models'); 
+	    var sel = document.getElementById('models');
         setFieldsForModel(sel.options[sel.selectedIndex].text);
         """
         w.eval(addHooksScript);
@@ -383,14 +383,14 @@ class ViewManager():
         d.setWindowModality(Qt.WindowModal)
         d.resize(700, 500)
         choice = d.exec_();
-        
+
         w.eval("getValues()");
         #move values to a map so they can be serialized to file later (Qt objects don't pickle well)
         keyModel = {};
         keyModel['deckName'] = quickKeyModel.deckName;
         keyModel['modelName'] = quickKeyModel.modelName;
         keyModel['fieldName'] = quickKeyModel.fieldName;
-        
+
         #Ctrl + Shift + Alt + Key
         ctrl = 0;
         if(quickKeyModel.ctrl == 'true'): ctrl = 1;
@@ -402,15 +402,15 @@ class ViewManager():
         if(quickKeyModel.alt == 'true'): alt = 1;
         keyModel['alt'] = alt;
         keyModel['keyName'] = quickKeyModel.keyName;
-        
-        keyModel['color'] = quickKeyModel.color; 
+
+        keyModel['color'] = quickKeyModel.color;
         keyModel['colorText'] = quickKeyModel.colorText;
         doShowEditor = 0;
-        if(quickKeyModel.showEditor == 'true'): 
+        if(quickKeyModel.showEditor == 'true'):
             doShowEditor = 1;
         keyModel['showEditor'] = doShowEditor;
         doShowEditCurrent = 0;
-        if(quickKeyModel.showEditCurrent == 'true'): 
+        if(quickKeyModel.showEditCurrent == 'true'):
             doShowEditCurrent = 1;
         keyModel['showEditCurrent'] = doShowEditCurrent;
         keyModel['enabled'] = 1 if (quickKeyModel.enabled) else 0;
@@ -419,15 +419,15 @@ class ViewManager():
         #If SAVE chosen, then save the model as a new shortcut
         if(choice == 1):
             self.setQuickKey(keyModel);
-            
+
     def setQuickKey(self, keyModel):
         keyCombo = '';
         if(keyModel['ctrl'] == 1): keyCombo += "Ctrl+";
         if(keyModel['shift'] == 1): keyCombo += "Shift+";
         if(keyModel['alt'] == 1): keyCombo += "Alt+";
         keyCombo += keyModel['keyName'];
-        
-        existingKeyModel = self.quickKeys.get(keyCombo, None); 
+
+        existingKeyModel = self.quickKeys.get(keyCombo, None);
         if(existingKeyModel != None):
             self.quickKeys.pop(keyCombo, None);
             if(existingKeyModel.get('transient', None) != None):
@@ -440,7 +440,7 @@ class ViewManager():
                 menuItem.setEnabled(False);
                 mw.form.menuEdit.removeAction(menuItem);
                 del menuItem;
-        if(keyModel['enabled'] == 1): 
+        if(keyModel['enabled'] == 1):
             shortcut = QShortcut(QKeySequence(keyCombo), mw);
             callMe = lambda: self.quickAddCards(keyModel);
             mw.connect(shortcut, SIGNAL("activated()"), callMe);
@@ -455,37 +455,34 @@ class ViewManager():
             keyModel['transient'] = {'shortcut':shortcut,'callable':callMe, 'menuItem':menuItem};
             self.quickKeys[keyCombo] = keyModel;
             self.savePluginData();
-        #    _saveShortcut(self.db, keyModel);
-        #else:
-        #    _deleteShortcut(self.db, keyModel);
-        
+
     def quickAddCards(self, quickKeyModel):
         self.saveScrollPosition();
         hasSelection = 0;
         selectedText = '';
         #Copy text or html to clipboard if selected, else just use clipboard contents (user could hit Ctrl-C in a web browser instead)
-        if(len(mw.web.selectedText()) > 0): 
+        if(len(mw.web.selectedText()) > 0):
             hasSelection = 1;
             mw.web.triggerPageAction(QWebPage.Copy);
             clipboard = QApplication.clipboard();
             mimeData = clipboard.mimeData();
             selectedText = mimeData.html();
             #Highlight the text in the original document. This is only useful for cards with long texts like IRead2. Other card models will ignore.
-            if(quickKeyModel.get('color', None) != None): 
+            if(quickKeyModel.get('color', None) != None):
                 runHook("highlightText", quickKeyModel['color'], quickKeyModel.get('colorText', 'false'));
-            
-        #Create new note with selected model and deck  
-        new_model = mw.col.models.byName(quickKeyModel['modelName'])      
+
+        #Create new note with selected model and deck
+        new_model = mw.col.models.byName(quickKeyModel['modelName'])
         new_note = notes.Note(mw.col, new_model)
         self.setField(new_note, quickKeyModel['fieldName'], selectedText)
-        
+
         #Add tags and copy source fields from source card, if applicable
         if(mw.reviewer.card):
             card = mw.reviewer.card
             cur_note = card.note()
             tags = cur_note.stringTags();
             new_note.setTagsFromStr(tags); #sets tags for the note, but still have to set them in the editor if show dialog (see below)
-                
+
             #This is very specific to IRead2 Model and should be generalized or moved elsewhere
             IREAD_MODEL_NAME = 'IRead2'
             TEXT_FIELD_NAME = 'Text'
@@ -500,7 +497,7 @@ class ViewManager():
     #                self.setField(new_note, SOURCE_FIELD_NAME, self.getField(cur_note, SOURCE_FIELD_NAME))
                 #    self.setField(new_note, MODEL_FIELD_NAME, self.getField(cur_note, MODEL_FIELD_NAME))
                 #    self.setField(new_note, DECK_FIELD_NAME, self.getField(cur_note, DECK_FIELD_NAME))
-                
+
         #If shortcut said NOT to show AddCards dialog, then skip it.
         if(quickKeyModel['showEditor'] == 0):
             if(hasSelection == 1):
@@ -520,7 +517,7 @@ class ViewManager():
                 # stop anything playing
                 clearAudioQueue()
                 mw.col.autosave()
-                tooltip(_("Added"), period=500)  
+                tooltip(_("Added"), period=500)
         #Else show the add cards dialog
         else:
             self.acsCount += 1;
@@ -530,8 +527,8 @@ class ViewManager():
             if(new_note.stringTags() != None): self.addCards.editor.tags.setText(new_note.stringTags().strip()); #Not sure why doesn't get set automatically since note has associated tags, but ...
             self.addCards.modelChooser.models.setText(quickKeyModel['modelName'])
             self.addCards.deckChooser.deck.setText(quickKeyModel['deckName'])
-            
-    
+
+
     def setField(self, note, name, content):
         ord = mw.col.models.fieldMap(note.model())[name][0]
         note.fields[ord] = content
@@ -542,20 +539,17 @@ class ViewManager():
         return note.fields[ord]
 
     #Invoked when profile loaded
-    def loadPluginData(self): 
+    def loadPluginData(self):
         # Remove quickKeys if already loaded (ie. handle for switching profile instead of just restart anki)
         if(len(self.quickKeys) > 0):
             self.removeQuickKeys();
-            
+
         # Add key handlers and menu items
         self.sizeAdjustSetupKeys();
-        
+
         # File to persist data
         self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
         self.dataFilename = self.dataDir + '/_ViewSizeAdjustAddon.dat';
-        #self.db = mw.col.db;
-        #_addSchema(self.db);
-        #self.quickKeys = _loadShortcuts(self.db);
         loadedQuickKeys = {};
         if(os.path.isfile(self.dataFilename)):
             f = open(self.dataFilename, "r")
@@ -574,18 +568,18 @@ class ViewManager():
                     pass;
             f.close();
         self.addQuickKeys(loadedQuickKeys);
-    
+
     def removeQuickKeys(self):
         for qkey in self.quickKeys.keys():
             quickKey = self.quickKeys.get(qkey, None);
-            if(quickKey != None): 
+            if(quickKey != None):
                 quickKey['enabled'] = 0;
                 self.setQuickKey(quickKey);
-    
+
     def addQuickKeys(self, mapOfQuickKeys):
         for qkey in mapOfQuickKeys.keys():
             quickKey = mapOfQuickKeys.get(qkey, None);
-            if(quickKey != None): 
+            if(quickKey != None):
                 #Set reasonable defaults for legacy shortcuts that did not previously support ctrl, shift, alt, showEditCurrent
                 if(quickKey.get('ctrl', None) == None): quickKey['ctrl'] = 1;
                 if(quickKey.get('shift', None) == None): quickKey['shift'] = 0;
@@ -595,12 +589,12 @@ class ViewManager():
                 if(quickKey.get('enabled', None) == None): quickKey['enabled'] = 1;
                 self.setQuickKey(quickKey);
             else: print "qkey not found: " + str(qkey);
-    
+
     def savePluginData(self):
         quickKeysCopy = {}
         for qkey in self.quickKeys.keys():
             quickKey = self.quickKeys.get(qkey, None);
-            if(quickKey != None): 
+            if(quickKey != None):
                 quickKeysCopy[qkey] = quickKey.copy();
                 quickKeysCopy[qkey]['transient'] = None;
         lastDialogQuickKeyCopy = self.lastDialogQuickKey.copy();
@@ -617,75 +611,9 @@ class ViewManager():
         mtime = st[ST_MTIME] #modification time
         new_mtime = time.time(); #new modification time
         os.utime(self.dataDir,(atime,new_mtime))
-        
-    #Add schema to support storing IRead2 data relative to selections, cards created, last position in any card, etc.
-    def _addSchema(db):
-        db.executescript("""
-        create table if not exists ire_addcards_shortcuts (
-            key             text primary key,
-            deck            text not null,
-            model           text not null,
-            field           text not null,
-            show_editor     bool not null
-        );
 
-        create table if not exists ire_card_info (
-            card_id              integer primary key,   
-            scroll_position      integer not null,         
-            zoom_factor          float not null      
-        );
-        """);
 
-    def _loadShortcuts(db):
-        cur = db.execute("""
-        select key, deck, model, field, show_editor
-            from ire_addcards_shortcuts
-        """);
-        keys = {};
-        if(cur != None):
-            rows = cur.fetchall();
-            for row in rows:
-                print 'found key: ' + row[0];
-                keyModel = {};
-                keyModel['deckName'] = row[1];
-                keyModel['modelName'] = row[2];
-                keyModel['fieldName'] = row[3];
-                keyModel['keyName'] = row[0];
-                keyModel['showEditor'] = row[4];
-                keyModel['enabled'] = 1;
-                keyModel['persisted'] = 1;
-                keys[row[0]] = keyModel;
-        else: 
-            print 'no shortcuts found in database';
-            cur = db.execute("""
-                select count(*) from ire_addcards_shortcuts;
-                """);
-            print cur.fetchone()[0];
-        return keys;
-
-    def _saveShortcut(db, quickKey):
-        if(quickKey != None): 
-            if(quickKey.get('persisted',None) == None):
-                sql = "insert into ire_addcards_shortcuts (key, deck, model, field, show_editor) values('" + quickKey['keyName'] + "','" + quickKey['deckName'] + "','" + quickKey['modelName'] + "','" + quickKey['fieldName'] + "'," + str(quickKey['showEditor']) + ")";
-                print sql;
-                db.execute(sql);
-            else:
-                sql = "update ire_addcards_shortcuts set key='" + quickKey['keyName'] + "', deck='" + quickKey['deckName'] + "', model='" + quickKey['modelName'] + "', field='" + quickKey['fieldName'] + "', show_editor=" + str(quickKey['showEditor']) + " where key='" + quickKey['keyName'] + "'";
-                print sql;
-                db.execute(sql);
-            cur = db.execute("""
-                select count(*) from ire_addcards_shortcuts;
-                """);
-            print cur.fetchone()[0];
-
-    def _deleteShortcut(db, quickKey):
-        if(quickKey != None): 
-            if(quickKey.get('persisted',None) != None):
-                sql = "delete from ire_addcards_shortcuts where key='" + quickKey['keyName'] + "'";
-                print sql;
-                db.execute(sql);
-            
-class QuickKeyModel(QtCore.QObject):  
+class QuickKeyModel(QtCore.QObject):
     deckName = '';
     modelName = '';
     fieldName = '';
@@ -698,48 +626,48 @@ class QuickKeyModel(QtCore.QObject):
     showEditor = True;
     enabled = True;
     @QtCore.pyqtSlot(str)
-    def setDeck(self, deck):  
-        self.deckName = deck; 
+    def setDeck(self, deck):
+        self.deckName = deck;
     @QtCore.pyqtSlot(str)
-    def setModel(self, model):  
+    def setModel(self, model):
         self.modelName = model;
     @QtCore.pyqtSlot(str)
-    def setField(self, field):  
+    def setField(self, field):
         self.fieldName = field;
     @QtCore.pyqtSlot(str)
-    def setCtrl(self, shouldShow):  
+    def setCtrl(self, shouldShow):
         self.ctrl = shouldShow;
     @QtCore.pyqtSlot(str)
-    def setShift(self, shouldShow):  
+    def setShift(self, shouldShow):
         self.shift = shouldShow;
     @QtCore.pyqtSlot(str)
-    def setAlt(self, shouldShow):  
+    def setAlt(self, shouldShow):
         self.alt = shouldShow;
     @QtCore.pyqtSlot(str)
-    def setKey(self, key):  
+    def setKey(self, key):
         self.keyName = key;
     @QtCore.pyqtSlot(str)
-    def setSourceHighlightColor(self, color): 
+    def setSourceHighlightColor(self, color):
         self.color = color;
     @QtCore.pyqtSlot(str)
-    def setColorText(self, colorText): 
+    def setColorText(self, colorText):
         self.colorText = colorText;
     @QtCore.pyqtSlot(str)
-    def setShowEditor(self, shouldShow):  
+    def setShowEditor(self, shouldShow):
         self.showEditor = shouldShow;
     @QtCore.pyqtSlot(str)
-    def setShowEditCurrent(self, shouldShow):  
+    def setShowEditCurrent(self, shouldShow):
         self.showEditCurrent = shouldShow;
     @QtCore.pyqtSlot(str)
-    def setEnabled(self, isEnabled): 
+    def setEnabled(self, isEnabled):
         self.enabled = (isEnabled == 'true');
-        
+
 mw.viewManager = ViewManager(mw);
 addHook("profileLoaded", mw.viewManager.loadPluginData); #Why does addHook require loadSizePreference with no braces (), whereas wrap requires sizeAdjustSetupKeys with braces?
 addHook('unloadProfile', mw.viewManager.savePluginData);
 
 # Dangerous: We are monkey patching a method beginning with _
-# Added these next two monkey patches (resetRequiredState and reviewState) 
+# Added these next two monkey patches (resetRequiredState and reviewState)
 # to prevent reviewer from advancing to next card when using AddCards shortcuts.
 def vsa_resetRequiredState(self, oldState, _old):
     #print "vsa_resetRequiredState: acsCount=" + str(self.viewManager.acsCount) + ", mw.reviewer.card=" + str(mw.reviewer.card) + ", and old state =" + oldState;
@@ -755,10 +683,10 @@ def vsa_resetRequiredState(self, oldState, _old):
             #print "vsa_resetRequiredState: Doing reset required with old state: " + oldState;
             return _old(self, oldState);
         return;
-    else: 
+    else:
         #print "vsa_resetRequiredState: Requisite conditions not met. Delegating to original resetRequiredState method.";
         return _old(self, oldState);
-    
+
 def vsa_reviewState(self, oldState, _old):
     #print "vsa_reviewState: acsCount=" + str(self.viewManager.acsCount) + ", mw.reviewer.card=" + str(mw.reviewer.card) + ", and old state =" + oldState;
     specialHandling = False;
@@ -771,8 +699,8 @@ def vsa_reviewState(self, oldState, _old):
         self.web.setHtml(curNote['Text']);
         self.reviewer.bottom.web.show();
         self.IRead2.adjustZoomAndScroll();
-    else: 
+    else:
         #print "vsa_reviewState: Requisite conditions not met. Delegating to original reviewState method.";
-        return _old(self, oldState);       
+        return _old(self, oldState);
 AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState, vsa_resetRequiredState, "around")
 AnkiQt._reviewState = wrap(AnkiQt._reviewState, vsa_reviewState, "around")
