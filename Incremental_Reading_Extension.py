@@ -34,7 +34,6 @@ class IRead2(object):
     highlightColor = 'yellow';
     doHighlightFont = 'false';
     ir2data = {'zoomAndScroll':zoomAndScroll,'highlightColor':highlightColor, 'doHighlightFont':'false'}
-    setHighlightColorMenuItem = None;
     schedIROptions = 'pct,10,true,pct,60,true';
     schedSoonType = 'pct';
     schedSoonInt = 20;
@@ -49,28 +48,6 @@ class IRead2(object):
     #Invoked when profile loaded
     def loadPluginData(self):
         self.add_IRead_model(); #create the model if it doesn't exist
-
-        #quick keys dialog
-        if(self.setHighlightColorMenuItem != None):
-            mw.disconnect(self.setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog);
-            self.setHighlightColorMenuItem.setEnabled(False);
-            mw.form.menuEdit.removeAction(self.setHighlightColorMenuItem);
-            del self.setHighlightColorMenuItem;
-            mw.highlight.setEnabled(False);
-            mw.disconnect(mw.highlight, SIGNAL("activated()"), mw.IRead2.showSetHighlightColorDialog);
-        mw.highlight = QShortcut(QKeySequence("Alt+2"), mw);
-        mw.connect(mw.highlight, SIGNAL("activated()"), mw.IRead2.showSetHighlightColorDialog);
-        self.setHighlightColorMenuItem = QAction("[IRead2]: Set highlight color (Alt+2)", mw);
-        mw.connect(self.setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog);
-        mw.form.menuEdit.addAction(self.setHighlightColorMenuItem);
-
-        action = QAction("Incremental Reading Organizer", mw)
-        mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerDialog)
-        mw.form.menuTools.addAction(action)
-
-        action = QAction("Incremental Reading Scheduler Options", mw)
-        mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerOptionsDialog)
-        mw.form.menuTools.addAction(action)
 
         # File to persist zoom and scroll data
         self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
@@ -907,6 +884,24 @@ def my_reviewer_answerCard(self, ease, _old):
         #print "Ease: " + str(ease);
         #print "Card id: " + str(answeredCard.id);
         mw.IRead2.scheduleCard(answeredCard, ease);
+
+
+def createMenuItems():
+    highlight = QShortcut(QKeySequence("Alt+2"), mw)
+    mw.connect(highlight, SIGNAL("activated()"), mw.IRead2.showSetHighlightColorDialog)
+    setHighlightColorMenuItem = QAction("[IRead2]: Set highlight color (Alt+2)", mw)
+    mw.connect(setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog)
+    mw.form.menuEdit.addAction(setHighlightColorMenuItem)
+
+    action = QAction("Incremental Reading Organizer", mw)
+    mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerDialog)
+    mw.form.menuTools.addAction(action)
+
+    action = QAction("Incremental Reading Scheduler Options", mw)
+    mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerOptionsDialog)
+    mw.form.menuTools.addAction(action)
+
+createMenuItems()
 
 Reviewer._answerCard = wrap(Reviewer._answerCard, my_reviewer_answerCard, "around")
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList, my_reviewer_answerButtonList, "around")
