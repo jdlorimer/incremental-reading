@@ -1,29 +1,20 @@
 from aqt import mw, editcurrent, addcards
-from aqt.browser import Browser
 from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
-from aqt.main import AnkiQt
 from aqt.utils import showInfo, tooltip
-from anki import notes, models, cards
+from anki import notes
 from anki.hooks import wrap, addHook
-from anki.db import DB;
 
-import unicodedata
-import os;
+import os
 from stat import *
-import pickle;
-import copy as cp
-import string;
+import pickle
 import time
-import random;
+import random
 
 from PyQt4.QtCore import *
 from PyQt4 import QtCore
 from PyQt4.QtGui import *
-from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings
-from PyQt4.QtNetwork import QLocalServer, QLocalSocket
-#from PyQt4 import pyqtconfig
-from View_Size_Adjust import ViewManager
+from PyQt4.QtWebKit import QWebPage
 
 IREAD_MODEL_NAME = 'IRead2'
 
@@ -32,6 +23,7 @@ SOURCE_FIELD_NAME = 'Source'
 TITLE_FIELD_NAME = 'Title'
 
 AFMT = "When do you want to see this card again?"
+
 
 class IRead2(object):
 
