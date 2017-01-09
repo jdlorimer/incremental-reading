@@ -472,18 +472,11 @@ class ViewManager():
 
             #This is very specific to IRead2 Model and should be generalized or moved elsewhere
             IREAD_MODEL_NAME = 'IRead2'
-            TEXT_FIELD_NAME = 'Text'
             SOURCE_FIELD_NAME = 'Source'
-            DECK_FIELD_NAME = 'Anki Deck'
-            MODEL_FIELD_NAME = 'Model'
             if(mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME):
                 for f in new_model['flds']:
                     if(SOURCE_FIELD_NAME == f['name']):
                         self.setField(new_note, SOURCE_FIELD_NAME, self.getField(cur_note, SOURCE_FIELD_NAME))
-                #if(quickKeyModel['modelName'] == IREAD_MODEL_NAME):
-    #                self.setField(new_note, SOURCE_FIELD_NAME, self.getField(cur_note, SOURCE_FIELD_NAME))
-                #    self.setField(new_note, MODEL_FIELD_NAME, self.getField(cur_note, MODEL_FIELD_NAME))
-                #    self.setField(new_note, DECK_FIELD_NAME, self.getField(cur_note, DECK_FIELD_NAME))
 
         #If shortcut said NOT to show AddCards dialog, then skip it.
         if(quickKeyModel['showEditor'] == 0):
@@ -595,7 +588,6 @@ class ViewManager():
         #touch the media folder to force sync
         st = os.stat(self.dataDir);
         atime = st[ST_ATIME] #access time
-        mtime = st[ST_MTIME] #modification time
         new_mtime = time.time(); #new modification time
         os.utime(self.dataDir,(atime,new_mtime))
 
