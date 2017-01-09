@@ -99,7 +99,6 @@ class IRead2(object):
         #touch the media folder to force sync
         st = os.stat(self.dataDir);
         atime = st[ST_ATIME] #access time
-        mtime = st[ST_MTIME] #modification time
         new_mtime = time.time(); #new modification time
         os.utime(self.dataDir,(atime,new_mtime))
 
@@ -579,7 +578,7 @@ class IRead2(object):
     def scheduleCard(self, answeredCard, ease):
         cnt = -1;
         pct = -1;
-        type = 'pct'; #default to percent
+
         if(ease == 1): #soon
             if(self.schedSoonType == 'pct'):
                 if(self.schedSoonRandom == True): pct = float(random.randint(1, self.schedSoonInt))/float(100);
