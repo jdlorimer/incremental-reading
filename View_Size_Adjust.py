@@ -1,5 +1,3 @@
-import os
-import pickle
 import re
 
 from PyQt4 import QtCore
@@ -14,8 +12,6 @@ from aqt.main import AnkiQt
 from aqt.qt import *
 from aqt.utils import tooltip, showWarning
 from aqt.webview import AnkiWebView
-
-import ir.util
 
 
 class ViewManager():
@@ -39,6 +35,7 @@ class ViewManager():
         # Track number of times vsa_reviewState function is called (should be same or 1 behind acsCount)
         self.rsCount = 0;
 
+        self.quickKeysAdded = False
 
     # Increase text size
     def sizeUp(self):
@@ -518,43 +515,13 @@ class ViewManager():
         ord = mw.col.models.fieldMap(note.model())[name][0]
         return note.fields[ord]
 
-    #Invoked when profile loaded
     def loadPluginData(self):
-        # Remove quickKeys if already loaded (ie. handle for switching profile instead of just restart anki)
-        if(len(self.quickKeys) > 0):
-            self.removeQuickKeys();
-
-        # Add key handlers and menu items
-        self.sizeAdjustSetupKeys();
-
-        # File to persist data
-        self.dataDir = self.mw.pm.profileFolder() + '/collection.media';
-        self.dataFilename = self.dataDir + '/_ViewSizeAdjustAddon.dat';
-        loadedQuickKeys = {};
-        if(os.path.isfile(self.dataFilename)):
-            f = open(self.dataFilename, "r")
-            tmp = f.read()
-            if(tmp):
-                try:
-                    pluginData = pickle.loads(tmp);
-                    multiplier = pluginData.get('textSizeMultiplier', 1);
-                    self.lastDialogQuickKey = pluginData.get('lastDialogQuickKey', {});
-                    if(multiplier > -1):
-                        self.textSizeMultiplier = multiplier;
-                        self.mw.web.setTextSizeMultiplier(self.textSizeMultiplier);
-                    loadedQuickKeys = pluginData['quickKeys'];
-                except:
-                    print "error reading pluginData file";
-                    pass;
-            f.close();
-        self.addQuickKeys(loadedQuickKeys);
-
-    def removeQuickKeys(self):
-        for qkey in self.quickKeys.keys():
-            quickKey = self.quickKeys.get(qkey, None);
-            if(quickKey != None):
-                quickKey['enabled'] = 0;
-                self.setQuickKey(quickKey);
+        self.settings = mw.settingsManager.settings
+        self.mw.web.setTextSizeMultiplier(self.settings['textSizeMultiplier'])
+        self.sizeAdjustSetupKeys()
+        if not self.quickKeysAdded:
+            self.addQuickKeys(self.settings['quickKeys'])
+            self.quickKeysAdded = True
 
     def addQuickKeys(self, mapOfQuickKeys):
         for qkey in mapOfQuickKeys.keys():
@@ -573,21 +540,18 @@ class ViewManager():
     def savePluginData(self):
         quickKeysCopy = {}
         for qkey in self.quickKeys.keys():
-            quickKey = self.quickKeys.get(qkey, None);
-            if(quickKey != None):
-                quickKeysCopy[qkey] = quickKey.copy();
-                quickKeysCopy[qkey]['transient'] = None;
-        lastDialogQuickKeyCopy = self.lastDialogQuickKey.copy();
-        lastDialogQuickKeyCopy['transient'] = None;
-        # File to persist plugin data
-        pluginData = {'textSizeMultiplier':self.textSizeMultiplier,'quickKeys':quickKeysCopy,'lastDialogQuickKey':lastDialogQuickKeyCopy}
-        tmp = pickle.dumps(pluginData);
-        f = open(self.dataFilename, "w")
-        f.write(tmp)
-        f.close();
+            quickKey = self.quickKeys.get(qkey, None)
+            if quickKey:
+                quickKeysCopy[qkey] = quickKey.copy()
+                quickKeysCopy[qkey]['transient'] = None
 
-        # Touch the media folder to force sync
-        ir.util.updateModificationTime(self.dataDir)
+        lastDialogQuickKeyCopy = self.lastDialogQuickKey.copy()
+        lastDialogQuickKeyCopy['transient'] = None
+
+        self.settings['quickKeys'] = quickKeysCopy
+        self.settings['lastDialogQuickKey'] = lastDialogQuickKeyCopy
+
+        mw.settingsManager.saveSettings()
 
 
 class QuickKeyModel(QtCore.QObject):
