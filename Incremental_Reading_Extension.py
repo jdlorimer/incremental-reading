@@ -32,17 +32,17 @@ AFMT = "When do you want to see this card again?"
 class IRead2(object):
     def __init__(self, mw):
         self.mw = mw
-        self.settingsManager = ir.settings.SettingsManager()
 
     def loadPluginData(self):
         self.add_IRead_model()
-        self.settings = self.settingsManager.getSettings()
+        mw.settingsManager = ir.settings.SettingsManager()
+        self.settings = mw.settingsManager.settings
         addHook('reset', mw.IRead2.adjustZoomAndScroll)
 
     def savePluginData(self):
         # Capture zoom and scroll if exit directly from reviewer
         self.updateZoomAndScroll()
-        self.settingsManager.saveSettings(self.settings)
+        mw.settingsManager.saveSettings()
 
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
