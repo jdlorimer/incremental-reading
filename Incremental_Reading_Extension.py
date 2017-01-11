@@ -20,8 +20,7 @@ import ir.util
 
 sys.setdefaultencoding('utf8')
 
-IREAD_MODEL_NAME = 'IRead2'
-
+IR_MODEL_NAME = 'IR3'
 TEXT_FIELD_NAME = 'Text'
 SOURCE_FIELD_NAME = 'Source'
 TITLE_FIELD_NAME = 'Title'
@@ -29,7 +28,7 @@ TITLE_FIELD_NAME = 'Title'
 AFMT = "When do you want to see this card again?"
 
 
-class IRead2(object):
+class ReadingManager(object):
     def __init__(self, mw):
         self.mw = mw
 
@@ -37,7 +36,7 @@ class IRead2(object):
         self.add_IRead_model()
         mw.settingsManager = ir.settings.SettingsManager()
         self.settings = mw.settingsManager.settings
-        addHook('reset', mw.IRead2.adjustZoomAndScroll)
+        addHook('reset', mw.readingManager.adjustZoomAndScroll)
 
     def savePluginData(self):
         mw.settingsManager.saveSettings()
@@ -46,9 +45,9 @@ class IRead2(object):
         "Only adds model if no model with the same name is present"
         col = mw.col
         mm = col.models
-        iread_model = mm.byName(IREAD_MODEL_NAME)
+        iread_model = mm.byName(IR_MODEL_NAME)
         if iread_model is None:
-            iread_model = mm.new(IREAD_MODEL_NAME)
+            iread_model = mm.new(IR_MODEL_NAME)
             # Field for title:
             model_field = mm.newField(TITLE_FIELD_NAME)
             mm.addField(iread_model, model_field)
@@ -61,7 +60,7 @@ class IRead2(object):
             mm.addField(iread_model, source_field)
 
             # Add template
-            t = mm.newTemplate('IRead2 review')
+            t = mm.newTemplate('IR Card')
             t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
             t['afmt'] = AFMT
             mm.addTemplate(iread_model, t)
@@ -88,7 +87,7 @@ class IRead2(object):
         cur_note = card.note()
         col = mw.col
         deckName = col.decks.get(card.did)['name']
-        model = col.models.byName(IREAD_MODEL_NAME)
+        model = col.models.byName(IR_MODEL_NAME)
         new_note = notes.Note(col, model)
         new_note.tags = cur_note.tags
         #setField(new_note, TITLE_FIELD_NAME, getField(cur_note, TITLE_FIELD_NAME))
@@ -99,10 +98,10 @@ class IRead2(object):
         self.addCards = addcards.AddCards(mw)
         self.addCards.editor.setNote(new_note)
         self.addCards.deckChooser.deck.setText(deckName)
-        self.addCards.modelChooser.models.setText(IREAD_MODEL_NAME)
+        self.addCards.modelChooser.models.setText(IR_MODEL_NAME)
 
     def adjustZoomAndScroll(self):
-        if mw.reviewer.card and mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME:
+        if mw.reviewer.card and mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
             cardID = str(mw.reviewer.card.id)
 
             if cardID not in self.settings['zoom']:
@@ -139,7 +138,7 @@ class IRead2(object):
 
         # Need to make this general
         # Limited because of reference to 'Text' field
-        if currentCard and currentModelName == IREAD_MODEL_NAME:
+        if currentCard and currentModelName == IR_MODEL_NAME:
             identifier = str(int(time.time() * 10))
             script = "markRange('%s', '%s', '%s');" % (identifier,
                                                        color,
@@ -189,7 +188,7 @@ class IRead2(object):
         };
         """
         #color text box
-        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IRead2 model only): </span><input type='text' id='color' value='" + self.settings['highlightColor'] + "' />";
+        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IR model only): </span><input type='text' id='color' value='" + self.settings['highlightColor'] + "' />";
         colorBackOrText = "<span style='font-weight:bold'>Apply color to: &nbsp;</span><input type='radio' id='colorBackOrText' name='colorBackOrText' value='false' checked='true' /> Background &nbsp;&nbsp;<input type='radio' name='colorBackOrText' value='true' /> Text<br />";
         html = "<html><head><script>" + getHighlightColorScript + "</script></head><body>";
         html += "<p>" + colorTextField;
@@ -315,7 +314,7 @@ class IRead2(object):
         self.showIRSchedulerDialog(None);
 
     def showIRSchedulerDialog(self, currentCard):
-        #Handle for dialog open without a current card from IRead2 model
+        #Handle for dialog open without a current card from IR model
         deckID = None;
         cardID = None;
         if(currentCard == None):
@@ -325,12 +324,12 @@ class IRead2(object):
             deckID = currentCard.did;
             cardID = currentCard.id;
 
-        #Get the card data for the deck. Make sure it is an Incremental Reading deck (has IRead2 cards) before showing dialog
+        #Get the card data for the deck. Make sure it is an Incremental Reading deck (has IR cards) before showing dialog
         cardDataList = self.getCardDataList(deckID, cardID);
-        hasIRead2Cards = False;
+        hasIRCards = False;
         for cd in cardDataList:
-            if(cd['title'] != 'No Title'): hasIRead2Cards = True;
-        if(hasIRead2Cards == False):
+            if(cd['title'] != 'No Title'): hasIRCards = True;
+        if(hasIRCards == False):
             showInfo(_("Please select an Incremental Reading deck."))
             return;
 
@@ -546,12 +545,12 @@ class IRead2(object):
                 cnt = self.settings['schedLaterInt'];
                 if(self.settings['schedLaterRandom'] == True): cnt = random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt']);
         elif(ease == 3):
-            mw.IRead2.showIRSchedulerDialog(answeredCard);
+            mw.readingManager.showIRSchedulerDialog(answeredCard);
             return;
         elif(ease == 4):
             pct = 1;
         if(pct > -1):
-            cds = mw.IRead2.getIRCards(answeredCard);
+            cds = mw.readingManager.getIRCards(answeredCard);
             pos = int(len(cds) * pct);
             tooltip(_("Card moved (" + str(int(100*pct)) + "%) to position:  " + str(pos)), period=1500);
         elif(cnt > -1):
@@ -620,7 +619,7 @@ class IRead2(object):
                 cardData['nid'] = nid;
                 note = mw.col.getNote(nid);
 
-                if(note.model()['name'] == 'IRead2'):
+                if(note.model()['name'] == IR_MODEL_NAME):
                     cardData['title'] = (note['Title'][:64].encode('ascii',
                         errors='xmlcharrefreplace')).encode('string_escape')
                 else: cardData['title'] = 'No Title';
@@ -635,26 +634,26 @@ class IRead2(object):
 class IROptionsCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
     def updateOptions(self, options):
-        mw.IRead2.parseIROptions(options);
+        mw.readingManager.parseIROptions(options);
 
 class IRSchedulerCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
     def updatePositions(self, ids):
         cids = ids.split(",");
-        mw.IRead2.repositionCards(cids);
+        mw.readingManager.repositionCards(cids);
 
 class IREJavaScriptCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
     def htmlUpdated(self, context):
-        mw.IRead2.htmlUpdated();
+        mw.readingManager.htmlUpdated();
 
 class IREHighlightColorCallback(QtCore.QObject):
     @QtCore.pyqtSlot(str)
     def setHighlightColor(self, string):
-        mw.IRead2.setHighlightColor(string);
+        mw.readingManager.setHighlightColor(string);
     @QtCore.pyqtSlot(str)
     def setColorText(self, string):
-        mw.IRead2.setColorText(string);
+        mw.readingManager.setColorText(string);
 
 def setField(note, name, content):
     ord = mw.col.models.fieldMap(note.model())[name][0]
@@ -780,18 +779,18 @@ def initJavaScript():
 def my_reviewer_keyHandler(self, evt):
     key = unicode(evt.text())
     if key == "x": # e[X]tract
-        if self.card.note().model()['name'] == IREAD_MODEL_NAME:
-            mw.IRead2.extract()
+        if self.card.note().model()['name'] == IR_MODEL_NAME:
+            mw..extract()
     elif key == "h": # [H]ighlight
-        if self.card.note().model()['name'] == IREAD_MODEL_NAME:
-            mw.IRead2.highlightText();
+        if self.card.note().model()['name'] == IR_MODEL_NAME:
+            mw.readingManager.highlightText();
 
-mw.IRead2 = IRead2(mw)
+mw.readingManager = ReadingManager(mw)
 
-addHook('profileLoaded', mw.IRead2.loadPluginData)
-addHook('unloadProfile', mw.IRead2.savePluginData)
-addHook('showQuestion', mw.IRead2.adjustZoomAndScroll)
-addHook('highlightText', mw.IRead2.highlightSelectedText);
+addHook('profileLoaded', mw.readingManager.loadPluginData)
+addHook('unloadProfile', mw.readingManager.savePluginData)
+addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
+addHook('highlightText', mw.readingManager.highlightSelectedText);
 
 # Dangerous: We are monkey patching a method beginning with _
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
@@ -800,7 +799,7 @@ Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
 def my_reviewer_answerButtonList(self, _old):
     answeredCard = self.card;
     #Only manipulate buttons if Incremental Reading deck
-    if(answeredCard.model()['name'] == 'IRead2'):
+    if(answeredCard.model()['name'] == IR_MODEL_NAME):
         l = ((1, _("Soon")),)
         cnt = self.mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -815,7 +814,7 @@ def my_reviewer_answerButtonList(self, _old):
 def my_reviewer_buttonTime(self, i, _old):
     answeredCard = self.card;
     #Only manipulate button time if Incremental Reading deck
-    if(answeredCard.model()['name'] == 'IRead2'): return "<div class=spacer></div>";
+    if(answeredCard.model()['name'] == IR_MODEL_NAME): return "<div class=spacer></div>";
     else: return _old(self, i);
 
 def my_reviewer_answerCard(self, ease, _old):
@@ -827,25 +826,25 @@ def my_reviewer_answerCard(self, ease, _old):
     _old(self, ease);
 
     #Only manipulate the deck if this is an Incremental Reading deck
-    if(answeredCard.model()['name'] == 'IRead2'):
+    if(answeredCard.model()['name'] == IR_MODEL_NAME):
         #print "Ease: " + str(ease);
         #print "Card id: " + str(answeredCard.id);
-        mw.IRead2.scheduleCard(answeredCard, ease);
+        mw.readingManager.scheduleCard(answeredCard, ease);
 
 
 def createMenuItems():
     highlight = QShortcut(QKeySequence("Alt+2"), mw)
-    mw.connect(highlight, SIGNAL("activated()"), mw.IRead2.showSetHighlightColorDialog)
-    setHighlightColorMenuItem = QAction("[IRead2]: Set highlight color (Alt+2)", mw)
-    mw.connect(setHighlightColorMenuItem, SIGNAL("triggered()"), mw.IRead2.showSetHighlightColorDialog)
+    mw.connect(highlight, SIGNAL("activated()"), mw.readingManager.showSetHighlightColorDialog)
+    setHighlightColorMenuItem = QAction("[IR]: Set highlight color (Alt+2)", mw)
+    mw.connect(setHighlightColorMenuItem, SIGNAL("triggered()"), mw.readingManager.showSetHighlightColorDialog)
     mw.form.menuEdit.addAction(setHighlightColorMenuItem)
 
     action = QAction("Incremental Reading Organizer", mw)
-    mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerDialog)
+    mw.connect(action, SIGNAL("triggered()"), mw.readingManager.callIRSchedulerDialog)
     mw.form.menuTools.addAction(action)
 
     action = QAction("Incremental Reading Scheduler Options", mw)
-    mw.connect(action, SIGNAL("triggered()"), mw.IRead2.callIRSchedulerOptionsDialog)
+    mw.connect(action, SIGNAL("triggered()"), mw.readingManager.callIRSchedulerOptionsDialog)
     mw.form.menuTools.addAction(action)
 
 createMenuItems()
