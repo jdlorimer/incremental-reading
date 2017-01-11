@@ -12,7 +12,7 @@ The main things this add-on allows you to do:
 * Extract selected text into a new card by pressing 'x'
 * Highlight selected text by pressing 'h'
 * Create custom shortcuts to quickly add cards
-* Control the scheduling of incremental reading cords
+* Control the scheduling of incremental reading cards
 * Rearrange cards in the built-in organiser
 
 ## Installation
