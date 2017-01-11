@@ -13,6 +13,9 @@ from aqt.qt import *
 from aqt.utils import tooltip, showWarning
 from aqt.webview import AnkiWebView
 
+IR_MODEL_NAME = 'IR3'
+SOURCE_FIELD_NAME = 'Source'
+
 
 class ViewManager():
     def __init__(self, main):
@@ -238,7 +241,7 @@ class ViewManager():
         keyComboBox = keyComboBox + "</select>";
         #color text box
         colorValue = self.lastDialogQuickKey.get('color','yellow');
-        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IRead2 model only): </span><input type='text' id='color' value='" + colorValue + "' />";
+        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IR model only): </span><input type='text' id='color' value='" + colorValue + "' />";
         #radio buttons to chose if hilight or color text
         colorBackground = 'checked';
         colorText = '';
@@ -431,7 +434,7 @@ class ViewManager():
             clipboard = QApplication.clipboard();
             mimeData = clipboard.mimeData();
             selectedText = mimeData.html();
-            #Highlight the text in the original document. This is only useful for cards with long texts like IRead2. Other card models will ignore.
+            #Highlight the text in the original document. This is only useful for cards with long texts like IR. Other card models will ignore.
             if(quickKeyModel.get('color', None) != None):
                 runHook("highlightText", quickKeyModel['color'], quickKeyModel.get('colorText', 'false'));
 
@@ -447,10 +450,8 @@ class ViewManager():
             tags = cur_note.stringTags();
             new_note.setTagsFromStr(tags); #sets tags for the note, but still have to set them in the editor if show dialog (see below)
 
-            #This is very specific to IRead2 Model and should be generalized or moved elsewhere
-            IREAD_MODEL_NAME = 'IRead2'
-            SOURCE_FIELD_NAME = 'Source'
-            if(mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME):
+            #This is very specific to IR Model and should be generalized or moved elsewhere
+            if(mw.reviewer.card.model()['name'] == IR_MODEL_NAME):
                 for f in new_model['flds']:
                     if(SOURCE_FIELD_NAME == f['name']):
                         self.setField(new_note, SOURCE_FIELD_NAME, self.getField(cur_note, SOURCE_FIELD_NAME))
@@ -627,7 +628,7 @@ def vsa_reviewState(self, oldState, _old):
         curNote = self.reviewer.card.note();
         self.web.setHtml(curNote['Text']);
         self.reviewer.bottom.web.show();
-        self.IRead2.adjustZoomAndScroll();
+        self.readingManager.adjustZoomAndScroll();
     else:
         #print "vsa_reviewState: Requisite conditions not met. Delegating to original reviewState method.";
         return _old(self, oldState);
