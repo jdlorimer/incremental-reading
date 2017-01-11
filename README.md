@@ -1,8 +1,19 @@
-## [Incremental Reading add-on for Anki](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
+## Introduction
 
 This is my fork of the [Incremental Reading Extension and View Size Adjust Add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire). The originals have long been removed from AnkiWeb, so their descriptions are no longer available there. I have begun the process of merging these two add-ons, and will refer to them simply as the Incremental Reading add-on.
 
 The purpose of this add-on is to provide features that support [incremental reading](http://www.supermemo.com/help/read.htm) in Anki. The SuperMemo article is only slightly relevant, but will give an idea what the overall aim is.
+
+## Features
+
+The main things this add-on allows you to do:
+
+* Maintain scroll position and zoom on a per-card basis
+* Extract selected text into a new card by pressing 'x'
+* Highlight selected text by pressing 'h'
+* Create custom shortcuts to quickly add cards
+* Control the scheduling of incremental reading cords
+* Rearrange cards in the built-in organiser
 
 ## Installation
 
@@ -50,3 +61,17 @@ For the sake of simplicity, I am also releasing my changes under the ISC license
 I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because it is a Google Groups conversation, which makes the licensing slightly murky.
 
 Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appear to share any code with the current project and the functionality is quite different. For more information, see [Anki Incremental Reading](http://frankraiser.de/drupal/AnkiIR).
+
+## Revision History
+
+### v3.0.3
+
+#### Bugfixes
+
+* Highlighting now causes fewer issues; only saves relevant part of page to note
+* Fixed bug where switching between profiles resulted in duplicate menu items
+* Zoom factor and scroll position now saved, and restored, more reliably
+
+#### Feature?
+
+* All settings merged into single JSON file for easier editing and debugging (breaks backward compatibility)
