@@ -33,6 +33,8 @@ If you have the following files in your media directory, you can safely delete t
 
 If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). If you create a new topic, be sure to mention Incremental Reading in the title.
 
+Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub. Pull requests are also welcome.
+
 ## License
 
 Multiple people have contributed to this add-on, and it slightly unclear who to credit for which changes, and what licenses to apply.
@@ -45,6 +47,6 @@ Aleksej's changes to Frank's version are ["multi-licensed under the same ISC lic
 
 For the sake of simplicity, I am also releasing my changes under the ISC license (a copy of which can be found in this repository). For each author, I have placed a copyright line in the license with what I believe are correct dates. If I have made a mistake in this regard, please let me know.
 
-I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because is a Google Groups conversation, which makes the licensing slightly murky.
+I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because it is a Google Groups conversation, which makes the licensing slightly murky.
 
 Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appear to share any code with the current project and the functionality is quite different. For more information, see [Anki Incremental Reading](http://frankraiser.de/drupal/AnkiIR).
