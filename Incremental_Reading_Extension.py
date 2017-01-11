@@ -780,7 +780,7 @@ def my_reviewer_keyHandler(self, evt):
     key = unicode(evt.text())
     if key == "x": # e[X]tract
         if self.card.note().model()['name'] == IR_MODEL_NAME:
-            mw..extract()
+            mw.extract()
     elif key == "h": # [H]ighlight
         if self.card.note().model()['name'] == IR_MODEL_NAME:
             mw.readingManager.highlightText();
