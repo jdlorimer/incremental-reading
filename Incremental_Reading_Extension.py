@@ -40,8 +40,6 @@ class IRead2(object):
         addHook('reset', mw.IRead2.adjustZoomAndScroll)
 
     def savePluginData(self):
-        # Capture zoom and scroll if exit directly from reviewer
-        self.updateZoomAndScroll()
         mw.settingsManager.saveSettings()
 
     def add_IRead_model(self):
@@ -79,7 +77,6 @@ class IRead2(object):
 
 
     def extract(self):
-        mw.viewManager.saveScrollPosition();
         #Copy text or html to clipboard and show (later will create card)
         if(len(mw.web.selectedText()) > 0): mw.web.triggerPageAction(QWebPage.Copy);
         clipboard = QApplication.clipboard();
@@ -104,28 +101,32 @@ class IRead2(object):
         self.addCards.deckChooser.deck.setText(deckName)
         self.addCards.modelChooser.models.setText(IREAD_MODEL_NAME)
 
-    def updateZoomAndScroll(self):
-        mw.viewManager.saveScrollPosition();
-        if(mw.reviewer.card):
-            self.settings['zoomAndScroll'][mw.reviewer.card.id] = [mw.viewManager.textSizeMultiplier,mw.viewManager.verticalScrollPosition]
-
-    #Added a hook to call this from 'reset'. Need to ensure it only affects IRead2 model.
     def adjustZoomAndScroll(self):
-        if(mw.reviewer.card and mw.reviewer.card.model()['name'] == 'IRead2'):
-            default = -1;
-            vals = self.settings['zoomAndScroll'].get(mw.reviewer.card.id, default);
-            if(vals != default):
-                zoomFactor = vals[0];
-                mw.viewManager.setZoomFactor(zoomFactor);
-                scrollPosition = vals[1];
-                mw.viewManager.setScrollPosition(scrollPosition);
-            #Add python object to take values back from javascript
-            pyCallback = IREJavaScriptCallback();
-            self.mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback);
-            initJavaScript();
-            mw.web.eval("highlightAllRanges()");
+        if mw.reviewer.card and mw.reviewer.card.model()['name'] == IREAD_MODEL_NAME:
+            cardID = str(mw.reviewer.card.id)
+
+            if cardID not in self.settings['zoom']:
+                self.settings['zoom'][cardID] = 1
+
+            if cardID not in self.settings['scroll']:
+                self.settings['scroll'][cardID] = 0
+
+            mw.web.setTextSizeMultiplier(
+                    self.settings['zoom'][cardID])
+
+            position = self.settings['scroll'][cardID]
+            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
+
+    def highlightAllRanges(self):
+        # Add python object to take values back from javascript
+        pyCallback = IREJavaScriptCallback()
+        self.mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback)
+        initJavaScript()
+        mw.web.eval("highlightAllRanges()")
 
     def highlightSelectedText(self, color, doHighlightFont):
+        mw.viewManager.saveScrollPosition()
+
         # No obvious/easy way to do this with BeautifulSoup
         def removeOuterDiv(html):
             withoutOpenDiv = re.sub('^<div[^>]+>', '', str(html))
@@ -139,8 +140,6 @@ class IRead2(object):
         # Need to make this general
         # Limited because of reference to 'Text' field
         if currentCard and currentModelName == IREAD_MODEL_NAME:
-            mw.viewManager.saveScrollPosition()
-            self.updateZoomAndScroll()
             identifier = str(int(time.time() * 10))
             script = "markRange('%s', '%s', '%s');" % (identifier,
                                                        color,
@@ -158,13 +157,15 @@ class IRead2(object):
                 currentNote.flush()
                 self.adjustZoomAndScroll()
 
+            self.highlightAllRanges()
+            mw.viewManager.setScrollPosition(
+                    self.settings['scroll'][str(mw.reviewer.card.id)])
+
     def highlightText(self):
         self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
 
     def htmlUpdated(self):
         #Called from javascript
-        mw.viewManager.saveScrollPosition();
-        self.updateZoomAndScroll();
         curNote = self.mw.reviewer.card.note();
         curNote['Text'] = mw.web.page().mainFrame().toHtml();
         curNote.flush();
@@ -790,13 +791,12 @@ def my_reviewer_keyHandler(self, evt):
             mw.IRead2.highlightText();
 
 mw.IRead2 = IRead2(mw)
+
 addHook('profileLoaded', mw.IRead2.loadPluginData)
 addHook('unloadProfile', mw.IRead2.savePluginData)
 addHook('showQuestion', mw.IRead2.adjustZoomAndScroll)
-addHook('showAnswer', mw.IRead2.updateZoomAndScroll)
-addHook('reviewCleanup', mw.IRead2.updateZoomAndScroll);
 addHook('highlightText', mw.IRead2.highlightSelectedText);
-#mw.web.setHtml = wrap(mw.web.setHtml, mw.viewManager.restoreScrollPosition());
+
 # Dangerous: We are monkey patching a method beginning with _
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
 
