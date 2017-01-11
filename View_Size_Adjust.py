@@ -18,9 +18,7 @@ SOURCE_FIELD_NAME = 'Source'
 
 
 class ViewManager():
-    def __init__(self, main):
-        self.mw = main;
-
+    def __init__(self):
         # Variable to hold quick keys
         self.quickKeys = {};
         self.lastDialogQuickKey = {};
@@ -93,7 +91,6 @@ class ViewManager():
     # Define keyboard shortcuts for size up and size down.
     #Note added Ctrl and '=' to avoid confusion when using standard keyboard (ie. without it, plus requires a shift, minus doesn't)
     def sizeAdjustSetupKeys(self):
-        mw = self.mw;
         #Page up and page down, and arrow up and arrow down buttons implemented below
         if hasattr(mw, 'pgUp'):
             mw.pgUp.setEnabled(False);
@@ -178,7 +175,7 @@ class ViewManager():
         if(len(self.lastDialogQuickKey.keys()) < 1):
             self.setDefaultDialogValues(self.lastDialogQuickKey);
 
-        d = QDialog(self.mw)
+        d = QDialog(mw)
         l = QVBoxLayout()
         l.setMargin(0)
         w = AnkiWebView()
@@ -590,7 +587,7 @@ class QuickKeyModel(QtCore.QObject):
     def setEnabled(self, isEnabled):
         self.enabled = (isEnabled == 'true');
 
-mw.viewManager = ViewManager(mw)
+mw.viewManager = ViewManager()
 
 addHook("profileLoaded", mw.viewManager.loadPluginData)
 addHook('unloadProfile', mw.viewManager.savePluginData)
