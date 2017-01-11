@@ -17,10 +17,7 @@ from aqt.webview import AnkiWebView
 class ViewManager():
     def __init__(self, main):
         self.mw = main;
-        # Variable to hold the current size multiplier
-        self.textSizeMultiplier = 1;
-        # Variable to hold scroll position
-        self.verticalScrollPosition = 0;
+
         # Variable to hold quick keys
         self.quickKeys = {};
         self.lastDialogQuickKey = {};
@@ -37,74 +34,58 @@ class ViewManager():
 
         self.quickKeysAdded = False
 
-    # Increase text size
     def sizeUp(self):
-        zoomFactor = self.textSizeMultiplier * 1.2;
-        self.setZoomFactor(zoomFactor);
+        if mw.reviewer.card:
+            self.settings['zoom'][str(mw.reviewer.card.id)] *= 1.2
+            mw.web.setTextSizeMultiplier(
+                    self.settings['zoom'][str(mw.reviewer.card.id)])
 
-    # Decrease text size
     def sizeDown(self):
-        zoomFactor = self.textSizeMultiplier * .83;
-        self.setZoomFactor(zoomFactor);
+        if mw.reviewer.card:
+            self.settings['zoom'][str(mw.reviewer.card.id)] *= 0.83
+            mw.web.setTextSizeMultiplier(
+                    self.settings['zoom'][str(mw.reviewer.card.id)])
 
-    def setZoomFactor(self, zoomFactor):
-        self.textSizeMultiplier = zoomFactor;
-        mw = self.mw;
-        mw.web.setTextSizeMultiplier(self.textSizeMultiplier);
-        self.savePluginData(); #ToDo - decide if we really need to do this every zoom adjustment
+    def setScrollPosition(self, newPosition):
+        mw.web.page().mainFrame().setScrollPosition(QPoint(0, newPosition))
+        self.saveScrollPosition()
 
-    # For future use:  To implement save point so page automatically scrolls to the right location when returning to a lengthy note (incremental reading)
     def saveScrollPosition(self):
-        mw = self.mw;
-        self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
+        if (mw.reviewer.card and
+            mw.reviewer.state == 'question' and
+            mw.state == 'review'):
+            currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+            self.settings['scroll'][str(mw.reviewer.card.id)] = currentPosition
 
-    # For future use:  To implement save point so page automatically scrolls to the right location when returning to a lengthy note (incremental reading)
-    def restoreScrollPosition(self):
-        mw = self.mw;
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
-
-    def getScrollPosition(self):
-        return mw.web.page().mainFrame().scrollPosition().y();
-
-    def setScrollPosition(self, position):
-        self.verticalScrollPosition = position;
-        self.restoreScrollPosition();
-
-    # Implement page up function
     def pageUpAction(self):
-        mw = self.mw;
-        self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
-        size = mw.web.page().viewportSize().height();
-        size = (size - (size/20));
-        self.verticalScrollPosition = max(0,(self.verticalScrollPosition - size));
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
+        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        pageHeight = mw.web.page().viewportSize().height()
+        movementSize = pageHeight - (pageHeight / 20)
+        newPosition = max(0, (currentPosition - movementSize))
+        self.setScrollPosition(newPosition)
 
-    #Implement page down function
     def pageDownAction(self):
-        mw = self.mw;
-        self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
-        maxHeight = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical);
-        size = mw.web.page().viewportSize().height();
-        size = (size - (size/20));
-        self.verticalScrollPosition = min(maxHeight, (self.verticalScrollPosition + size));
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
+        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        pageHeight = mw.web.page().viewportSize().height()
+        movementSize = pageHeight - (pageHeight / 20)
+        pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
+        newPosition = min(pageBottom, (currentPosition + movementSize))
+        self.setScrollPosition(newPosition)
 
-    #Implement arrow or line up action
     def lineUpAction(self):
-        mw = self.mw;
-        self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
-        size = (mw.web.page().viewportSize().height()/20);
-        self.verticalScrollPosition = max(0,(self.verticalScrollPosition - size));
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
+        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        pageHeight = mw.web.page().viewportSize().height()
+        movementSize = pageHeight / 20
+        newPosition = max(0, (currentPosition - movementSize))
+        self.setScrollPosition(newPosition)
 
-    #Implement arrow or line down action
     def lineDownAction(self):
-        mw = self.mw;
-        self.verticalScrollPosition = mw.web.page().mainFrame().scrollPosition().y();
-        maxHeight = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical);
-        size = (mw.web.page().viewportSize().height()/20);
-        self.verticalScrollPosition = min(maxHeight, (self.verticalScrollPosition + size));
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, self.verticalScrollPosition));
+        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        pageHeight = mw.web.page().viewportSize().height()
+        movementSize = pageHeight / 20
+        pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
+        newPosition = min(pageBottom, (currentPosition + movementSize))
+        self.setScrollPosition(newPosition)
 
     # Define keyboard shortcuts for size up and size down.
     #Note added Ctrl and '=' to avoid confusion when using standard keyboard (ie. without it, plus requires a shift, minus doesn't)
@@ -441,7 +422,6 @@ class ViewManager():
             self.savePluginData();
 
     def quickAddCards(self, quickKeyModel):
-        self.saveScrollPosition();
         hasSelection = 0;
         selectedText = '';
         #Copy text or html to clipboard if selected, else just use clipboard contents (user could hit Ctrl-C in a web browser instead)
@@ -517,11 +497,17 @@ class ViewManager():
 
     def loadPluginData(self):
         self.settings = mw.settingsManager.settings
-        self.mw.web.setTextSizeMultiplier(self.settings['textSizeMultiplier'])
         self.sizeAdjustSetupKeys()
         if not self.quickKeysAdded:
             self.addQuickKeys(self.settings['quickKeys'])
             self.quickKeysAdded = True
+
+        def resetZoom(state, *args):
+            if state in ['deckBrowser', 'overview']:
+                defaultSize = self.settings['textSizeMultiplier']
+                mw.web.setTextSizeMultiplier(defaultSize)
+
+        mw.moveToState = wrap(mw.moveToState, resetZoom, 'before')
 
     def addQuickKeys(self, mapOfQuickKeys):
         for qkey in mapOfQuickKeys.keys():
@@ -603,9 +589,11 @@ class QuickKeyModel(QtCore.QObject):
     def setEnabled(self, isEnabled):
         self.enabled = (isEnabled == 'true');
 
-mw.viewManager = ViewManager(mw);
-addHook("profileLoaded", mw.viewManager.loadPluginData); #Why does addHook require loadSizePreference with no braces (), whereas wrap requires sizeAdjustSetupKeys with braces?
-addHook('unloadProfile', mw.viewManager.savePluginData);
+mw.viewManager = ViewManager(mw)
+
+addHook("profileLoaded", mw.viewManager.loadPluginData)
+addHook('unloadProfile', mw.viewManager.savePluginData)
+
 
 # Dangerous: We are monkey patching a method beginning with _
 # Added these next two monkey patches (resetRequiredState and reviewState)
@@ -643,5 +631,16 @@ def vsa_reviewState(self, oldState, _old):
     else:
         #print "vsa_reviewState: Requisite conditions not met. Delegating to original reviewState method.";
         return _old(self, oldState);
+
+
 AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState, vsa_resetRequiredState, "around")
 AnkiQt._reviewState = wrap(AnkiQt._reviewState, vsa_reviewState, "around")
+
+
+def saveScrollPosition(event):
+    mw.viewManager.saveScrollPosition()
+
+mw.web.wheelEvent = wrap(mw.web.wheelEvent, saveScrollPosition)
+mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
+                                saveScrollPosition,
+                                'before')
