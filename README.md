@@ -1,101 +1,50 @@
-##  [View Size Adjust and Incremental Reading Extension](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
+## [Incremental Reading add-on for Anki](https://github.com/aleksejrs/anki-2.0-vsa-and-ire)
 
-These are Aleksej's changes for Anki 2 add-ons by Frank.
-The source code was taken from AnkiWeb (links not working now; see the URL of my copy *above*): [Incremental Reading Extension](https://ankiweb.net/shared/info/2880922486) and [View Size Adjust](https://ankiweb.net/shared/info/3136737107).
+This is my fork of the [Incremental Reading Extension and View Size Adjust Add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire). The originals have long been removed from AnkiWeb, so their descriptions are no longer available there. I have begun the process of merging these two add-ons, and will refer to them simply as the Incremental Reading add-on.
 
-## What are these for
-
-View Size Adjust lets you change the font size easily using Ctrl++ and
-Ctrl+-.  It also provides some of the features necessary for the other addon.
-
-Incremental Reading Extension is for [incremental reading](http://www.supermemo.com/help/read.htm).
-See "Usage" below for details.
-
-## Support
-
-If you have trouble running or using this addon, please use either:
-
-* <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire/issues">GitHub issue tracker</a>;
-* <a href="https://anki.tenderapp.com/discussions/add-ons">the TenderApp discussion area</a> (please mention the add-on name in the message title).
-
-## License
-
-“Incremental Reading Extension” is based on “Incremental Reading”
-by Tiago Barroso (tmbb). There is no license specified for any of
-the add-ons; Tiago agreed to add a license, saying also “You can
-consider all my addons released with this license
-<https://en.wikipedia.org/wiki/ISC_license>, copyright to Tiago
-Barroso.” in [the message that was here](https://groups.google.com/d/msg/anki-
-addons/xibqDVFqQwQ/-qpxKvxurPMJ).
-
-Consider my changes to these 2 add-ons multi-licensed under the
-same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+.
-
-The licensing does not apply to the Google Groups page just because
-I copied it here.
+The purpose of this add-on is to provide features that support [incremental reading](http://www.supermemo.com/help/read.htm) in Anki. The SuperMemo article is only slightly relevant, but will give an idea what the overall aim is.
 
 ## Installation
 
-The .py files are to be put into the addons/ folder in the Anki
-folder.  See <http://ankisrs.net/docs/manual.html#file-locations>
-for details on where the Anki folder is.
+You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-### Important
+Once Anki is installed, copy the following files into your add-ons folder:
 
-If you are switching to these versions from Frank's versions
-(mentioned above, they are probably the only other versions with
-these names), rename the .dat files in the collection.media/
-directory in your Anki profile by prepending “_” as follows:
+* ir
+* Incremental\_Reading\_Extension.py
+* View\_Size\_Adjust.py
 
-* _IncrementalReadingExtension.dat
+If you are unsure where the add-ons folder is located, go to Tools -> Add-ons -> Open Add-ons Folder.
 
-* _ViewSizeAdjustAddon.dat
+## Compatibility
 
-## Usage
+This fork of the Incremental Reading add-on is incompatible with previous versions in two respects.
 
-Please see the html file saved from Google Groups for the original
-manual (find a link to the source code — I mean my copy of the source
-code — near the top of here if you are not reading this file as a part
-of the source code).
+First, settings were previously stored in two separate files, one for View Size Adjust and one for Incremental Reading Extension. All settings are now stored together in one file, and the format has changed. This means that any previous settings will be lost.
 
+Second, to accommodate changes to how highlighting works, a slight change to the card template was needed. Given that this fork already breaks backwards compatibility, the template was modified and the model renamed. If you already have incremental reading notes from a previous version, you will need to select them in the card browser and choose Edit -> Change Note Type, and convert them to IR3 notes. They will now be recognised by the add-on.
 
-Suggestions on use of IRE that I haven't found in the
-manual:
+If you have the following files in your media directory, you can safely delete them:
 
-1. Do not press "Show answer" on IRead2 cards.  Instead, just
-press 1 or 2.  This way you can change the queue position of
-the card without affecting statistics, and if you don't like the
-randomly chosen position, you can try again by pressing 1 or 2
-again.
+* \_IncrementalReadingExtension.dat
+* \_ViewSizeAdjustAddon.dat
 
-2. If you follow the above suggestion, you can put the IR deck
-in one subtree with your normal spaced repetition decks.  For
-example, I have a root deck which contains a SR subtree and
-after it, the IR deck:
+## Support
 
-    * root deck
+If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). If you create a new topic, be sure to mention Incremental Reading in the title.
 
-        * spaced repetition decks
-        * incremental reading deck
+## License
 
-    The incremental reading cards appear between reviews, after
-    I view all the new cards, and with a frequency depending on
-    the daily new card limits.
+Multiple people have contributed to this add-on, and it slightly unclear who to credit for which changes, and what licenses to apply.
 
-## Future
+Tiago Barroso appears to be the one who started the project, and he has [stated](https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ) that he releases all of his add-ons under the ISC license.
 
-Aleksej is not developing this addon.  Also do not expect this page
-and source code repository to stay up for arbitrary time; make local
-backups.
+Frank Kmiec was responsible for vastly expanding the add-on, but it's not clear what license his changes were released under. Presuming he didn't specify one, the [terms and conditions of AnkiWeb](https://ankiweb.net/account/terms) would mean they were automatically released under the AGPL v3.
 
-## Changelog
+Aleksej's changes to Frank's version are ["multi-licensed under the same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+"](https://github.com/aleksejrs/anki-2.0-vsa-and-ire).
 
-* 2014-04-21:
+For the sake of simplicity, I am also releasing my changes under the ISC license (a copy of which can be found in this repository). For each author, I have placed a copyright line in the license with what I believe are correct dates. If I have made a mistake in this regard, please let me know.
 
-     Commented "import pyqtconfig" out, as it is unused. That's needed for compatibility with Qt5.
+I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because is a Google Groups conversation, which makes the licensing slightly murky.
 
-* 2013-04:
-
-    Hide .dat files from unused media check by adding "_".
-
-    Fix Organizer not opening if titles have non-ASCII.
+Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appear to share any code with the current project and the functionality is quite different. For more information, see [Anki Incremental Reading](http://frankraiser.de/drupal/AnkiIR).
