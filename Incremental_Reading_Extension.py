@@ -117,6 +117,8 @@ class IRead2(object):
             position = self.settings['scroll'][cardID]
             mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
 
+            self.highlightAllRanges()
+
     def highlightAllRanges(self):
         # Add python object to take values back from javascript
         pyCallback = IREJavaScriptCallback()
@@ -125,8 +127,6 @@ class IRead2(object):
         mw.web.eval("highlightAllRanges()")
 
     def highlightSelectedText(self, color, doHighlightFont):
-        mw.viewManager.saveScrollPosition()
-
         # No obvious/easy way to do this with BeautifulSoup
         def removeOuterDiv(html):
             withoutOpenDiv = re.sub('^<div[^>]+>', '', str(html))
@@ -156,10 +156,6 @@ class IRead2(object):
                 currentNote['Text'] = str(withoutDiv)
                 currentNote.flush()
                 self.adjustZoomAndScroll()
-
-            self.highlightAllRanges()
-            mw.viewManager.setScrollPosition(
-                    self.settings['scroll'][str(mw.reviewer.card.id)])
 
     def highlightText(self):
         self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
