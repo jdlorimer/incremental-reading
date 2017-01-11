@@ -48,7 +48,7 @@ Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremen
 
 ## License
 
-Multiple people have contributed to this add-on, and it slightly unclear who to credit for which changes, and what licenses to apply.
+Multiple people have contributed to this add-on, and it's slightly unclear who to credit for which changes, and what licenses to apply.
 
 Tiago Barroso appears to be the one who started the project, and he has [stated](https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ) that he releases all of his add-ons under the ISC license.
 
