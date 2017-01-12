@@ -28,10 +28,7 @@ TITLE_FIELD_NAME = 'Title'
 AFMT = "When do you want to see this card again?"
 
 
-class ReadingManager(object):
-    def __init__(self, mw):
-        self.mw = mw
-
+class ReadingManager():
     def loadPluginData(self):
         self.add_IRead_model()
         mw.settingsManager = ir.settings.SettingsManager()
@@ -40,7 +37,6 @@ class ReadingManager(object):
 
     def savePluginData(self):
         mw.settingsManager.saveSettings()
-
 
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
@@ -74,7 +70,6 @@ class ReadingManager(object):
             text_ord, text_field = fmap[TEXT_FIELD_NAME]
             source_ord, source_field = fmap[SOURCE_FIELD_NAME]
             source_field['sticky'] = True
-
 
     def extract(self):
         #Copy text or html to clipboard and show (later will create card)
@@ -122,7 +117,7 @@ class ReadingManager(object):
     def highlightAllRanges(self):
         # Add python object to take values back from javascript
         pyCallback = IREJavaScriptCallback()
-        self.mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback)
+        mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback)
         initJavaScript()
         mw.web.eval("highlightAllRanges()")
 
@@ -133,7 +128,7 @@ class ReadingManager(object):
             withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
             return withoutCloseDiv
 
-        currentCard = self.mw.reviewer.card
+        currentCard = mw.reviewer.card
         currentModelName = currentCard.model()['name']
         currentNote = currentCard.note()
 
@@ -162,7 +157,7 @@ class ReadingManager(object):
 
     def htmlUpdated(self):
         #Called from javascript
-        curNote = self.mw.reviewer.card.note();
+        curNote = mw.reviewer.card.note();
         curNote['Text'] = mw.web.page().mainFrame().toHtml();
         curNote.flush();
         mw.web.setHtml(curNote['Text']);
@@ -170,7 +165,7 @@ class ReadingManager(object):
 
     def showSetHighlightColorDialog(self):
         #Objective is a dialog to set highlight color used with 'h' key
-        d = QDialog(self.mw)
+        d = QDialog(mw)
         l = QVBoxLayout()
         l.setMargin(0)
         w = AnkiWebView()
@@ -215,7 +210,7 @@ class ReadingManager(object):
         self.settings['doHighlightFont'] = stringTrueIfText;
 
     def callIRSchedulerOptionsDialog(self):
-        d = QDialog(self.mw)
+        d = QDialog(mw)
         l = QVBoxLayout()
         l.setMargin(0)
         w = AnkiWebView()
@@ -334,7 +329,7 @@ class ReadingManager(object):
             showInfo(_("Please select an Incremental Reading deck."))
             return;
 
-        d = QDialog(self.mw)
+        d = QDialog(mw)
         l = QVBoxLayout()
         l.setMargin(0)
         w = AnkiWebView()
@@ -786,7 +781,7 @@ def my_reviewer_keyHandler(self, evt):
         if self.card.note().model()['name'] == IR_MODEL_NAME:
             mw.readingManager.highlightText();
 
-mw.readingManager = ReadingManager(mw)
+mw.readingManager = ReadingManager()
 
 addHook('profileLoaded', mw.readingManager.loadPluginData)
 addHook('unloadProfile', mw.readingManager.savePluginData)
@@ -802,7 +797,7 @@ def my_reviewer_answerButtonList(self, _old):
     #Only manipulate buttons if Incremental Reading deck
     if(answeredCard.model()['name'] == IR_MODEL_NAME):
         l = ((1, _("Soon")),)
-        cnt = self.mw.col.sched.answerButtons(self.card)
+        cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
             return l + ((2, _("Later")),)
         elif cnt == 3:
