@@ -64,9 +64,17 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Revision History
 
+### v3.1.6
+
+#### New Features
+
+* The following settings can now be adjusted from the menu:
+  * **Zoom Step** (the amount the magnification changes by when zooming in or out)
+  * **General Zoom** (the zoom level for the deck browser and overview screens)
+
 ### v3.0.6
 
-### Bugfixes
+#### Bugfixes
 
 * Fixed formatting of IR menu items, so they now blend better with standard Anki items
 * All IR menu items are now located under the "Read" menu, rather than spread throughout the other menus
@@ -80,6 +88,6 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 * Fixed bug where switching between profiles resulted in duplicate menu items
 * Zoom factor and scroll position now saved, and restored, more reliably
 
-#### Feature?
+#### New Feature
 
-* All settings merged into single JSON file for easier editing and debugging (breaks backward compatibility)
+* All settings merged into single JSON file for easier editing and debugging
