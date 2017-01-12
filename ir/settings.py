@@ -2,7 +2,10 @@ import codecs
 import json
 import os
 
-import aqt
+from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtGui import (QDialog, QDialogButtonBox, QGroupBox, QHBoxLayout,
+                         QLabel, QLineEdit, QVBoxLayout)
+from aqt import mw
 
 import ir.util
 
@@ -12,8 +15,7 @@ class SettingsManager():
         self.loadSettings()
 
     def loadSettings(self):
-        self.mediaDir = os.path.join(aqt.mw.pm.profileFolder(),
-                                     'collection.media')
+        self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
         self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
         if os.path.isfile(self.jsonPath):
@@ -41,3 +43,48 @@ class SettingsManager():
 
         # Touch the media folder to force sync
         ir.util.updateModificationTime(self.mediaDir)
+
+    def showSettingsDialog(self):
+        dialog = QDialog(mw)
+        mainLayout = QVBoxLayout()
+
+        zoomStepLabel = QLabel('Zoom Step')
+        generalZoomLabel = QLabel('General Zoom')
+
+        zoomStepEditBox = QLineEdit()
+        zoomStepEditBox.setText(str(self.settings['zoomStep']))
+
+        generalZoomEditBox = QLineEdit()
+        generalZoomEditBox.setText(str(self.settings['textSizeMultiplier']))
+
+        zoomGroupBox = QGroupBox('Zoom')
+
+        zoomGroupLabelsLayout = QVBoxLayout()
+        zoomGroupLabelsLayout.addWidget(zoomStepLabel)
+        zoomGroupLabelsLayout.addWidget(generalZoomLabel)
+
+        zoomGroupEditBoxesLayout = QVBoxLayout()
+        zoomGroupEditBoxesLayout.addWidget(zoomStepEditBox)
+        zoomGroupEditBoxesLayout.addWidget(generalZoomEditBox)
+
+        zoomGroupLayout = QHBoxLayout()
+        zoomGroupLayout.addLayout(zoomGroupLabelsLayout)
+        zoomGroupLayout.addLayout(zoomGroupEditBoxesLayout)
+
+        zoomGroupBox.setLayout(zoomGroupLayout)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttonBox.connect(buttonBox,
+                          SIGNAL('accepted()'),
+                          dialog,
+                          SLOT('accept()'))
+
+        mainLayout.addWidget(zoomGroupBox)
+        mainLayout.addWidget(buttonBox)
+
+        dialog.setLayout(mainLayout)
+        dialog.setWindowTitle('IR Options')
+        dialog.exec_()
+
+        self.settings['zoomStep'] = float(zoomStepEditBox.text())
+        self.settings['textSizeMultiplier'] = float(generalZoomEditBox.text())
