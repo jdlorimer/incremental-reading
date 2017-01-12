@@ -4,7 +4,7 @@ import os
 
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QDialog, QDialogButtonBox, QGroupBox, QHBoxLayout,
-                         QLabel, QLineEdit, QVBoxLayout)
+                         QLabel, QLineEdit, QRadioButton, QVBoxLayout)
 from aqt import mw
 
 import ir.util
@@ -48,6 +48,8 @@ class SettingsManager():
         dialog = QDialog(mw)
         mainLayout = QVBoxLayout()
 
+        zoomGroupBox = QGroupBox('Zoom')
+
         zoomStepLabel = QLabel('Zoom Step')
         generalZoomLabel = QLabel('General Zoom')
 
@@ -56,8 +58,6 @@ class SettingsManager():
 
         generalZoomEditBox = QLineEdit()
         generalZoomEditBox.setText(str(self.settings['textSizeMultiplier']))
-
-        zoomGroupBox = QGroupBox('Zoom')
 
         zoomGroupLabelsLayout = QVBoxLayout()
         zoomGroupLabelsLayout.addWidget(zoomStepLabel)
@@ -73,6 +73,40 @@ class SettingsManager():
 
         zoomGroupBox.setLayout(zoomGroupLayout)
 
+        highlightGroupBox = QGroupBox('Highlighting')
+
+        highlightColorLabel = QLabel('Color')
+        highlightLabel = QLabel('Highlight')
+
+        highlightColorEditBox = QLineEdit()
+        highlightColorEditBox.setText(self.settings['highlightColor'])
+
+        highlightBackgroundButton = QRadioButton('Background')
+        highlightTextButton = QRadioButton('Text')
+
+        if self.settings['doHighlightFont'] == 'true':
+            highlightTextButton.setChecked(True)
+        else:
+            highlightBackgroundButton.setChecked(True)
+
+        radioButtonLayout = QHBoxLayout()
+        radioButtonLayout.addWidget(highlightBackgroundButton)
+        radioButtonLayout.addWidget(highlightTextButton)
+
+        highlightGroupLabelsLayout = QVBoxLayout()
+        highlightGroupLabelsLayout.addWidget(highlightColorLabel)
+        highlightGroupLabelsLayout.addWidget(highlightLabel)
+
+        highlightGroupEditBoxesLayout = QVBoxLayout()
+        highlightGroupEditBoxesLayout.addWidget(highlightColorEditBox)
+        highlightGroupEditBoxesLayout.addLayout(radioButtonLayout)
+
+        highlightGroupLayout = QHBoxLayout()
+        highlightGroupLayout.addLayout(highlightGroupLabelsLayout)
+        highlightGroupLayout.addLayout(highlightGroupEditBoxesLayout)
+
+        highlightGroupBox.setLayout(highlightGroupLayout)
+
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.connect(buttonBox,
                           SIGNAL('accepted()'),
@@ -80,6 +114,7 @@ class SettingsManager():
                           SLOT('accept()'))
 
         mainLayout.addWidget(zoomGroupBox)
+        mainLayout.addWidget(highlightGroupBox)
         mainLayout.addWidget(buttonBox)
 
         dialog.setLayout(mainLayout)
@@ -88,3 +123,9 @@ class SettingsManager():
 
         self.settings['zoomStep'] = float(zoomStepEditBox.text())
         self.settings['textSizeMultiplier'] = float(generalZoomEditBox.text())
+        self.settings['highlightColor'] = highlightColorEditBox.text()
+
+        if highlightTextButton.isChecked():
+            self.settings['doHighlightFont'] = 'true'
+        else:
+            self.settings['doHighlightFont'] = 'false'
