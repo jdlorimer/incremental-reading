@@ -121,11 +121,6 @@ class ViewManager():
                             self.showAddCardQuickKeysDialog,
                             'Alt+1')
 
-        ir.util.addMenuItem('Read',
-                            'Set Highlight Color...',
-                            mw.readingManager.showSetHighlightColorDialog,
-                            'Alt+2')
-
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
         keyModel['modelName'] = None;
