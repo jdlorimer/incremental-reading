@@ -30,9 +30,10 @@ class SettingsManager():
                              'schedSoonInt': 10,
                              'schedSoonRandom': True,
                              'schedSoonType': 'pct',
+                             'scroll': {},
                              'textSizeMultiplier': 1,
                              'zoom': {},
-                             'scroll': {}}
+                             'zoomStep': 0.1}
 
     def saveSettings(self):
         with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
