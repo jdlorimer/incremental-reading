@@ -1,16 +1,15 @@
 import re
 
-from PyQt4 import QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
+from PyQt4.QtGui import (QAction, QApplication, QDialog, QDialogButtonBox,
+                         QKeySequence, QShortcut, QVBoxLayout)
 from PyQt4.QtWebKit import QWebPage
 from anki import notes
-from anki.hooks import wrap, addHook, runHook
+from anki.hooks import addHook, runHook, wrap
 from anki.sound import clearAudioQueue
-from aqt import mw, editcurrent, addcards
+from aqt import addcards, editcurrent, mw
 from aqt.main import AnkiQt
-from aqt.qt import *
-from aqt.utils import tooltip, showWarning
+from aqt.utils import showWarning, tooltip
 from aqt.webview import AnkiWebView
 
 import ir.util
@@ -309,7 +308,7 @@ class ViewManager():
         bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(QtCore.Qt.Horizontal);
+        bb.setOrientation(Qt.Horizontal)
         l.addWidget(bb)
         d.setLayout(l)
         d.setWindowModality(Qt.WindowModal)
@@ -506,7 +505,7 @@ class ViewManager():
         mw.settingsManager.saveSettings()
 
 
-class QuickKeyModel(QtCore.QObject):
+class QuickKeyModel(QObject):
     deckName = '';
     modelName = '';
     fieldName = '';
@@ -518,40 +517,40 @@ class QuickKeyModel(QtCore.QObject):
     colorText = 'false';
     showEditor = True;
     enabled = True;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setDeck(self, deck):
         self.deckName = deck;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setModel(self, model):
         self.modelName = model;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setField(self, field):
         self.fieldName = field;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setCtrl(self, shouldShow):
         self.ctrl = shouldShow;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setShift(self, shouldShow):
         self.shift = shouldShow;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setAlt(self, shouldShow):
         self.alt = shouldShow;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setKey(self, key):
         self.keyName = key;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setSourceHighlightColor(self, color):
         self.color = color;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setColorText(self, colorText):
         self.colorText = colorText;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setShowEditor(self, shouldShow):
         self.showEditor = shouldShow;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setShowEditCurrent(self, shouldShow):
         self.showEditCurrent = shouldShow;
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setEnabled(self, isEnabled):
         self.enabled = (isEnabled == 'true');
 
