@@ -64,6 +64,14 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Revision History
 
+### v3.0.6
+
+### Bugfixes
+
+* Fixed formatting of IR menu items, so they now blend better with standard Anki items
+* All IR menu items are now located under the "Read" menu, rather than spread throughout the other menus
+* Fixed previously introduced bug that caused an error when attempting to zoom a new card
+
 ### v3.0.3
 
 #### Bugfixes
