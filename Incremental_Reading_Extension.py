@@ -14,8 +14,8 @@ from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
-import ir.settings
-import ir.util
+from ir.settings import SettingsManager
+from ir.util import getField, setField
 
 sys.setdefaultencoding('utf8')
 
@@ -30,7 +30,7 @@ AFMT = "When do you want to see this card again?"
 class ReadingManager():
     def loadPluginData(self):
         self.add_IRead_model()
-        mw.settingsManager = ir.settings.SettingsManager()
+        mw.settingsManager = SettingsManager()
         self.settings = mw.settingsManager.settings
         addHook('reset', mw.readingManager.adjustZoomAndScroll)
 
@@ -595,15 +595,6 @@ class IREJavaScriptCallback(QObject):
     @pyqtSlot(str)
     def htmlUpdated(self, context):
         mw.readingManager.htmlUpdated();
-
-def setField(note, name, content):
-    ord = mw.col.models.fieldMap(note.model())[name][0]
-    note.fields[ord] = content
-    return note
-
-def getField(note, name):
-    ord = mw.col.models.fieldMap(note.model())[name][0]
-    return note.fields[ord]
 
 
 def initJavaScript():
