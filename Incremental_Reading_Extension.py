@@ -41,6 +41,7 @@ class ReadingManager(object):
     def savePluginData(self):
         mw.settingsManager.saveSettings()
 
+
     def add_IRead_model(self):
         "Only adds model if no model with the same name is present"
         col = mw.col
@@ -830,24 +831,6 @@ def my_reviewer_answerCard(self, ease, _old):
         #print "Ease: " + str(ease);
         #print "Card id: " + str(answeredCard.id);
         mw.readingManager.scheduleCard(answeredCard, ease);
-
-
-def createMenuItems():
-    highlight = QShortcut(QKeySequence("Alt+2"), mw)
-    mw.connect(highlight, SIGNAL("activated()"), mw.readingManager.showSetHighlightColorDialog)
-    setHighlightColorMenuItem = QAction("[IR]: Set highlight color (Alt+2)", mw)
-    mw.connect(setHighlightColorMenuItem, SIGNAL("triggered()"), mw.readingManager.showSetHighlightColorDialog)
-    mw.form.menuEdit.addAction(setHighlightColorMenuItem)
-
-    action = QAction("Incremental Reading Organizer", mw)
-    mw.connect(action, SIGNAL("triggered()"), mw.readingManager.callIRSchedulerDialog)
-    mw.form.menuTools.addAction(action)
-
-    action = QAction("Incremental Reading Scheduler Options", mw)
-    mw.connect(action, SIGNAL("triggered()"), mw.readingManager.callIRSchedulerOptionsDialog)
-    mw.form.menuTools.addAction(action)
-
-createMenuItems()
 
 Reviewer._answerCard = wrap(Reviewer._answerCard, my_reviewer_answerCard, "around")
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList, my_reviewer_answerButtonList, "around")
