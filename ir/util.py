@@ -44,6 +44,18 @@ def addShortcut(function, keys):
     mw.connect(shortcut, SIGNAL('activated()'), function)
 
 
+def getField(note, fieldName):
+    model = note.model()
+    index, _ = mw.col.models.fieldMap(model)[fieldName]
+    return note.fields[index]
+
+
+def setField(note, fieldName, content):
+    model = note.model()
+    index, _ = mw.col.models.fieldMap(model)[fieldName]
+    note.fields[index] = content
+
+
 def updateModificationTime(path):
     accessTime = os.stat(path)[stat.ST_ATIME]
     modificationTime = time.time()
