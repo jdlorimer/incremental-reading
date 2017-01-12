@@ -15,7 +15,6 @@ from aqt.webview import AnkiWebView
 
 import ir.util
 
-
 IR_MODEL_NAME = 'IR3'
 SOURCE_FIELD_NAME = 'Source'
 
@@ -41,7 +40,7 @@ class ViewManager():
             if cardID not in self.settings['zoom']:
                 self.settings['zoom'][cardID] = 1
 
-            self.settings['zoom'][cardID] *= 1.2
+            self.settings['zoom'][cardID] += self.settings['zoomStep']
             mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
 
     def zoomOut(self):
@@ -51,7 +50,7 @@ class ViewManager():
             if cardID not in self.settings['zoom']:
                 self.settings['zoom'][cardID] = 1
 
-            self.settings['zoom'][cardID] *= 0.83
+            self.settings['zoom'][cardID] -= self.settings['zoomStep']
             mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
 
     def setScrollPosition(self, newPosition):
