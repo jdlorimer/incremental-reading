@@ -36,15 +36,23 @@ class ViewManager():
 
     def zoomIn(self):
         if mw.reviewer.card:
-            self.settings['zoom'][str(mw.reviewer.card.id)] *= 1.2
-            mw.web.setTextSizeMultiplier(
-                    self.settings['zoom'][str(mw.reviewer.card.id)])
+            cardID = str(mw.reviewer.card.id)
+
+            if cardID not in self.settings['zoom']:
+                self.settings['zoom'][cardID] = 1
+
+            self.settings['zoom'][cardID] *= 1.2
+            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
 
     def zoomOut(self):
         if mw.reviewer.card:
-            self.settings['zoom'][str(mw.reviewer.card.id)] *= 0.83
-            mw.web.setTextSizeMultiplier(
-                    self.settings['zoom'][str(mw.reviewer.card.id)])
+            cardID = str(mw.reviewer.card.id)
+
+            if cardID not in self.settings['zoom']:
+                self.settings['zoom'][cardID] = 1
+
+            self.settings['zoom'][cardID] *= 0.83
+            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
 
     def setScrollPosition(self, newPosition):
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, newPosition))
