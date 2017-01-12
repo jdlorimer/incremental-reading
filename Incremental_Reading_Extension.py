@@ -162,52 +162,6 @@ class ReadingManager():
         mw.web.setHtml(curNote['Text']);
         self.adjustZoomAndScroll();
 
-    def showSetHighlightColorDialog(self):
-        #Objective is a dialog to set highlight color used with 'h' key
-        d = QDialog(mw)
-        l = QVBoxLayout()
-        l.setMargin(0)
-        w = AnkiWebView()
-        l.addWidget(w)
-        #Add python object to take values back from javascript
-        callback = IREHighlightColorCallback();
-        w.page().mainFrame().addToJavaScriptWindowObject("callback", callback);
-        getHighlightColorScript = """
-        function getHighlightColor() {
-            callback.setHighlightColor(document.getElementById('color').value.trim());
-            if(document.getElementById('colorBackOrText').checked) {
-                callback.setColorText('false');
-            } else {
-                callback.setColorText('true');
-            }
-        };
-        """
-        #color text box
-        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IR model only): </span><input type='text' id='color' value='" + self.settings['highlightColor'] + "' />";
-        colorBackOrText = "<span style='font-weight:bold'>Apply color to: &nbsp;</span><input type='radio' id='colorBackOrText' name='colorBackOrText' value='false' checked='true' /> Background &nbsp;&nbsp;<input type='radio' name='colorBackOrText' value='true' /> Text<br />";
-        html = "<html><head><script>" + getHighlightColorScript + "</script></head><body>";
-        html += "<p>" + colorTextField;
-        html += "<p>" + colorBackOrText;
-        html += "</body></html>";
-        w.stdHtml(html);
-        bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
-        bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
-        bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(Qt.Horizontal)
-        l.addWidget(bb)
-        d.setLayout(l)
-        d.setWindowModality(Qt.WindowModal)
-        d.resize(500, 200)
-        choice = d.exec_();
-        if(choice == 1):
-            w.eval("getHighlightColor()");
-
-    def setHighlightColor(self, color):
-        self.settings['highlightColor'] = color;
-
-    def setColorText(self, stringTrueIfText):
-        self.settings['doHighlightFont'] = stringTrueIfText;
-
     def callIRSchedulerOptionsDialog(self):
         d = QDialog(mw)
         l = QVBoxLayout()
@@ -641,14 +595,6 @@ class IREJavaScriptCallback(QObject):
     @pyqtSlot(str)
     def htmlUpdated(self, context):
         mw.readingManager.htmlUpdated();
-
-class IREHighlightColorCallback(QObject):
-    @pyqtSlot(str)
-    def setHighlightColor(self, string):
-        mw.readingManager.setHighlightColor(string);
-    @pyqtSlot(str)
-    def setColorText(self, string):
-        mw.readingManager.setColorText(string);
 
 def setField(note, name, content):
     ord = mw.col.models.fieldMap(note.model())[name][0]
