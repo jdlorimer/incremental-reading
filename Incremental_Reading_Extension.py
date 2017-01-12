@@ -4,13 +4,12 @@ import re
 import sys
 
 from BeautifulSoup import BeautifulSoup
-from PyQt4 import QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
+from PyQt4.QtGui import QApplication, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt4.QtWebKit import QWebPage
 from anki import notes
-from anki.hooks import wrap, addHook
-from aqt import mw, editcurrent, addcards
+from anki.hooks import addHook, wrap
+from aqt import addcards, editcurrent, mw
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
@@ -74,7 +73,7 @@ class ReadingManager():
     def extract(self):
         #Copy text or html to clipboard and show (later will create card)
         if(len(mw.web.selectedText()) > 0): mw.web.triggerPageAction(QWebPage.Copy);
-        clipboard = QApplication.clipboard();
+        clipboard = QApplication.clipboard()
         mimeData = clipboard.mimeData();
         #Highlight the text in the original document
         self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
@@ -194,7 +193,7 @@ class ReadingManager():
         bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(QtCore.Qt.Horizontal);
+        bb.setOrientation(Qt.Horizontal)
         l.addWidget(bb)
         d.setLayout(l)
         d.setWindowModality(Qt.WindowModal)
@@ -280,7 +279,7 @@ class ReadingManager():
         bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(QtCore.Qt.Horizontal);
+        bb.setOrientation(Qt.Horizontal)
         l.addWidget(bb)
         d.setLayout(l)
         d.setWindowModality(Qt.WindowModal)
@@ -511,7 +510,7 @@ class ReadingManager():
         bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(QtCore.Qt.Horizontal);
+        bb.setOrientation(Qt.Horizontal)
         l.addWidget(bb)
         d.setLayout(l)
         d.setWindowModality(Qt.WindowModal)
@@ -627,27 +626,27 @@ class ReadingManager():
                 cardDataList.append(cardData);
         return cardDataList;
 
-class IROptionsCallback(QtCore.QObject):
-    @QtCore.pyqtSlot(str)
+class IROptionsCallback(QObject):
+    @pyqtSlot(str)
     def updateOptions(self, options):
         mw.readingManager.parseIROptions(options);
 
-class IRSchedulerCallback(QtCore.QObject):
-    @QtCore.pyqtSlot(str)
+class IRSchedulerCallback(QObject):
+    @pyqtSlot(str)
     def updatePositions(self, ids):
         cids = ids.split(",");
         mw.readingManager.repositionCards(cids);
 
-class IREJavaScriptCallback(QtCore.QObject):
-    @QtCore.pyqtSlot(str)
+class IREJavaScriptCallback(QObject):
+    @pyqtSlot(str)
     def htmlUpdated(self, context):
         mw.readingManager.htmlUpdated();
 
-class IREHighlightColorCallback(QtCore.QObject):
-    @QtCore.pyqtSlot(str)
+class IREHighlightColorCallback(QObject):
+    @pyqtSlot(str)
     def setHighlightColor(self, string):
         mw.readingManager.setHighlightColor(string);
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def setColorText(self, string):
         mw.readingManager.setColorText(string);
 
