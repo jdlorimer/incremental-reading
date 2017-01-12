@@ -109,6 +109,10 @@ class ViewManager():
                             mw.readingManager.callIRSchedulerDialog)
 
         ir.util.addMenuItem('Read',
+                            'General Options...',
+                            mw.settingsManager.showSettingsDialog)
+
+        ir.util.addMenuItem('Read',
                             'Scheduler Options...',
                             mw.readingManager.callIRSchedulerOptionsDialog)
 
