@@ -12,10 +12,11 @@ from aqt.main import AnkiQt
 from aqt.utils import showWarning, tooltip
 from aqt.webview import AnkiWebView
 
-import ir.util
+from ir.util import addMenuItem, addShortcut, getField, setField
 
 IR_MODEL_NAME = 'IR3'
 SOURCE_FIELD_NAME = 'Source'
+
 
 
 class ViewManager():
@@ -94,32 +95,32 @@ class ViewManager():
         self.setScrollPosition(newPosition)
 
     def addShortcuts(self):
-        ir.util.addShortcut(self.lineUp, 'Up')
-        ir.util.addShortcut(self.lineDown, 'Down')
-        ir.util.addShortcut(self.pageUp, 'PgUp')
-        ir.util.addShortcut(self.pageDown, 'PgDown')
-        ir.util.addShortcut(self.zoomIn, 'Ctrl+=')
+        addShortcut(self.lineUp, 'Up')
+        addShortcut(self.lineDown, 'Down')
+        addShortcut(self.pageUp, 'PgUp')
+        addShortcut(self.pageDown, 'PgDown')
+        addShortcut(self.zoomIn, 'Ctrl+=')
 
     def addMenuItems(self):
-        ir.util.addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
-        ir.util.addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
+        addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
+        addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
 
-        ir.util.addMenuItem('Read',
-                            'Organizer...',
-                            mw.readingManager.callIRSchedulerDialog)
+        addMenuItem('Read',
+                    'Organizer...',
+                    mw.readingManager.callIRSchedulerDialog)
 
-        ir.util.addMenuItem('Read',
-                            'General Options...',
-                            mw.settingsManager.showSettingsDialog)
+        addMenuItem('Read',
+                    'General Options...',
+                    mw.settingsManager.showSettingsDialog)
 
-        ir.util.addMenuItem('Read',
-                            'Scheduler Options...',
-                            mw.readingManager.callIRSchedulerOptionsDialog)
+        addMenuItem('Read',
+                    'Scheduler Options...',
+                    mw.readingManager.callIRSchedulerOptionsDialog)
 
-        ir.util.addMenuItem('Read',
-                            'Create Add Cards Shortcut...',
-                            self.showAddCardQuickKeysDialog,
-                            'Alt+1')
+        addMenuItem('Read',
+                    'Create Add Cards Shortcut...',
+                    self.showAddCardQuickKeysDialog,
+                    'Alt+1')
 
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
@@ -403,7 +404,7 @@ class ViewManager():
         #Create new note with selected model and deck
         new_model = mw.col.models.byName(quickKeyModel['modelName'])
         new_note = notes.Note(mw.col, new_model)
-        self.setField(new_note, quickKeyModel['fieldName'], selectedText)
+        setField(new_note, quickKeyModel['fieldName'], selectedText)
 
         #Add tags and copy source fields from source card, if applicable
         if(mw.reviewer.card):
@@ -416,7 +417,7 @@ class ViewManager():
             if(mw.reviewer.card.model()['name'] == IR_MODEL_NAME):
                 for f in new_model['flds']:
                     if(SOURCE_FIELD_NAME == f['name']):
-                        self.setField(new_note, SOURCE_FIELD_NAME, self.getField(cur_note, SOURCE_FIELD_NAME))
+                        setField(new_note, SOURCE_FIELD_NAME, getField(cur_note, SOURCE_FIELD_NAME))
 
         #If shortcut said NOT to show AddCards dialog, then skip it.
         if(quickKeyModel['showEditor'] == 0):
@@ -448,15 +449,6 @@ class ViewManager():
             self.addCards.modelChooser.models.setText(quickKeyModel['modelName'])
             self.addCards.deckChooser.deck.setText(quickKeyModel['deckName'])
 
-
-    def setField(self, note, name, content):
-        ord = mw.col.models.fieldMap(note.model())[name][0]
-        note.fields[ord] = content
-        return note
-
-    def getField(self, note, name):
-        ord = mw.col.models.fieldMap(note.model())[name][0]
-        return note.fields[ord]
 
     def loadPluginData(self):
         self.settings = mw.settingsManager.settings
