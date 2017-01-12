@@ -13,6 +13,9 @@ from aqt.qt import *
 from aqt.utils import tooltip, showWarning
 from aqt.webview import AnkiWebView
 
+import ir.util
+
+
 IR_MODEL_NAME = 'IR3'
 SOURCE_FIELD_NAME = 'Source'
 
@@ -22,10 +25,6 @@ class ViewManager():
         # Variable to hold quick keys
         self.quickKeys = {};
         self.lastDialogQuickKey = {};
-        # Variable to hold the createShortcutMenuItem
-        self.createShortcutMenuItem = None;
-        self.sizeUpAction = None;
-        self.sizeDownAction = None;
         # Track number of times add cards shortcut dialog is opened
         self.acsCount = 0;
         # Track number of times vsa_resetRequiredState function is called (should be same or 1 behind acsCount)
@@ -33,15 +32,15 @@ class ViewManager():
         # Track number of times vsa_reviewState function is called (should be same or 1 behind acsCount)
         self.rsCount = 0;
 
-        self.quickKeysAdded = False
+        self.controlsLoaded = False
 
-    def sizeUp(self):
+    def zoomIn(self):
         if mw.reviewer.card:
             self.settings['zoom'][str(mw.reviewer.card.id)] *= 1.2
             mw.web.setTextSizeMultiplier(
                     self.settings['zoom'][str(mw.reviewer.card.id)])
 
-    def sizeDown(self):
+    def zoomOut(self):
         if mw.reviewer.card:
             self.settings['zoom'][str(mw.reviewer.card.id)] *= 0.83
             mw.web.setTextSizeMultiplier(
@@ -58,14 +57,14 @@ class ViewManager():
             currentPosition = mw.web.page().mainFrame().scrollPosition().y()
             self.settings['scroll'][str(mw.reviewer.card.id)] = currentPosition
 
-    def pageUpAction(self):
+    def pageUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight - (pageHeight / 20)
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
-    def pageDownAction(self):
+    def pageDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight - (pageHeight / 20)
@@ -73,14 +72,14 @@ class ViewManager():
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
 
-    def lineUpAction(self):
+    def lineUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight / 20
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
-    def lineDownAction(self):
+    def lineDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight / 20
@@ -88,73 +87,34 @@ class ViewManager():
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
 
-    # Define keyboard shortcuts for size up and size down.
-    #Note added Ctrl and '=' to avoid confusion when using standard keyboard (ie. without it, plus requires a shift, minus doesn't)
-    def sizeAdjustSetupKeys(self):
-        #Page up and page down, and arrow up and arrow down buttons implemented below
-        if hasattr(mw, 'pgUp'):
-            mw.pgUp.setEnabled(False);
-            mw.disconnect(mw.pgUp, SIGNAL("activated()"), self.pageUpAction);
-            mw.pgDown.setEnabled(False);
-            mw.disconnect(mw.pgDown, SIGNAL("activated()"), self.pageDownAction);
-            mw.arrowUp.setEnabled(False);
-            mw.disconnect(mw.arrowUp, SIGNAL("activated()"), self.lineUpAction);
-            mw.arrowDown.setEnabled(False);
-            mw.disconnect(mw.arrowDown, SIGNAL("activated()"), self.lineDownAction);
-        mw.pgUp = QShortcut(QKeySequence("PgUp"), mw);
-        mw.connect(mw.pgUp, SIGNAL("activated()"), self.pageUpAction);
-        mw.pgDown = QShortcut(QKeySequence("PgDown"), mw);
-        mw.connect(mw.pgDown, SIGNAL("activated()"), self.pageDownAction);
-        mw.arrowUp = QShortcut(QKeySequence("Up"), mw);
-        mw.connect(mw.arrowUp, SIGNAL("activated()"), self.lineUpAction);
-        mw.arrowDown = QShortcut(QKeySequence("Down"), mw);
-        mw.connect(mw.arrowDown, SIGNAL("activated()"), self.lineDownAction);
+    def addShortcuts(self):
+        ir.util.addShortcut(self.lineUp, 'Up')
+        ir.util.addShortcut(self.lineDown, 'Down')
+        ir.util.addShortcut(self.pageUp, 'PgUp')
+        ir.util.addShortcut(self.pageDown, 'PgDown')
+        ir.util.addShortcut(self.zoomIn, 'Ctrl+=')
 
-        # create a size up and size down shortcuts and menu items
-        if(self.sizeUpAction != None):
-            mw.disconnect(self.sizeUpAction, SIGNAL("triggered()"), self.sizeUp);
-            self.sizeUpAction.setEnabled(False);
-            mw.form.menuEdit.removeAction(self.sizeUpAction);
-            del self.sizeUpAction;
-            mw.sizeUpShortcut.setEnabled(False);
-            mw.sizeUpOnEqualShortcut.setEnabled(False);
-            mw.disconnect(mw.sizeUpShortcut, SIGNAL("activated()"), self.sizeUp);
-            mw.disconnect(mw.sizeUpOnEqualShortcut, SIGNAL("activated()"), self.sizeUp);
-        mw.sizeUpShortcut = QShortcut(QKeySequence("Ctrl++"), mw);
-        mw.sizeUpOnEqualShortcut = QShortcut(QKeySequence("Ctrl+="), mw);
-        mw.connect(mw.sizeUpShortcut, SIGNAL("activated()"), self.sizeUp);
-        mw.connect(mw.sizeUpOnEqualShortcut, SIGNAL("activated()"), self.sizeUp);
-        self.sizeUpAction = QAction("Zoom In  (Ctrl++)", mw)
-        mw.connect(self.sizeUpAction, SIGNAL("triggered()"), self.sizeUp)
-        mw.form.menuEdit.addAction(self.sizeUpAction)
+    def addMenuItems(self):
+        ir.util.addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
+        ir.util.addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
 
-        if(self.sizeDownAction != None):
-            mw.disconnect(self.sizeDownAction, SIGNAL("triggered()"), self.sizeDown);
-            self.sizeDownAction.setEnabled(False);
-            mw.form.menuEdit.removeAction(self.sizeDownAction);
-            del self.sizeDownAction;
-            mw.sizeDownShortcut.setEnabled(False);
-            mw.disconnect(mw.sizeDownShortcut, SIGNAL("activated()"), self.sizeDown);
-        mw.sizeDownShortcut = QShortcut(QKeySequence("Ctrl+-"), mw);
-        mw.connect(mw.sizeDownShortcut, SIGNAL("activated()"), self.sizeDown);
-        self.sizeDownAction = QAction("Zoom Out  (Ctrl+-)", mw)
-        mw.connect(self.sizeDownAction, SIGNAL("triggered()"), self.sizeDown)
-        mw.form.menuEdit.addAction(self.sizeDownAction)
+        ir.util.addMenuItem('Read',
+                            'Organizer...',
+                            mw.readingManager.callIRSchedulerDialog)
 
-        #quick keys dialog
-        if(self.createShortcutMenuItem != None):
-            mw.disconnect(self.createShortcutMenuItem, SIGNAL("triggered()"), self.showAddCardQuickKeysDialog);
-            self.createShortcutMenuItem.setEnabled(False);
-            mw.form.menuEdit.removeAction(self.createShortcutMenuItem);
-            del self.createShortcutMenuItem;
-            mw.quickKeys.setEnabled(False);
-            mw.disconnect(mw.quickKeys, SIGNAL("activated()"), self.showAddCardQuickKeysDialog);
-        mw.quickKeys = QShortcut(QKeySequence("Alt+1"), mw);
-        mw.connect(mw.quickKeys, SIGNAL("activated()"), self.showAddCardQuickKeysDialog);
-        menuItem = QAction("Create Add Cards shortcut (Alt+1)", mw);
-        mw.connect(menuItem, SIGNAL("triggered()"), self.showAddCardQuickKeysDialog);
-        mw.form.menuEdit.addAction(menuItem);
-        self.createShortcutMenuItem = menuItem;
+        ir.util.addMenuItem('Read',
+                            'Scheduler Options...',
+                            mw.readingManager.callIRSchedulerOptionsDialog)
+
+        ir.util.addMenuItem('Read',
+                            'Create Add Cards Shortcut...',
+                            self.showAddCardQuickKeysDialog,
+                            'Alt+1')
+
+        ir.util.addMenuItem('Read',
+                            'Set Highlight Color...',
+                            mw.readingManager.showSetHighlightColorDialog,
+                            'Alt+2')
 
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
@@ -495,10 +455,11 @@ class ViewManager():
 
     def loadPluginData(self):
         self.settings = mw.settingsManager.settings
-        self.sizeAdjustSetupKeys()
-        if not self.quickKeysAdded:
+        if not self.controlsLoaded:
+            self.addMenuItems()
+            self.addShortcuts()
             self.addQuickKeys(self.settings['quickKeys'])
-            self.quickKeysAdded = True
+            self.controlsLoaded = True
 
         def resetZoom(state, *args):
             if state in ['deckBrowser', 'overview']:
