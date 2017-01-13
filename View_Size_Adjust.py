@@ -18,7 +18,6 @@ IR_MODEL_NAME = 'IR3'
 SOURCE_FIELD_NAME = 'Source'
 
 
-
 class ViewManager():
     def __init__(self):
         # Variable to hold quick keys
@@ -460,7 +459,7 @@ class ViewManager():
 
         def resetZoom(state, *args):
             if state in ['deckBrowser', 'overview']:
-                defaultSize = self.settings['textSizeMultiplier']
+                defaultSize = self.settings['generalZoom']
                 mw.web.setTextSizeMultiplier(defaultSize)
 
         mw.moveToState = wrap(mw.moveToState, resetZoom, 'before')
