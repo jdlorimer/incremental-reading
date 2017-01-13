@@ -5,11 +5,14 @@ import sys
 
 from BeautifulSoup import BeautifulSoup
 from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
-from PyQt4.QtGui import QApplication, QDialog, QDialogButtonBox, QVBoxLayout
+from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
+                         QLabel, QLineEdit, QVBoxLayout)
 from PyQt4.QtWebKit import QWebPage
-from anki import notes
+from anki.notes import Note
 from anki.hooks import addHook, wrap
-from aqt import addcards, editcurrent, mw
+from aqt import mw
+from aqt.editcurrent import EditCurrent
+from aqt.addcards import AddCards
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
@@ -71,29 +74,62 @@ class ReadingManager():
             source_field['sticky'] = True
 
     def extract(self):
-        #Copy text or html to clipboard and show (later will create card)
-        if(len(mw.web.selectedText()) > 0): mw.web.triggerPageAction(QWebPage.Copy);
-        clipboard = QApplication.clipboard()
-        mimeData = clipboard.mimeData();
-        #Highlight the text in the original document
-        self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
+        if mw.web.selectedText():
+            mw.web.triggerPageAction(QWebPage.Copy)
 
-        card = mw.reviewer.card
-        cur_note = card.note()
-        col = mw.col
-        deckName = col.decks.get(card.did)['name']
-        model = col.models.byName(IR_MODEL_NAME)
-        new_note = notes.Note(col, model)
-        new_note.tags = cur_note.tags
-        #setField(new_note, TITLE_FIELD_NAME, getField(cur_note, TITLE_FIELD_NAME))
-        setField(new_note, TEXT_FIELD_NAME, mimeData.html())
-        setField(new_note, SOURCE_FIELD_NAME, getField(cur_note, SOURCE_FIELD_NAME))
-        self.editCurrent = editcurrent.EditCurrent(mw)
+        mimeData = QApplication.clipboard().mimeData()
 
-        self.addCards = addcards.AddCards(mw)
-        self.addCards.editor.setNote(new_note)
-        self.addCards.deckChooser.deck.setText(deckName)
-        self.addCards.modelChooser.models.setText(IR_MODEL_NAME)
+        if self.settings['extractPlainText']:
+            text = mimeData.text()
+        else:
+            text = mimeData.html()
+
+        self.highlightSelectedText(self.settings['highlightColor'],
+                                   self.settings['doHighlightFont'])
+
+        currentCard = mw.reviewer.card
+        currentNote = currentCard.note()
+        model = mw.col.models.byName(IR_MODEL_NAME)
+        newNote = Note(mw.col, model)
+        newNote.tags = currentNote.tags
+
+        setField(newNote, TEXT_FIELD_NAME, text)
+        setField(newNote,
+                 SOURCE_FIELD_NAME,
+                 getField(currentNote, SOURCE_FIELD_NAME))
+
+        if self.settings['editSourceNote']:
+            EditCurrent(mw)
+
+        if self.settings['editExtractedNote']:
+            addCards = AddCards(mw)
+            addCards.editor.setNote(newNote)
+            deckName = mw.col.decks.get(currentCard.did)['name']
+            addCards.deckChooser.deck.setText(deckName)
+            addCards.modelChooser.models.setText(IR_MODEL_NAME)
+        else:
+            setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
+            newNote.model()['did'] = currentCard.did
+            mw.col.addNote(newNote)
+
+    def getNewTitle(self):
+        dialog = QDialog(mw)
+        dialog.setWindowTitle('Extract Text')
+        titleLabel = QLabel('Title')
+        titleEditBox = QLineEdit()
+        titleEditBox.setFixedWidth(300)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttonBox.connect(buttonBox,
+                          SIGNAL('accepted()'),
+                          dialog,
+                          SLOT('accept()'))
+        layout = QHBoxLayout()
+        layout.addWidget(titleLabel)
+        layout.addWidget(titleEditBox)
+        layout.addWidget(buttonBox)
+        dialog.setLayout(layout)
+        dialog.exec_()
+        return titleEditBox.text()
 
     def adjustZoomAndScroll(self):
         if mw.reviewer.card and mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
