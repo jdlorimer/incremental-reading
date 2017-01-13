@@ -62,41 +62,27 @@ I have also removed the manual that is still available in Aleksej's fork, mainly
 
 Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appear to share any code with the current project and the functionality is quite different. For more information, see [Anki Incremental Reading](http://frankraiser.de/drupal/AnkiIR).
 
-## Revision History
+## Version History
 
-### v3.2.6
+### v3.2.7
 
-#### New Features
+#### Features
 
-* The following options have been added to the menu to give control over how text is extracted:
-  * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
-  * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
-  * Open the source note for editing on each extraction
+- The following options have been added to give more control over how text is extracted:
+  - Open the full note editor for each extraction (slow), or simply a title entry box (fast)
+  - Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
+  - Open the source note for editing on each extraction
 
-### v3.1.6
+- It is also now possible to control several aspects of how zooming operates:
+  - **Zoom Step** (the amount that magnification changes when zooming in or out)
+  - **General Zoom** (the zoom level for the deck browser and overview screens)
 
-#### New Features
-
-* The following settings can now be adjusted from the menu:
-  * **Zoom Step** (the amount the magnification changes by when zooming in or out)
-  * **General Zoom** (the zoom level for the deck browser and overview screens)
-
-### v3.0.6
+- All settings have been merged into a single JSON file for easier editing and debugging
 
 #### Bugfixes
 
-* Fixed formatting of IR menu items, so they now blend better with standard Anki items
-* All IR menu items are now located under the "Read" menu, rather than spread throughout the other menus
-* Fixed previously introduced bug that caused an error when attempting to zoom a new card
-
-### v3.0.3
-
-#### Bugfixes
-
-* Highlighting now causes fewer issues; only saves relevant part of page to note
-* Fixed bug where switching between profiles resulted in duplicate menu items
-* Zoom factor and scroll position now saved, and restored, more reliably
-
-#### New Feature
-
-* All settings merged into single JSON file for easier editing and debugging
+- Highlighting now causes fewer issues; saves only relevant part of page to note
+- Zoom factor and scroll position are now saved, and restored, more reliably
+- Fixed bug where switching between profiles resulted in duplicate menu items
+- Fixed formatting of IR menu items, so they now blend better with standard Anki items
+- IR menu items are now located under the "Read" menu, rather than spread throughout other menus
