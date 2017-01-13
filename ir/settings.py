@@ -3,8 +3,9 @@ import json
 import os
 
 from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import (QDialog, QDialogButtonBox, QGroupBox, QHBoxLayout,
-                         QLabel, QLineEdit, QRadioButton, QVBoxLayout)
+from PyQt4.QtGui import (QCheckBox, QDialog, QDialogButtonBox, QGroupBox,
+                         QHBoxLayout, QLabel, QLineEdit, QRadioButton,
+                         QSpinBox, QVBoxLayout)
 from aqt import mw
 
 import ir.util
@@ -23,6 +24,10 @@ class SettingsManager():
                 self.settings = json.load(jsonFile)
         else:
             self.settings = {'doHighlightFont': 'false',
+                             'editExtractedNote': False,
+                             'editSourceNote': False,
+                             'extractPlainText': False,
+                             'generalZoom': 1,
                              'highlightColor': 'yellow',
                              'lastDialogQuickKey': {},
                              'quickKeys': {},
@@ -33,7 +38,6 @@ class SettingsManager():
                              'schedSoonRandom': True,
                              'schedSoonType': 'pct',
                              'scroll': {},
-                             'textSizeMultiplier': 1,
                              'zoom': {},
                              'zoomStep': 0.1}
 
@@ -48,64 +52,9 @@ class SettingsManager():
         dialog = QDialog(mw)
         mainLayout = QVBoxLayout()
 
-        zoomGroupBox = QGroupBox('Zoom')
-
-        zoomStepLabel = QLabel('Zoom Step')
-        generalZoomLabel = QLabel('General Zoom')
-
-        zoomStepEditBox = QLineEdit()
-        zoomStepEditBox.setText(str(self.settings['zoomStep']))
-
-        generalZoomEditBox = QLineEdit()
-        generalZoomEditBox.setText(str(self.settings['textSizeMultiplier']))
-
-        zoomGroupLabelsLayout = QVBoxLayout()
-        zoomGroupLabelsLayout.addWidget(zoomStepLabel)
-        zoomGroupLabelsLayout.addWidget(generalZoomLabel)
-
-        zoomGroupEditBoxesLayout = QVBoxLayout()
-        zoomGroupEditBoxesLayout.addWidget(zoomStepEditBox)
-        zoomGroupEditBoxesLayout.addWidget(generalZoomEditBox)
-
-        zoomGroupLayout = QHBoxLayout()
-        zoomGroupLayout.addLayout(zoomGroupLabelsLayout)
-        zoomGroupLayout.addLayout(zoomGroupEditBoxesLayout)
-
-        zoomGroupBox.setLayout(zoomGroupLayout)
-
-        highlightGroupBox = QGroupBox('Highlighting')
-
-        highlightColorLabel = QLabel('Color')
-        highlightLabel = QLabel('Highlight')
-
-        highlightColorEditBox = QLineEdit()
-        highlightColorEditBox.setText(self.settings['highlightColor'])
-
-        highlightBackgroundButton = QRadioButton('Background')
-        highlightTextButton = QRadioButton('Text')
-
-        if self.settings['doHighlightFont'] == 'true':
-            highlightTextButton.setChecked(True)
-        else:
-            highlightBackgroundButton.setChecked(True)
-
-        radioButtonLayout = QHBoxLayout()
-        radioButtonLayout.addWidget(highlightBackgroundButton)
-        radioButtonLayout.addWidget(highlightTextButton)
-
-        highlightGroupLabelsLayout = QVBoxLayout()
-        highlightGroupLabelsLayout.addWidget(highlightColorLabel)
-        highlightGroupLabelsLayout.addWidget(highlightLabel)
-
-        highlightGroupEditBoxesLayout = QVBoxLayout()
-        highlightGroupEditBoxesLayout.addWidget(highlightColorEditBox)
-        highlightGroupEditBoxesLayout.addLayout(radioButtonLayout)
-
-        highlightGroupLayout = QHBoxLayout()
-        highlightGroupLayout.addLayout(highlightGroupLabelsLayout)
-        highlightGroupLayout.addLayout(highlightGroupEditBoxesLayout)
-
-        highlightGroupBox.setLayout(highlightGroupLayout)
+        extractionGroupBox = self.createExtractionGroupBox()
+        highlightingGroupBox = self.createHighlightingGroupBox()
+        zoomGroupBox = self.createZoomGroupBox()
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.connect(buttonBox,
@@ -113,19 +62,147 @@ class SettingsManager():
                           dialog,
                           SLOT('accept()'))
 
+        mainLayout.addWidget(extractionGroupBox)
+        mainLayout.addWidget(highlightingGroupBox)
         mainLayout.addWidget(zoomGroupBox)
-        mainLayout.addWidget(highlightGroupBox)
         mainLayout.addWidget(buttonBox)
 
         dialog.setLayout(mainLayout)
         dialog.setWindowTitle('IR Options')
         dialog.exec_()
 
-        self.settings['zoomStep'] = float(zoomStepEditBox.text())
-        self.settings['textSizeMultiplier'] = float(generalZoomEditBox.text())
-        self.settings['highlightColor'] = highlightColorEditBox.text()
+        self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
+        self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
+        self.settings['highlightColor'] = self.highlightColorEditBox.text()
 
-        if highlightTextButton.isChecked():
+        if self.highlightTextButton.isChecked():
             self.settings['doHighlightFont'] = 'true'
         else:
             self.settings['doHighlightFont'] = 'false'
+
+        if self.editNoteButton.isChecked():
+            self.settings['editExtractedNote'] = True
+        else:
+            self.settings['editExtractedNote'] = False
+
+        if self.editSourceNoteCheckBox.isChecked():
+            self.settings['editSourceNote'] = True
+        else:
+            self.settings['editSourceNote'] = False
+
+        if self.extractPlainTextCheckBox.isChecked():
+            self.settings['extractPlainText'] = True
+        else:
+            self.settings['extractPlainText'] = False
+
+    def createExtractionGroupBox(self):
+        extractedTextLabel = QLabel('Extracted Text')
+
+        self.editNoteButton = QRadioButton('Edit Note')
+        editTitleButton = QRadioButton('Edit Title')
+
+        if self.settings['editExtractedNote']:
+            self.editNoteButton.setChecked(True)
+        else:
+            editTitleButton.setChecked(True)
+
+        radioButtonLayout = QHBoxLayout()
+        radioButtonLayout.addWidget(extractedTextLabel)
+        radioButtonLayout.addWidget(self.editNoteButton)
+        radioButtonLayout.addWidget(editTitleButton)
+
+        self.editSourceNoteCheckBox = QCheckBox('Edit Source Note')
+        self.extractPlainTextCheckBox = QCheckBox('Extract as Plain Text')
+
+        if self.settings['editSourceNote']:
+            self.editSourceNoteCheckBox.setChecked(True)
+
+        if self.settings['extractPlainText']:
+            self.extractPlainTextCheckBox.setChecked(True)
+
+        groupBox = QGroupBox('Extraction')
+        layout = QVBoxLayout()
+        layout.addLayout(radioButtonLayout)
+        layout.addWidget(self.editSourceNoteCheckBox)
+        layout.addWidget(self.extractPlainTextCheckBox)
+        groupBox.setLayout(layout)
+
+        return groupBox
+
+    def createHighlightingGroupBox(self):
+        highlightColorLabel = QLabel('Color')
+        highlightLabel = QLabel('Highlight')
+
+        self.highlightColorEditBox = QLineEdit()
+        self.highlightColorEditBox.setText(self.settings['highlightColor'])
+
+        highlightBackgroundButton = QRadioButton('Background')
+        self.highlightTextButton = QRadioButton('Text')
+
+        if self.settings['doHighlightFont'] == 'true':
+            self.highlightTextButton.setChecked(True)
+        else:
+            highlightBackgroundButton.setChecked(True)
+
+        radioButtonLayout = QHBoxLayout()
+        radioButtonLayout.addWidget(highlightBackgroundButton)
+        radioButtonLayout.addWidget(self.highlightTextButton)
+
+        labelsLayout = QVBoxLayout()
+        labelsLayout.addWidget(highlightColorLabel)
+        labelsLayout.addWidget(highlightLabel)
+
+        choicesLayout = QVBoxLayout()
+        choicesLayout.addWidget(self.highlightColorEditBox)
+        choicesLayout.addLayout(radioButtonLayout)
+
+        layout = QHBoxLayout()
+        layout.addLayout(labelsLayout)
+        layout.addLayout(choicesLayout)
+
+        groupBox = QGroupBox('Highlighting')
+        groupBox.setLayout(layout)
+
+        return groupBox
+
+    def createZoomGroupBox(self):
+        zoomStepLabel = QLabel('Zoom Step')
+        zoomStepPercentLabel = QLabel('%')
+        generalZoomLabel = QLabel('General Zoom')
+        generalZoomPercentLabel = QLabel('%')
+
+        self.zoomStepSpinBox = QSpinBox()
+        self.zoomStepSpinBox.setMinimum(5)
+        self.zoomStepSpinBox.setMaximum(100)
+        self.zoomStepSpinBox.setSingleStep(5)
+        zoomStepPercent = round(self.settings['zoomStep'] * 100)
+        self.zoomStepSpinBox.setValue(zoomStepPercent)
+
+        self.generalZoomSpinBox = QSpinBox()
+        self.generalZoomSpinBox.setMinimum(10)
+        self.generalZoomSpinBox.setMaximum(200)
+        self.generalZoomSpinBox.setSingleStep(10)
+        generalZoomPercent = round(self.settings['generalZoom'] * 100)
+        self.generalZoomSpinBox.setValue(generalZoomPercent)
+
+        labelsLayout = QVBoxLayout()
+        labelsLayout.addWidget(zoomStepLabel)
+        labelsLayout.addWidget(generalZoomLabel)
+
+        spinBoxesLayout = QVBoxLayout()
+        spinBoxesLayout.addWidget(self.zoomStepSpinBox)
+        spinBoxesLayout.addWidget(self.generalZoomSpinBox)
+
+        percentsLayout = QVBoxLayout()
+        percentsLayout.addWidget(zoomStepPercentLabel)
+        percentsLayout.addWidget(generalZoomPercentLabel)
+
+        layout = QHBoxLayout()
+        layout.addLayout(labelsLayout)
+        layout.addLayout(spinBoxesLayout)
+        layout.addLayout(percentsLayout)
+
+        groupBox = QGroupBox('Zoom')
+        groupBox.setLayout(layout)
+
+        return groupBox
