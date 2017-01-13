@@ -64,6 +64,15 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Revision History
 
+### v3.2.6
+
+#### New Features
+
+* The following options have been added to the menu to give control over how text is extracted:
+  * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
+  * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
+  * Open the source note for editing on each extraction
+
 ### v3.1.6
 
 #### New Features
