@@ -22,8 +22,7 @@ You will first need to have Anki installed. Download the relevant installer [her
 Once Anki is installed, copy the following files into your add-ons folder:
 
 * ir
-* Incremental\_Reading\_Extension.py
-* View\_Size\_Adjust.py
+* ir_addons.py
 
 If you are unsure where the add-ons folder is located, go to Tools -> Add-ons -> Open Add-ons Folder.
 
@@ -64,7 +63,7 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Version History
 
-### v3.2.7
+### v3.2.8
 
 #### Features
 
