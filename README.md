@@ -1,8 +1,8 @@
 ## Introduction
 
-This is my fork of the [Incremental Reading Extension and View Size Adjust Add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire). The originals have long been removed from AnkiWeb, so their descriptions are no longer available there. I have begun the process of merging these two add-ons, and will refer to them simply as the Incremental Reading add-on.
+This is my fork of [Incremental Reading and View Size Adjust](https://github.com/aleksejrs/anki-2.0-vsa-and-ire). The purpose of this add-on is to provide features that support [incremental reading](http://www.supermemo.com/help/read.htm) in Anki. The SuperMemo article is only slightly relevant, but will give an idea what the overall aim is.
 
-The purpose of this add-on is to provide features that support [incremental reading](http://www.supermemo.com/help/read.htm) in Anki. The SuperMemo article is only slightly relevant, but will give an idea what the overall aim is.
+The original authors of this add-on are no longer active, but absolutely all credit for the basic implementation goes to them. All I have done is build on top of their work. The original description of the Incremental Reading Extension is archived [here](https://web.archive.org/web/20131031170459/https://ankiweb.net/shared/info/2880922486).
 
 ## Features
 
