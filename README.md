@@ -65,7 +65,7 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Version History
 
-### v3.2.9
+### v3.3.0
 
 #### Features
 
