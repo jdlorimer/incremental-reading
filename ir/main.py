@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 import time
 import random
 import re
-import sys
 
 from BeautifulSoup import BeautifulSoup
 from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
@@ -19,8 +21,6 @@ from aqt.webview import AnkiWebView
 
 from ir.settings import SettingsManager
 from ir.util import getField, setField
-
-sys.setdefaultencoding('utf8')
 
 IR_MODEL_NAME = 'IR3'
 TEXT_FIELD_NAME = 'Text'
@@ -159,7 +159,7 @@ class ReadingManager():
     def highlightSelectedText(self, color, doHighlightFont):
         # No obvious/easy way to do this with BeautifulSoup
         def removeOuterDiv(html):
-            withoutOpenDiv = re.sub('^<div[^>]+>', '', str(html))
+            withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
             withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
             return withoutCloseDiv
 
@@ -183,7 +183,7 @@ class ReadingManager():
 
             if irTextDiv:
                 withoutDiv = removeOuterDiv(irTextDiv)
-                currentNote['Text'] = str(withoutDiv)
+                currentNote['Text'] = unicode(withoutDiv)
                 currentNote.flush()
                 self.adjustZoomAndScroll()
 
