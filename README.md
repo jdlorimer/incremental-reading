@@ -19,7 +19,7 @@ The main things this add-on allows you to do:
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-Once Anki is installed, go to Tools -> Add-ons -> Browse & Install, then enter the code 1666543670
+Once Anki is installed, go to Tools -> Add-ons -> Browse & Install, then enter the code 1081195335
 
 To install manually, copy the following files into your add-ons folder:
 
