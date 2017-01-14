@@ -1,22 +1,12 @@
-all: README.html ankiweb
-
-ankiweb: clean README.ankiweb vsa-and-ire-to-ankiweb.zip
-
-vsa-and-ire-to-ankiweb.zip: ankiweb
-	mkdir dist
-	cp *.py dist/
-	cd dist && zip -r ../vsa-and-ire-to-ankiweb.zip *
-
-README.html: README.md
-	markdown README.md>README.html
-
-README.ankiweb: README.md
-	markdown README.md|sed -e "s+<p>++"|sed -e "s+</p>++"| sed -e "s+<h[0-9]>+<b>+" | sed -e  "s+</h[0-9]>+</b>+">README.ankiweb
-
+all: clean zipfile
 
 clean:
-	rm -f vsa-and-ire-to-ankiweb.zip
+	rm -f incremental-reading.zip
 	rm -rf dist
-	rm -f README.ankiweb
-	rm -f README.html
+	find . -name "*~" -type f -delete
 
+zipfile:
+	mkdir dist
+	cp ir_addon.py dist
+	cp -R ir dist
+	cd dist && zip -r ../incremental-reading.zip *
