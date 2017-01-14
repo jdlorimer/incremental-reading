@@ -2,9 +2,9 @@ import codecs
 import json
 import os
 
-from PyQt4.QtCore import SIGNAL, SLOT
-from PyQt4.QtGui import (QCheckBox, QDialog, QDialogButtonBox, QGroupBox,
-                         QHBoxLayout, QLabel, QLineEdit, QRadioButton,
+from PyQt4.QtCore import Qt, SIGNAL, SLOT
+from PyQt4.QtGui import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                         QGroupBox, QHBoxLayout, QLabel, QRadioButton,
                          QSpinBox, QVBoxLayout)
 from aqt import mw
 
@@ -48,6 +48,12 @@ class SettingsManager():
         # Touch the media folder to force sync
         ir.util.updateModificationTime(self.mediaDir)
 
+    def getColorList(self):
+        moduleDir, _ = os.path.split(__file__)
+        colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
+        with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
+            return [line.strip() for line in colorsFile]
+
     def showSettingsDialog(self):
         dialog = QDialog(mw)
         mainLayout = QVBoxLayout()
@@ -73,7 +79,7 @@ class SettingsManager():
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
-        self.settings['highlightColor'] = self.highlightColorEditBox.text()
+        self.settings['highlightColor'] = self.highlightColorComboBox.currentText()
 
         if self.highlightTextButton.isChecked():
             self.settings['doHighlightFont'] = 'true'
@@ -133,8 +139,11 @@ class SettingsManager():
         highlightColorLabel = QLabel('Color')
         highlightLabel = QLabel('Highlight')
 
-        self.highlightColorEditBox = QLineEdit()
-        self.highlightColorEditBox.setText(self.settings['highlightColor'])
+        self.highlightColorComboBox = QComboBox()
+        self.highlightColorComboBox.addItems(self.getColorList())
+        index = self.highlightColorComboBox.findText(
+                self.settings['highlightColor'], Qt.MatchFixedString)
+        self.highlightColorComboBox.setCurrentIndex(index)
 
         highlightBackgroundButton = QRadioButton('Background')
         self.highlightTextButton = QRadioButton('Text')
@@ -153,7 +162,7 @@ class SettingsManager():
         labelsLayout.addWidget(highlightLabel)
 
         choicesLayout = QVBoxLayout()
-        choicesLayout.addWidget(self.highlightColorEditBox)
+        choicesLayout.addWidget(self.highlightColorComboBox)
         choicesLayout.addLayout(radioButtonLayout)
 
         layout = QHBoxLayout()
