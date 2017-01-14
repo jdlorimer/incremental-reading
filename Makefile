@@ -4,6 +4,7 @@ clean:
 	rm -f incremental-reading.zip
 	rm -rf dist
 	find . -name "*~" -type f -delete
+	find . -name .ropeproject -type d -exec rm -rf {} +
 
 zipfile:
 	mkdir dist
