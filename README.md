@@ -63,7 +63,7 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 
 ## Version History
 
-### v3.2.8
+### v3.2.9
 
 #### Features
 
@@ -83,5 +83,6 @@ Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appe
 - Highlighting now causes fewer issues; saves only relevant part of page to note
 - Zoom factor and scroll position are now saved, and restored, more reliably
 - Fixed bug where switching between profiles resulted in duplicate menu items
+- List of available highlighting colors is now available from drop-down menu
 - Fixed formatting of IR menu items, so they now blend better with standard Anki items
 - IR menu items are now located under the "Read" menu, rather than spread throughout other menus
