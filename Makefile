@@ -1,3 +1,5 @@
+VERSION = `cat ir/__init__.py | grep __version__ | sed "s/.*'\(.*\)'.*/\1/"`
+
 all: clean zipfile
 
 clean:
@@ -10,4 +12,4 @@ zipfile:
 	mkdir dist
 	cp ir_addon.py dist
 	cp -R ir dist
-	cd dist && zip -r ../incremental-reading.zip *
+	cd dist && zip -r ../incremental-reading-v$(VERSION).zip *
