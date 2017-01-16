@@ -5,10 +5,17 @@ import codecs
 import json
 import os
 
-from PyQt4.QtCore import Qt, SIGNAL, SLOT
-from PyQt4.QtGui import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                         QGroupBox, QHBoxLayout, QLabel, QRadioButton,
-                         QSpinBox, QVBoxLayout)
+try:
+    from PyQt4.QtCore import Qt
+    from PyQt4.QtGui import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                             QGroupBox, QHBoxLayout, QLabel, QRadioButton,
+                             QSpinBox, QVBoxLayout)
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog,
+                                 QDialogButtonBox, QGroupBox, QHBoxLayout,
+                                 QLabel, QRadioButton, QSpinBox, QVBoxLayout)
+
 from aqt import mw
 
 import ir.util
@@ -66,10 +73,7 @@ class SettingsManager():
         zoomGroupBox = self.createZoomGroupBox()
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.connect(buttonBox,
-                          SIGNAL('accepted()'),
-                          dialog,
-                          SLOT('accept()'))
+        buttonBox.accepted.connect(dialog.accept)
 
         mainLayout.addWidget(extractionGroupBox)
         mainLayout.addWidget(highlightingGroupBox)
