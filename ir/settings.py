@@ -18,31 +18,39 @@ class SettingsManager():
     def __init__(self):
         self.loadSettings()
 
+    def addMissingSettings(self):
+        for key, value in self.defaults.items():
+            if key not in self.settings:
+                self.settings[key] = value
+
     def loadSettings(self):
+        self.defaults = {'editExtractedNote': False,
+                         'editSourceNote': False,
+                         'extractPlainText': False,
+                         'generalZoom': 1,
+                         'highlightColor': 'yellow',
+                         'textColor': 'black',
+                         'lastDialogQuickKey': {},
+                         'quickKeys': {},
+                         'schedLaterInt': 50,
+                         'schedLaterRandom': True,
+                         'schedLaterType': 'pct',
+                         'schedSoonInt': 10,
+                         'schedSoonRandom': True,
+                         'schedSoonType': 'pct',
+                         'scroll': {},
+                         'zoom': {},
+                         'zoomStep': 0.1}
+
         self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
         self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
         if os.path.isfile(self.jsonPath):
             with codecs.open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
+            self.addMissingSettings()
         else:
-            self.settings = {'doHighlightFont': 'false',
-                             'editExtractedNote': False,
-                             'editSourceNote': False,
-                             'extractPlainText': False,
-                             'generalZoom': 1,
-                             'highlightColor': 'yellow',
-                             'lastDialogQuickKey': {},
-                             'quickKeys': {},
-                             'schedLaterInt': 50,
-                             'schedLaterRandom': True,
-                             'schedLaterType': 'pct',
-                             'schedSoonInt': 10,
-                             'schedSoonRandom': True,
-                             'schedSoonType': 'pct',
-                             'scroll': {},
-                             'zoom': {},
-                             'zoomStep': 0.1}
+            self.settings = self.defaults
 
     def saveSettings(self):
         with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
@@ -83,11 +91,7 @@ class SettingsManager():
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
         self.settings['highlightColor'] = self.highlightColorComboBox.currentText()
-
-        if self.highlightTextButton.isChecked():
-            self.settings['doHighlightFont'] = 'true'
-        else:
-            self.settings['doHighlightFont'] = 'false'
+        self.settings['textColor'] = self.textColorComboBox.currentText()
 
         if self.editNoteButton.isChecked():
             self.settings['editExtractedNote'] = True
@@ -139,34 +143,30 @@ class SettingsManager():
         return groupBox
 
     def createHighlightingGroupBox(self):
-        highlightColorLabel = QLabel('Color')
-        highlightLabel = QLabel('Highlight')
+        highlightColorLabel = QLabel('Background Color')
+        textColorLabel = QLabel('Text Color')
+
+        colors = self.getColorList()
+
+        self.textColorComboBox = QComboBox()
+        self.textColorComboBox.addItems(colors)
+        index = self.textColorComboBox.findText(
+                self.settings['textColor'], Qt.MatchFixedString)
+        self.textColorComboBox.setCurrentIndex(index)
 
         self.highlightColorComboBox = QComboBox()
-        self.highlightColorComboBox.addItems(self.getColorList())
+        self.highlightColorComboBox.addItems(colors)
         index = self.highlightColorComboBox.findText(
                 self.settings['highlightColor'], Qt.MatchFixedString)
         self.highlightColorComboBox.setCurrentIndex(index)
 
-        highlightBackgroundButton = QRadioButton('Background')
-        self.highlightTextButton = QRadioButton('Text')
-
-        if self.settings['doHighlightFont'] == 'true':
-            self.highlightTextButton.setChecked(True)
-        else:
-            highlightBackgroundButton.setChecked(True)
-
-        radioButtonLayout = QHBoxLayout()
-        radioButtonLayout.addWidget(highlightBackgroundButton)
-        radioButtonLayout.addWidget(self.highlightTextButton)
-
         labelsLayout = QVBoxLayout()
         labelsLayout.addWidget(highlightColorLabel)
-        labelsLayout.addWidget(highlightLabel)
+        labelsLayout.addWidget(textColorLabel)
 
         choicesLayout = QVBoxLayout()
         choicesLayout.addWidget(self.highlightColorComboBox)
-        choicesLayout.addLayout(radioButtonLayout)
+        choicesLayout.addWidget(self.textColorComboBox)
 
         layout = QHBoxLayout()
         layout.addLayout(labelsLayout)
