@@ -132,8 +132,8 @@ class ViewManager():
         keyModel['shift'] = 'false';
         keyModel['alt'] = 'false';
         keyModel['keyName'] = None;
-        keyModel['color'] = 'yellow';
-        keyModel['colorText'] = 'true';
+        keyModel['backgroundColor'] = 'yellow'
+        keyModel['textColor'] = 'black'
         keyModel['showEditor'] = 'true';
         keyModel['showEditCurrent'] = 'false';
         keyModel['enabled'] = 'true';
@@ -204,16 +204,13 @@ class ViewManager():
             keyComboBox = keyComboBox + ("<option value='" + chr(code) + "' " + isSelected + ">" + chr(code) + "</option>");
             isSelected = '';
         keyComboBox = keyComboBox + "</select>";
-        #color text box
-        colorValue = self.lastDialogQuickKey.get('color','yellow');
-        colorTextField = "<span style='font-weight:bold'>Source highlighting color (IR model only): </span><input type='text' id='color' value='" + colorValue + "' />";
-        #radio buttons to chose if hilight or color text
-        colorBackground = 'checked';
-        colorText = '';
-        if(self.lastDialogQuickKey.get('colorText', 'false') == 'true'):
-            colorText = 'checked';
-            colorBackground = '';
-        colorBackOrText = "<span style='font-weight:bold'>Apply color to: &nbsp;</span><input type='radio' id='colorBackOrText' name='colorBackOrText' value='false' " + colorBackground + "/> Background &nbsp;&nbsp;<input type='radio' name='colorBackOrText' value='true' " + colorText + " /> Text<br />";
+
+        colorValue = self.lastDialogQuickKey.get('backgroundColor', 'yellow')
+        backgroundColorField = "<span style='font-weight:bold'>Source highlighting color (background): </span><input type='text' id='backgroundColor' value='" + colorValue + "' />"
+
+        colorValue = self.lastDialogQuickKey.get('textColor', 'black')
+        textColorField = "<span style='font-weight:bold'>Source highlighting color (text): </span><input type='text' id='textColor' value='" + colorValue + "' />"
+
         #show editor checkbox
         doShowEditor = '';
         if(self.lastDialogQuickKey.get('showEditor', 1) == 1):
@@ -259,8 +256,8 @@ class ViewManager():
         html += fieldComboBox + "</select>";
         html += "<p><span style='font-weight:bold'>Key Combination:</span>&nbsp;&nbsp;" + ctrlCheckbox + "&nbsp;&nbsp;" + shiftCheckbox + "&nbsp;&nbsp;" + altCheckbox + "&nbsp;&nbsp;" + keyComboBox;
         #html += "<p>" + keyComboBox;
-        html += "<p>" + colorTextField;
-        html += "<p>" + colorBackOrText;
+        html += "<p>" + backgroundColorField
+        html += "<p>" + textColorField
         html += "<p>" + showEditorCheckbox;
         html += "<p>" + showEditCurrentCheckbox;
         html += "<p>" + enabledCheckbox;
@@ -288,13 +285,8 @@ class ViewManager():
             quickKeyModel.setAlt(sel.checked);
             sel = document.getElementById('keys');
             quickKeyModel.setKey(sel.options[sel.selectedIndex].text);
-            quickKeyModel.setSourceHighlightColor(document.getElementById('color').value.trim());
-            sel = document.getElementById('colorBackOrText');
-            if(sel.checked) {
-                quickKeyModel.setColorText('false');
-            } else {
-                quickKeyModel.setColorText('true');
-            }
+            quickKeyModel.setBackgroundColor(document.getElementById('backgroundColor').value.trim());
+            quickKeyModel.setTextColor(document.getElementById('textColor').value.trim());
             sel = document.getElementById('showEditor');
             quickKeyModel.setShowEditor(sel.checked);
             sel = document.getElementById('showEditCurrent');
@@ -336,8 +328,9 @@ class ViewManager():
         keyModel['alt'] = alt;
         keyModel['keyName'] = quickKeyModel.keyName;
 
-        keyModel['color'] = quickKeyModel.color;
-        keyModel['colorText'] = quickKeyModel.colorText;
+        keyModel['backgroundColor'] = quickKeyModel.backgroundColor
+        keyModel['textColor'] = quickKeyModel.textColor
+
         doShowEditor = 0;
         if(quickKeyModel.showEditor == 'true'):
             doShowEditor = 1;
@@ -379,9 +372,6 @@ class ViewManager():
             mw.connect(shortcut, SIGNAL("activated()"), callMe);
             #add menu item showing defined shortcut
             menuText = "[Add Cards] " + keyModel['modelName'] + " -> " + keyModel['deckName'] + " (" + keyCombo + ")";
-            hColor = keyModel.get('color', None);
-            if(hColor != None and len(hColor) > 0): menuText += " [" + hColor + "]";
-            else: keyModel['color'] = None;
             menuItem = QAction(menuText, mw);
             mw.connect(menuItem, SIGNAL("triggered()"), callMe);
             mw.form.menuEdit.addAction(menuItem);
@@ -399,9 +389,10 @@ class ViewManager():
             clipboard = QApplication.clipboard();
             mimeData = clipboard.mimeData();
             selectedText = mimeData.html();
-            #Highlight the text in the original document. This is only useful for cards with long texts like IR. Other card models will ignore.
-            if(quickKeyModel.get('color', None) != None):
-                runHook("highlightText", quickKeyModel['color'], quickKeyModel.get('colorText', 'false'));
+
+            mw.readingManager.highlightText(
+                    quickKeyModel.get('backgroundColor', None),
+                    quickKeyModel.get('textColor', None))
 
         #Create new note with selected model and deck
         new_model = mw.col.models.byName(quickKeyModel['modelName'])
@@ -507,8 +498,8 @@ class QuickKeyModel(QObject):
     shift = False;
     alt = False;
     keyName = '';
-    color = 'yellow';
-    colorText = 'false';
+    backgroundColor = 'yellow'
+    textColor = 'black'
     showEditor = True;
     enabled = True;
     @pyqtSlot(str)
@@ -533,11 +524,11 @@ class QuickKeyModel(QObject):
     def setKey(self, key):
         self.keyName = key;
     @pyqtSlot(str)
-    def setSourceHighlightColor(self, color):
-        self.color = color;
+    def setBackgroundColor(self, color):
+        self.backgroundColor = color
     @pyqtSlot(str)
-    def setColorText(self, colorText):
-        self.colorText = colorText;
+    def setTextColor(self, color):
+        self.textColor = color
     @pyqtSlot(str)
     def setShowEditor(self, shouldShow):
         self.showEditor = shouldShow;
