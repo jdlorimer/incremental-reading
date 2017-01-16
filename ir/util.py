@@ -5,8 +5,12 @@ import os
 import stat
 import time
 
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtGui import QAction, QKeySequence, QMenu, QShortcut
+try:
+    from PyQt4.QtGui import QAction, QKeySequence, QMenu, QShortcut
+except ImportError:
+    from PyQt5.QtGui import QKeySequence
+    from PyQt5.QtWidgets import QAction, QMenu, QShortcut
+
 from aqt import mw
 
 
@@ -27,7 +31,7 @@ def addMenuItem(menuName, text, function, keys=None):
     if keys:
         action.setShortcut(QKeySequence(keys))
 
-    mw.connect(action, SIGNAL('triggered()'), function)
+    action.triggered.connect(function)
 
     if menuName == 'File':
         mw.form.menuCol.addAction(action)
@@ -44,7 +48,7 @@ def addMenuItem(menuName, text, function, keys=None):
 
 def addShortcut(function, keys):
     shortcut = QShortcut(QKeySequence(keys), mw)
-    mw.connect(shortcut, SIGNAL('activated()'), function)
+    shortcut.activated.connect(function)
 
 
 def getField(note, fieldName):
