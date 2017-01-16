@@ -84,8 +84,8 @@ class ReadingManager():
         else:
             text = mimeData.html()
 
-        self.highlightSelectedText(self.settings['highlightColor'],
-                                   self.settings['doHighlightFont'])
+        self.highlightText(self.settings['highlightColor'],
+                           self.settings['textColor'])
 
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
@@ -156,7 +156,12 @@ class ReadingManager():
         initJavaScript()
         mw.web.eval("highlightAllRanges()")
 
-    def highlightSelectedText(self, color, doHighlightFont):
+    def highlightText(self, backgroundColor=None, textColor=None):
+        if not backgroundColor:
+            backgroundColor = self.settings['highlightColor']
+        if not textColor:
+            textColor = self.settings['textColor']
+
         # No obvious/easy way to do this with BeautifulSoup
         def removeOuterDiv(html):
             withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
@@ -172,23 +177,20 @@ class ReadingManager():
         if currentCard and currentModelName == IR_MODEL_NAME:
             identifier = str(int(time.time() * 10))
             script = "markRange('%s', '%s', '%s');" % (identifier,
-                                                       color,
-                                                       doHighlightFont)
-            script += "highlight('%s', '%s');" % (color, doHighlightFont)
+                                                       backgroundColor,
+                                                       textColor)
+            script += "highlight('%s', '%s');" % (backgroundColor, textColor)
             mw.web.eval(script)
 
             page = mw.web.page().mainFrame().toHtml()
             soup = BeautifulSoup(page)
-            irTextDiv = soup.find('div', {'class': 'ir-text'})
+            irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
 
             if irTextDiv:
                 withoutDiv = removeOuterDiv(irTextDiv)
                 currentNote['Text'] = unicode(withoutDiv)
                 currentNote.flush()
                 self.adjustZoomAndScroll()
-
-    def highlightText(self):
-        self.highlightSelectedText(self.settings['highlightColor'], self.settings['doHighlightFont']);
 
     def htmlUpdated(self):
         #Called from javascript
@@ -635,7 +637,7 @@ class IREJavaScriptCallback(QObject):
 
 def initJavaScript():
     javaScript = """
-    function highlight(color, doHighlightFont) {
+    function highlight(backgroundColor, textColor) {
         if (window.getSelection) {
             var range, sel = window.getSelection();
 
@@ -649,18 +651,15 @@ def initJavaScript():
                 sel.addRange(range);
             }
 
-            if (doHighlightFont == 'true') {
-                document.execCommand("foreColor", false, color);
-            } else {
-                document.execCommand("hiliteColor", false, color);
-            }
+            document.execCommand("foreColor", false, textColor);
+            document.execCommand("hiliteColor", false, backgroundColor);
 
             document.designMode = "off";
             sel.removeAllRanges();
         }
     }
 
-    function unhighlight(identifier, hiliteFont) {
+    function unhighlight(identifier) {
         var startNode, endNode;
         startNode = document.getElementById('s' + identifier);
         endNode = document.getElementById('e' + identifier);
@@ -671,34 +670,33 @@ def initJavaScript():
             sel = window.getSelection();
             sel.removeAllRanges();
             sel.addRange(range);
-            if(hiliteFont) highlight('black', hiliteFont);
-            else highlight('white', hiliteFont);
+            highlight('white', 'black');
             startNode.parentNode.removeChild(startNode);
             endNode.parentNode.removeChild(endNode);
             pyCallback.htmlUpdated('');
         }
     }
 
-    function markRange(identifier, color, hiliteFont) {
+    function markRange(identifier, backgroundColor, textColor) {
         var range, sel = window.getSelection();
         if(sel.rangeCount && sel.getRangeAt) {
             range = sel.getRangeAt(0);
             var startNode = document.createElement('span');
             startNode.setAttribute('id', ('s' + identifier));
-            startNode.setAttribute('hiclr', color);
-            startNode.setAttribute('hifont', hiliteFont);
+            startNode.setAttribute('ir-bg-color', backgroundColor);
+            startNode.setAttribute('ir-text-color', textColor);
             range.insertNode(startNode);
             var endNode = document.createElement('span');
             endNode.setAttribute('id', ('e' + identifier));
             endNode.setAttribute('style', 'font-size:xx-small');
-            editHighlightLink = document.createElement('a');
-            editHighlightLink.setAttribute('href','javascript:');
-            var tmp = ('unhighlight(' + identifier + ', ' + hiliteFont + '); return false;');
-            editHighlightLink.setAttribute('onclick', tmp);
-            sub = document.createElement('sub');
-            sub.appendChild(document.createTextNode('#'));
-            editHighlightLink.appendChild(sub);
-            endNode.appendChild(editHighlightLink);
+            // editHighlightLink = document.createElement('a');
+            // editHighlightLink.setAttribute('href','javascript:');
+            // var tmp = ('unhighlight(' + identifier + '); return false;');
+            // editHighlightLink.setAttribute('onclick', tmp);
+            // sub = document.createElement('sub');
+            // sub.appendChild(document.createTextNode('#'));
+            // editHighlightLink.appendChild(sub);
+            // endNode.appendChild(editHighlightLink);
             range.collapse(false);
             range.insertNode(endNode);
             range.setStartAfter(startNode);
@@ -719,12 +717,11 @@ def initJavaScript():
             sel = window.getSelection();
             sel.removeAllRanges();
             sel.addRange(range);
-            return startNode.getAttribute('hiclr');
-        } else return 'white';
+        }
     }
 
     function highlightAllRanges() {
-        var startNodesXPathResult = document.evaluate('//*[@hiclr]', document, null, XPathResult.ANY_TYPE, null);
+        var startNodesXPathResult = document.evaluate('//*[@ir-bg-color]', document, null, XPathResult.ANY_TYPE, null);
         var sNodes = new Array();
         var startNode = startNodesXPathResult.iterateNext();
         while(startNode) {
@@ -736,7 +733,8 @@ def initJavaScript():
             startNode = sNodes[i];
             id = startNode.id.substring(1);
             selectMarkedRange(id);
-            highlight(startNode.getAttribute('hiclr'), startNode.getAttribute('hifont'));
+            highlight(startNode.getAttribute('ir-bg-color'),
+                      startNode.getAttribute('ir-text-color'))
         }
     }
     """
@@ -758,7 +756,6 @@ mw.readingManager = ReadingManager()
 addHook('profileLoaded', mw.readingManager.loadPluginData)
 addHook('unloadProfile', mw.readingManager.savePluginData)
 addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
-addHook('highlightText', mw.readingManager.highlightSelectedText);
 
 # Dangerous: We are monkey patching a method beginning with _
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
