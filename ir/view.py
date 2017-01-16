@@ -566,25 +566,7 @@ def vsa_resetRequiredState(self, oldState, _old):
         #print "vsa_resetRequiredState: Requisite conditions not met. Delegating to original resetRequiredState method.";
         return _old(self, oldState);
 
-def vsa_reviewState(self, oldState, _old):
-    #print "vsa_reviewState: acsCount=" + str(self.viewManager.acsCount) + ", mw.reviewer.card=" + str(mw.reviewer.card) + ", and old state =" + oldState;
-    specialHandling = False;
-    if(self.viewManager.acsCount - self.viewManager.rsCount == 1):
-        specialHandling = True;
-    self.viewManager.rsCount = self.viewManager.acsCount;
-    if (specialHandling and "review" == oldState):
-        self.col.reset();
-        curNote = self.reviewer.card.note();
-        self.web.setHtml(curNote['Text']);
-        self.reviewer.bottom.web.show();
-        self.readingManager.adjustZoomAndScroll();
-    else:
-        #print "vsa_reviewState: Requisite conditions not met. Delegating to original reviewState method.";
-        return _old(self, oldState);
-
-
 AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState, vsa_resetRequiredState, "around")
-AnkiQt._reviewState = wrap(AnkiQt._reviewState, vsa_reviewState, "around")
 
 
 def saveScrollPosition(event):
