@@ -184,7 +184,7 @@ class ReadingManager():
 
             page = mw.web.page().mainFrame().toHtml()
             soup = BeautifulSoup(page)
-            irTextDiv = soup.find('div', {'class': 'ir-text'})
+            irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
 
             if irTextDiv:
                 withoutDiv = removeOuterDiv(irTextDiv)
