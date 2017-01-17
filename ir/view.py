@@ -68,14 +68,14 @@ class ViewManager():
     def pageUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight - (pageHeight / 20)
+        movementSize = pageHeight * self.settings['pageScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
     def pageDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight - (pageHeight / 20)
+        movementSize = pageHeight * self.settings['pageScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
@@ -83,14 +83,14 @@ class ViewManager():
     def lineUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight / 20
+        movementSize = pageHeight * self.settings['lineScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
     def lineDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight / 20
+        movementSize = pageHeight * self.settings['lineScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
