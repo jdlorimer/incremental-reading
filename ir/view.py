@@ -107,21 +107,24 @@ class ViewManager():
         addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
 
         addMenuItem('Read',
-                    'Organizer...',
-                    mw.readingManager.callIRSchedulerDialog)
-
-        addMenuItem('Read',
                     'General Options...',
-                    mw.settingsManager.showSettingsDialog)
+                    mw.settingsManager.showSettingsDialog,
+                    'Alt+1')
 
         addMenuItem('Read',
-                    'Scheduler Options...',
-                    mw.readingManager.callIRSchedulerOptionsDialog)
+                    'Organizer...',
+                    mw.readingManager.callIRSchedulerDialog,
+                    'Alt+2')
 
         addMenuItem('Read',
                     'Create Shortcut...',
                     self.showAddCardQuickKeysDialog,
-                    'Alt+1')
+                    'Alt+3')
+
+        addMenuItem('Read',
+                    'Scheduler Options...',
+                    mw.readingManager.callIRSchedulerOptionsDialog,
+                    'Alt+4')
 
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
