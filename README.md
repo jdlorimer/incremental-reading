@@ -15,6 +15,19 @@ The main things this add-on allows you to do:
 * Control the scheduling of incremental reading cards
 * Rearrange cards in the built-in organiser
 
+### New to Version 3
+
+* The following options have been added to give more control over how text is extracted:
+  * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
+  * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
+  * Open the source note for editing on each extraction
+* It is also now possible to control several aspects of how zooming and scrolling operate:
+  * _Zoom Step_ (the amount that magnification changes when zooming in or out)
+  * _General Zoom_ (the zoom level for the deck browser and overview screens)
+  * _Line Up/Down Step_ (the amount the page moves up or down when the Up or Down direction keys are used)
+  * _Page Up/Down Step_ (same as above, but with the Page Up and Page Down keys)
+* Both the background color and text color used for highlighting can be customized, and the main options dialog offers a list of possible colors
+
 ## Installation
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
@@ -62,29 +75,3 @@ For the sake of simplicity, I am also releasing my changes under the ISC license
 I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because it is a Google Groups conversation, which makes the licensing slightly murky.
 
 Frank Raiser released an Anki 1 add-on under a similar name, but it doesn't appear to share any code with the current project and the functionality is quite different. For more information, see [Anki Incremental Reading](http://frankraiser.de/drupal/AnkiIR).
-
-## Version History
-
-### v3.3.0
-
-#### Features
-
-- The following options have been added to give more control over how text is extracted:
-  - Open the full note editor for each extraction (slow), or simply a title entry box (fast)
-  - Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
-  - Open the source note for editing on each extraction
-
-- It is also now possible to control several aspects of how zooming operates:
-  - **Zoom Step** (the amount that magnification changes when zooming in or out)
-  - **General Zoom** (the zoom level for the deck browser and overview screens)
-
-- All settings have been merged into a single JSON file for easier editing and debugging
-
-#### Bugfixes
-
-- Highlighting now causes fewer issues; saves only relevant part of page to note
-- Zoom factor and scroll position are now saved, and restored, more reliably
-- Fixed bug where switching between profiles resulted in duplicate menu items
-- List of available highlighting colors is now available from drop-down menu
-- Fixed formatting of IR menu items, so they now blend better with standard Anki items
-- IR menu items are now located under the "Read" menu, rather than spread throughout other menus
