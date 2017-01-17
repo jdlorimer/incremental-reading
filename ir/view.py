@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
-from PyQt4.QtGui import (QAction, QApplication, QDialog, QDialogButtonBox,
-                         QKeySequence, QShortcut, QVBoxLayout)
+from PyQt4.QtGui import QApplication, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt4.QtWebKit import QWebPage
 from anki import notes
-from anki.hooks import addHook, runHook, wrap
+from anki.hooks import addHook, wrap
 from anki.sound import clearAudioQueue
 from aqt import addcards, editcurrent, mw
 from aqt.main import AnkiQt
