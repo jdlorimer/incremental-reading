@@ -29,8 +29,9 @@ class SettingsManager():
                          'extractPlainText': False,
                          'generalZoom': 1,
                          'highlightColor': 'yellow',
-                         'textColor': 'black',
                          'lastDialogQuickKey': {},
+                         'lineScrollFactor': 0.05,
+                         'pageScrollFactor': 0.5,
                          'quickKeys': {},
                          'schedLaterInt': 50,
                          'schedLaterRandom': True,
@@ -39,6 +40,7 @@ class SettingsManager():
                          'schedSoonRandom': True,
                          'schedSoonType': 'pct',
                          'scroll': {},
+                         'textColor': 'black',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -68,10 +70,13 @@ class SettingsManager():
     def showSettingsDialog(self):
         dialog = QDialog(mw)
         mainLayout = QVBoxLayout()
+        horizontalLayout1 = QHBoxLayout()
+        horizontalLayout2 = QHBoxLayout()
 
         extractionGroupBox = self.createExtractionGroupBox()
         highlightingGroupBox = self.createHighlightingGroupBox()
         zoomGroupBox = self.createZoomGroupBox()
+        scrollGroupBox = self.createScrollGroupBox()
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.connect(buttonBox,
@@ -79,9 +84,13 @@ class SettingsManager():
                           dialog,
                           SLOT('accept()'))
 
-        mainLayout.addWidget(extractionGroupBox)
-        mainLayout.addWidget(highlightingGroupBox)
-        mainLayout.addWidget(zoomGroupBox)
+        horizontalLayout1.addWidget(extractionGroupBox)
+        horizontalLayout1.addWidget(highlightingGroupBox)
+        horizontalLayout2.addWidget(zoomGroupBox)
+        horizontalLayout2.addWidget(scrollGroupBox)
+
+        mainLayout.addLayout(horizontalLayout1)
+        mainLayout.addLayout(horizontalLayout2)
         mainLayout.addWidget(buttonBox)
 
         dialog.setLayout(mainLayout)
@@ -90,6 +99,8 @@ class SettingsManager():
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
+        self.settings['lineScrollFactor'] = self.lineScrollPercentSpinBox.value() / 100.0
+        self.settings['pageScrollFactor'] = self.pageScrollPercentSpinBox.value() / 100.0
         self.settings['highlightColor'] = self.highlightColorComboBox.currentText()
         self.settings['textColor'] = self.textColorComboBox.currentText()
 
@@ -215,6 +226,48 @@ class SettingsManager():
         layout.addLayout(percentsLayout)
 
         groupBox = QGroupBox('Zoom')
+        groupBox.setLayout(layout)
+
+        return groupBox
+
+    def createScrollGroupBox(self):
+        lineScrollStepLabel = QLabel('Line Up/Down Step')
+        lineScrollPercentLabel = QLabel('% of Window')
+        pageScrollStepLabel = QLabel('Page Up/Down Step')
+        pageScrollPercentLabel = QLabel('% of Window')
+
+        self.lineScrollPercentSpinBox = QSpinBox()
+        self.lineScrollPercentSpinBox.setMinimum(5)
+        self.lineScrollPercentSpinBox.setMaximum(100)
+        self.lineScrollPercentSpinBox.setSingleStep(5)
+        lineScrollPercent = round(self.settings['lineScrollFactor'] * 100)
+        self.lineScrollPercentSpinBox.setValue(lineScrollPercent)
+
+        self.pageScrollPercentSpinBox = QSpinBox()
+        self.pageScrollPercentSpinBox.setMinimum(5)
+        self.pageScrollPercentSpinBox.setMaximum(100)
+        self.pageScrollPercentSpinBox.setSingleStep(5)
+        pageScrollPercent = round(self.settings['pageScrollFactor'] * 100)
+        self.pageScrollPercentSpinBox.setValue(pageScrollPercent)
+
+        labelsLayout = QVBoxLayout()
+        labelsLayout.addWidget(lineScrollStepLabel)
+        labelsLayout.addWidget(pageScrollStepLabel)
+
+        spinBoxesLayout = QVBoxLayout()
+        spinBoxesLayout.addWidget(self.lineScrollPercentSpinBox)
+        spinBoxesLayout.addWidget(self.pageScrollPercentSpinBox)
+
+        percentsLayout = QVBoxLayout()
+        percentsLayout.addWidget(lineScrollPercentLabel)
+        percentsLayout.addWidget(pageScrollPercentLabel)
+
+        layout = QHBoxLayout()
+        layout.addLayout(labelsLayout)
+        layout.addLayout(spinBoxesLayout)
+        layout.addLayout(percentsLayout)
+
+        groupBox = QGroupBox('Scroll')
         groupBox.setLayout(layout)
 
         return groupBox
