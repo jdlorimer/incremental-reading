@@ -74,8 +74,11 @@ class ReadingManager():
             source_field['sticky'] = True
 
     def extract(self):
-        if mw.web.selectedText():
-            mw.web.triggerPageAction(QWebPage.Copy)
+        if not mw.web.selectedText():
+            showInfo(_('Please select some text to extract.'))
+            return
+
+        mw.web.triggerPageAction(QWebPage.Copy)
 
         mimeData = QApplication.clipboard().mimeData()
 
