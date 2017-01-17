@@ -120,7 +120,7 @@ class ViewManager():
                     mw.readingManager.callIRSchedulerOptionsDialog)
 
         addMenuItem('Read',
-                    'Create Add Cards Shortcut...',
+                    'Create Shortcut...',
                     self.showAddCardQuickKeysDialog,
                     'Alt+1')
 
@@ -347,37 +347,23 @@ class ViewManager():
             self.setQuickKey(keyModel);
 
     def setQuickKey(self, keyModel):
-        keyCombo = '';
-        if(keyModel['ctrl'] == 1): keyCombo += "Ctrl+";
-        if(keyModel['shift'] == 1): keyCombo += "Shift+";
-        if(keyModel['alt'] == 1): keyCombo += "Alt+";
-        keyCombo += keyModel['keyName'];
+        keyCombo = ''
+        if keyModel['ctrl'] == 1:
+            keyCombo += "Ctrl+"
+        if keyModel['shift'] == 1:
+            keyCombo += "Shift+"
+        if keyModel['alt'] == 1:
+            keyCombo += "Alt+"
+        keyCombo += keyModel['keyName']
 
-        existingKeyModel = self.quickKeys.get(keyCombo, None);
-        if(existingKeyModel != None):
-            self.quickKeys.pop(keyCombo, None);
-            if(existingKeyModel.get('transient', None) != None):
-                shortcut = existingKeyModel['transient'].get('shortcut');
-                mw.disconnect(shortcut, SIGNAL("activated()"), existingKeyModel['transient'].get('callable'));
-                shortcut.setEnabled(False);
-                del shortcut;
-                menuItem = existingKeyModel['transient'].get('menuItem');
-                mw.disconnect(menuItem, SIGNAL("activated()"), existingKeyModel['transient'].get('callable'));
-                menuItem.setEnabled(False);
-                mw.form.menuEdit.removeAction(menuItem);
-                del menuItem;
-        if(keyModel['enabled'] == 1):
-            shortcut = QShortcut(QKeySequence(keyCombo), mw);
-            callMe = lambda: self.quickAddCards(keyModel);
-            mw.connect(shortcut, SIGNAL("activated()"), callMe);
-            #add menu item showing defined shortcut
-            menuText = "[Add Cards] " + keyModel['modelName'] + " -> " + keyModel['deckName'] + " (" + keyCombo + ")";
-            menuItem = QAction(menuText, mw);
-            mw.connect(menuItem, SIGNAL("triggered()"), callMe);
-            mw.form.menuEdit.addAction(menuItem);
-            keyModel['transient'] = {'shortcut':shortcut,'callable':callMe, 'menuItem':menuItem};
-            self.quickKeys[keyCombo] = keyModel;
-            self.savePluginData();
+        existingKeyModel = self.quickKeys.get(keyCombo, None)
+        if keyModel['enabled'] == 1 and not existingKeyModel:
+            callMe = lambda: self.quickAddCards(keyModel)
+            menuText = 'Add Card [%s -> %s]' % (keyModel['modelName'],
+                                                keyModel['deckName'])
+            addMenuItem('Read', menuText, callMe, keyCombo)
+            self.quickKeys[keyCombo] = keyModel
+            self.savePluginData()
 
     def quickAddCards(self, quickKeyModel):
         hasSelection = 0;
@@ -479,10 +465,8 @@ class ViewManager():
             quickKey = self.quickKeys.get(qkey, None)
             if quickKey:
                 quickKeysCopy[qkey] = quickKey.copy()
-                quickKeysCopy[qkey]['transient'] = None
 
         lastDialogQuickKeyCopy = self.lastDialogQuickKey.copy()
-        lastDialogQuickKeyCopy['transient'] = None
 
         self.settings['quickKeys'] = quickKeysCopy
         self.settings['lastDialogQuickKey'] = lastDialogQuickKeyCopy
