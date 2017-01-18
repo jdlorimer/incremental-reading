@@ -68,14 +68,14 @@ class ViewManager():
     def pageUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight - (pageHeight / 20)
+        movementSize = pageHeight * self.settings['pageScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
     def pageDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight - (pageHeight / 20)
+        movementSize = pageHeight * self.settings['pageScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
@@ -83,14 +83,14 @@ class ViewManager():
     def lineUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight / 20
+        movementSize = pageHeight * self.settings['lineScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
         self.setScrollPosition(newPosition)
 
     def lineDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight / 20
+        movementSize = pageHeight * self.settings['lineScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
@@ -107,21 +107,24 @@ class ViewManager():
         addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
 
         addMenuItem('Read',
-                    'Organizer...',
-                    mw.readingManager.callIRSchedulerDialog)
-
-        addMenuItem('Read',
                     'General Options...',
-                    mw.settingsManager.showSettingsDialog)
+                    mw.settingsManager.showSettingsDialog,
+                    'Alt+1')
 
         addMenuItem('Read',
-                    'Scheduler Options...',
-                    mw.readingManager.callIRSchedulerOptionsDialog)
+                    'Organizer...',
+                    mw.readingManager.callIRSchedulerDialog,
+                    'Alt+2')
 
         addMenuItem('Read',
                     'Create Shortcut...',
                     self.showAddCardQuickKeysDialog,
-                    'Alt+1')
+                    'Alt+3')
+
+        addMenuItem('Read',
+                    'Scheduler Options...',
+                    mw.readingManager.callIRSchedulerOptionsDialog,
+                    'Alt+4')
 
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
