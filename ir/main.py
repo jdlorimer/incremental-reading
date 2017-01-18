@@ -691,7 +691,6 @@ def initJavaScript():
             range.insertNode(startNode);
             var endNode = document.createElement('span');
             endNode.setAttribute('id', ('e' + identifier));
-            endNode.setAttribute('style', 'font-size:xx-small');
             // editHighlightLink = document.createElement('a');
             // editHighlightLink.setAttribute('href','javascript:');
             // var tmp = ('unhighlight(' + identifier + '); return false;');
