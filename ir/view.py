@@ -430,6 +430,10 @@ class ViewManager():
             self.addCards.modelChooser.models.setText(quickKeyModel['modelName'])
             self.addCards.deckChooser.deck.setText(quickKeyModel['deckName'])
 
+    def resetZoom(self, state, *args):
+        if state in ['deckBrowser', 'overview']:
+            mw.web.setTextSizeMultiplier(self.settings['generalZoom'])
+
     def loadPluginData(self):
         self.settings = mw.settingsManager.settings
         if not self.controlsLoaded:
@@ -438,14 +442,8 @@ class ViewManager():
             self.addQuickKeys(self.settings['quickKeys'])
             self.controlsLoaded = True
 
-        def resetZoom(state, *args):
-            if state in ['deckBrowser', 'overview']:
-                defaultSize = self.settings['generalZoom']
-                mw.web.setTextSizeMultiplier(defaultSize)
-
-        mw.moveToState = wrap(mw.moveToState, resetZoom, 'before')
-
-        resetZoom('deckBrowser')
+        mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
+        self.resetZoom('deckBrowser')
 
     def addQuickKeys(self, mapOfQuickKeys):
         for qkey in mapOfQuickKeys.keys():
