@@ -123,6 +123,8 @@ class SettingsManager():
         else:
             self.settings['extractPlainText'] = False
 
+        mw.viewManager.resetZoom(mw.state)
+
     def createExtractionGroupBox(self):
         extractedTextLabel = QLabel('Extracted Text')
 
