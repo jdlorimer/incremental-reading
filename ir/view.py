@@ -33,26 +33,36 @@ class ViewManager():
         self.rsCount = 0;
 
         self.controlsLoaded = False
+        self.previousState = None
 
     def zoomIn(self):
         if mw.reviewer.card:
-            cardID = str(mw.reviewer.card.id)
+            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+                cardID = str(mw.reviewer.card.id)
 
-            if cardID not in self.settings['zoom']:
-                self.settings['zoom'][cardID] = 1
+                if cardID not in self.settings['zoom']:
+                    self.settings['zoom'][cardID] = 1
 
-            self.settings['zoom'][cardID] += self.settings['zoomStep']
-            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+                self.settings['zoom'][cardID] += self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+            else:
+                newFactor = mw.web.textSizeMultiplier() + self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(newFactor)
+
 
     def zoomOut(self):
         if mw.reviewer.card:
-            cardID = str(mw.reviewer.card.id)
+            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+                cardID = str(mw.reviewer.card.id)
 
-            if cardID not in self.settings['zoom']:
-                self.settings['zoom'][cardID] = 1
+                if cardID not in self.settings['zoom']:
+                    self.settings['zoom'][cardID] = 1
 
-            self.settings['zoom'][cardID] -= self.settings['zoomStep']
-            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+                self.settings['zoom'][cardID] -= self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+            else:
+                newFactor = mw.web.textSizeMultiplier() - self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(newFactor)
 
     def setScrollPosition(self, newPosition):
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, newPosition))
@@ -433,6 +443,13 @@ class ViewManager():
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
             mw.web.setTextSizeMultiplier(self.settings['generalZoom'])
+        elif (state == 'review' and
+              self.previousState != 'review' and
+              mw.reviewer.card and
+              mw.reviewer.card.note().model()['name'] != IR_MODEL_NAME):
+            mw.web.setTextSizeMultiplier(1)
+
+        self.previousState = state
 
     def loadPluginData(self):
         self.settings = mw.settingsManager.settings
