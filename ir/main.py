@@ -203,102 +203,6 @@ class ReadingManager():
         mw.web.setHtml(curNote['Text']);
         self.adjustZoomAndScroll();
 
-    def callIRSchedulerOptionsDialog(self):
-        d = QDialog(mw)
-        l = QVBoxLayout()
-        l.setMargin(0)
-        w = AnkiWebView()
-        l.addWidget(w)
-        #Add python object to take values back from javascript
-        callback = IROptionsCallback();
-        w.page().mainFrame().addToJavaScriptWindowObject("callback", callback);
-        getScript = """
-        function updateIRSchedulerOptions() {
-            //invoke the callback object
-            var soonTypeCnt = document.getElementById('soonCntButton').checked;
-            var laterTypeCnt = document.getElementById('laterCntButton').checked;
-            var soonRandom = document.getElementById('soonRandom').checked;
-            var laterRandom = document.getElementById('laterRandom').checked;
-            var options = ''
-            //Soon Button
-            if(soonTypeCnt) options += 'cnt,';
-            else options += 'pct,';
-            options += document.getElementById('soonValue').value + ',';
-            if(soonRandom) options += 'true,';
-            else options += 'false,';
-            //Later Button
-            if(laterTypeCnt) options += 'cnt,';
-            else options += 'pct,';
-            options += document.getElementById('laterValue').value + ',';
-            if(laterRandom) options += 'true';
-            else options += 'false';
-            callback.updateOptions(options);
-        };
-        """
-
-        isCntChecked = '';
-        isPctChecked = '';
-        isRandomChecked = '';
-        if(self.settings['schedSoonType'] == 'cnt'):
-            isCntChecked = 'checked';
-            isPctChecked = '';
-        else:
-            isCntChecked = '';
-            isPctChecked = 'checked';
-        if(self.settings['schedSoonRandom']): isRandomChecked = 'checked';
-        else: isRandomChecked = '';
-        soonButtonConfig = "<span style='font-weight:bold'>Soon Button: &nbsp;</span>";
-        soonButtonConfig += "<input type='radio' id='soonCntButton' name='soonCntOrPct' value='cnt' " + isCntChecked + " /> Position &nbsp;&nbsp;";
-        soonButtonConfig += "<input type='radio' id='soonPctButton' name='soonCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
-        soonButtonConfig += "<input type='text' size='5' id='soonValue' value='" + str(self.settings['schedSoonInt']) + "'/>";
-        soonButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='soonRandom' " + isRandomChecked + " /><br/>";
-        if(self.settings['schedLaterType'] == 'cnt'):
-            isCntChecked = 'checked';
-            isPctChecked = '';
-        else:
-            isCntChecked = '';
-            isPctChecked = 'checked';
-        if(self.settings['schedLaterRandom']): isRandomChecked = 'checked';
-        else: isRandomChecked = '';
-        laterButtonConfig = "<span style='font-weight:bold'>Later Button: &nbsp;</span>";
-        laterButtonConfig += "<input type='radio' id='laterCntButton' name='laterCntOrPct' value='cnt' " + isCntChecked + " /> Position &nbsp;&nbsp;";
-        laterButtonConfig += "<input type='radio'  id='laterPctButton' name='laterCntOrPct' value='pct' " + isPctChecked + " /> Percent&nbsp;";
-        laterButtonConfig += "<input type='text' size='5' id='laterValue' value='" + str(self.settings['schedLaterInt']) + "'/>";
-        laterButtonConfig += "<span style='font-weight:bold'>&nbsp;&nbsp;&nbsp;&nbsp;Randomize?&nbsp;</span><input type='checkbox' id='laterRandom' " + isRandomChecked + " /><br/>";
-
-        html = "<html><head><script>" + getScript + "</script></head><body>";
-        html += "<p>" + soonButtonConfig;
-        html += "<p>" + laterButtonConfig;
-        html += "</body></html>";
-        w.stdHtml(html);
-        bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
-        bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
-        bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
-        bb.setOrientation(Qt.Horizontal)
-        l.addWidget(bb)
-        d.setLayout(l)
-        d.setWindowModality(Qt.WindowModal)
-        d.resize(500, 140)
-        choice = d.exec_();
-        if(choice == 1):
-            w.eval("updateIRSchedulerOptions()");
-
-    def parseIROptions(self, optionsString):
-        try:
-            vals = optionsString.split(",");
-            if(len(vals) > 0): self.settings['schedSoonType'] = vals[0];
-            if(len(vals) > 1): self.settings['schedSoonInt'] = int(vals[1]);
-            if(len(vals) > 2):
-                self.settings['schedSoonRandom'] = False;
-                if(vals[2] == 'true'): self.settings['schedSoonRandom'] = True;
-            if(len(vals) > 3): self.settings['schedLaterType'] = vals[3];
-            if(len(vals) > 4): self.settings['schedLaterInt'] = int(vals[4]);
-            if(len(vals) > 5):
-                self.settings['schedLaterRandom'] = False;
-                if(vals[5] == 'true'): self.settings['schedLaterRandom'] = True;
-        except:
-            self.parseIROptions('pct,10,true,pct,50,true');
-
     #Needed this no-arg pass thru to be able to invoke dialog from menu
     def callIRSchedulerDialog(self):
         self.showIRSchedulerDialog(None);
@@ -621,10 +525,6 @@ class ReadingManager():
                 cardDataList.append(cardData);
         return cardDataList;
 
-class IROptionsCallback(QObject):
-    @pyqtSlot(str)
-    def updateOptions(self, options):
-        mw.readingManager.parseIROptions(options);
 
 class IRSchedulerCallback(QObject):
     @pyqtSlot(str)
