@@ -131,11 +131,6 @@ class ViewManager():
                     self.showAddCardQuickKeysDialog,
                     'Alt+3')
 
-        addMenuItem('Read',
-                    'Scheduler Options...',
-                    mw.readingManager.callIRSchedulerOptionsDialog,
-                    'Alt+4')
-
     def setDefaultDialogValues(self, keyModel):
         keyModel['deckName'] = None;
         keyModel['modelName'] = None;
