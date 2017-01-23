@@ -7,14 +7,15 @@ import os
 
 try:
     from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                             QRadioButton, QSpinBox, QVBoxLayout)
+    from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                             QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
+                             QLineEdit, QRadioButton, QSpinBox, QVBoxLayout)
 except ImportError:
     from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog,
+    from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                                  QDialogButtonBox, QGroupBox, QHBoxLayout,
-                                 QLabel, QRadioButton, QSpinBox, QVBoxLayout)
+                                 QLabel, QLineEdit, QRadioButton, QSpinBox,
+                                 QVBoxLayout)
 
 from aqt import mw
 
@@ -320,7 +321,6 @@ class SettingsManager():
         return groupBox
 
     def createSchedulingGroupBox(self):
-        from PyQt4.QtGui import QButtonGroup
         soonLabel = QLabel('Soon Button')
         laterLabel = QLabel('Later Button')
 
