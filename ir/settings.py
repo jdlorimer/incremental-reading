@@ -8,8 +8,8 @@ import os
 try:
     from PyQt4.QtCore import Qt
     from PyQt4.QtGui import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QGroupBox, QHBoxLayout, QLabel, QRadioButton,
-                             QSpinBox, QVBoxLayout)
+                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                             QRadioButton, QSpinBox, QVBoxLayout)
 except ImportError:
     from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog,
@@ -79,11 +79,13 @@ class SettingsManager():
         mainLayout = QVBoxLayout()
         horizontalLayout1 = QHBoxLayout()
         horizontalLayout2 = QHBoxLayout()
+        horizontalLayout3 = QHBoxLayout()
 
         extractionGroupBox = self.createExtractionGroupBox()
         highlightingGroupBox = self.createHighlightingGroupBox()
         zoomGroupBox = self.createZoomGroupBox()
         scrollGroupBox = self.createScrollGroupBox()
+        schedulingGroupBox = self.createSchedulingGroupBox()
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.accepted.connect(dialog.accept)
@@ -92,9 +94,11 @@ class SettingsManager():
         horizontalLayout1.addWidget(highlightingGroupBox)
         horizontalLayout2.addWidget(zoomGroupBox)
         horizontalLayout2.addWidget(scrollGroupBox)
+        horizontalLayout3.addWidget(schedulingGroupBox)
 
         mainLayout.addLayout(horizontalLayout1)
         mainLayout.addLayout(horizontalLayout2)
+        mainLayout.addLayout(horizontalLayout3)
         mainLayout.addWidget(buttonBox)
 
         dialog.setLayout(mainLayout)
@@ -122,6 +126,24 @@ class SettingsManager():
             self.settings['extractPlainText'] = True
         else:
             self.settings['extractPlainText'] = False
+
+        self.settings['schedSoonRandom'] = self.soonRandomizeCheckBox.isChecked()
+        self.settings['schedLaterRandom'] = self.laterRandomizeCheckBox.isChecked()
+        try:
+            self.settings['schedSoonInt'] = int(self.soonIntegerEditBox.text())
+            self.settings['schedLaterInt'] = int(self.laterIntegerEditBox.text())
+        except:
+            pass
+
+        if self.soonPercentButton.isChecked():
+            self.settings['schedSoonType'] = 'pct'
+        else:
+            self.settings['schedSoonType'] = 'cnt'
+
+        if self.laterPercentButton.isChecked():
+            self.settings['schedLaterType'] = 'pct'
+        else:
+            self.settings['schedLaterType'] = 'cnt'
 
         mw.viewManager.resetZoom(mw.state)
 
@@ -293,6 +315,74 @@ class SettingsManager():
         layout.addLayout(percentsLayout)
 
         groupBox = QGroupBox('Scroll')
+        groupBox.setLayout(layout)
+
+        return groupBox
+
+    def createSchedulingGroupBox(self):
+        from PyQt4.QtGui import QButtonGroup
+        soonLabel = QLabel('Soon Button')
+        laterLabel = QLabel('Later Button')
+
+        self.soonPercentButton = QRadioButton('Percent')
+        soonPositionButton = QRadioButton('Position')
+        self.laterPercentButton = QRadioButton('Percent')
+        laterPositionButton = QRadioButton('Position')
+        self.soonRandomizeCheckBox = QCheckBox('Randomize')
+        self.laterRandomizeCheckBox = QCheckBox('Randomize')
+
+        self.soonIntegerEditBox = QLineEdit()
+        self.soonIntegerEditBox.setFixedWidth(100)
+        self.laterIntegerEditBox = QLineEdit()
+        self.laterIntegerEditBox.setFixedWidth(100)
+
+        if self.settings['schedSoonType'] == 'pct':
+            self.soonPercentButton.setChecked(True)
+        else:
+            soonPositionButton.setChecked(True)
+
+        if self.settings['schedLaterType'] == 'pct':
+            self.laterPercentButton.setChecked(True)
+        else:
+            laterPositionButton.setChecked(True)
+
+        if self.settings['schedSoonRandom']:
+            self.soonRandomizeCheckBox.setChecked(True)
+
+        if self.settings['schedLaterRandom']:
+            self.laterRandomizeCheckBox.setChecked(True)
+
+        self.soonIntegerEditBox.setText(str(self.settings['schedSoonInt']))
+        self.laterIntegerEditBox.setText(str(self.settings['schedLaterInt']))
+
+        soonLayout = QHBoxLayout()
+        soonLayout.addWidget(soonLabel)
+        soonLayout.addWidget(self.soonIntegerEditBox)
+        soonLayout.addWidget(self.soonPercentButton)
+        soonLayout.addWidget(soonPositionButton)
+        soonLayout.addWidget(self.soonRandomizeCheckBox)
+
+        laterLayout = QHBoxLayout()
+        laterLayout.addWidget(laterLabel)
+        laterLayout.addWidget(self.laterIntegerEditBox)
+        laterLayout.addWidget(self.laterPercentButton)
+        laterLayout.addWidget(laterPositionButton)
+        laterLayout.addWidget(self.laterRandomizeCheckBox)
+
+        groupBox = QGroupBox('Scheduling')
+
+        soonButtonGroup = QButtonGroup(groupBox)
+        soonButtonGroup.addButton(self.soonPercentButton)
+        soonButtonGroup.addButton(soonPositionButton)
+
+        laterButtonGroup = QButtonGroup(groupBox)
+        laterButtonGroup.addButton(self.laterPercentButton)
+        laterButtonGroup.addButton(laterPositionButton)
+
+        layout = QVBoxLayout()
+        layout.addLayout(soonLayout)
+        layout.addLayout(laterLayout)
+
         groupBox.setLayout(layout)
 
         return groupBox
