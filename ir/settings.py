@@ -32,10 +32,10 @@ class SettingsManager():
 
     def loadSettings(self):
         self.defaults = {'editExtractedNote': False,
+                         'backgroundColor': 'yellow',
                          'editSourceNote': False,
                          'extractPlainText': False,
                          'generalZoom': 1,
-                         'highlightColor': 'yellow',
                          'lastDialogQuickKey': {},
                          'lineScrollFactor': 0.05,
                          'pageScrollFactor': 0.5,
@@ -105,7 +105,7 @@ class SettingsManager():
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
         self.settings['lineScrollFactor'] = self.lineScrollPercentSpinBox.value() / 100.0
         self.settings['pageScrollFactor'] = self.pageScrollPercentSpinBox.value() / 100.0
-        self.settings['highlightColor'] = self.highlightColorComboBox.currentText()
+        self.settings['backgroundColor'] = self.backgroundColorComboBox.currentText()
         self.settings['textColor'] = self.textColorComboBox.currentText()
 
         if self.editNoteButton.isChecked():
@@ -159,8 +159,17 @@ class SettingsManager():
 
         return groupBox
 
+    def updateColorPreviewLabel(self):
+        backgroundColor = self.backgroundColorComboBox.currentText()
+        textColor = self.textColorComboBox.currentText()
+        styleSheet = ('QLabel {'
+                      'background-color: %s;'
+                      'color: %s;'
+                      'padding: 10px;}') % (backgroundColor, textColor)
+        self.colorPreviewLabel.setStyleSheet(styleSheet)
+
     def createHighlightingGroupBox(self):
-        highlightColorLabel = QLabel('Background Color')
+        backgroundColorLabel = QLabel('Background Color')
         textColorLabel = QLabel('Text Color')
 
         colors = self.getColorList()
@@ -170,24 +179,34 @@ class SettingsManager():
         index = self.textColorComboBox.findText(
                 self.settings['textColor'], Qt.MatchFixedString)
         self.textColorComboBox.setCurrentIndex(index)
+        self.textColorComboBox.currentIndexChanged.connect(
+            self.updateColorPreviewLabel)
 
-        self.highlightColorComboBox = QComboBox()
-        self.highlightColorComboBox.addItems(colors)
-        index = self.highlightColorComboBox.findText(
-                self.settings['highlightColor'], Qt.MatchFixedString)
-        self.highlightColorComboBox.setCurrentIndex(index)
+        self.backgroundColorComboBox = QComboBox()
+        self.backgroundColorComboBox.addItems(colors)
+        index = self.backgroundColorComboBox.findText(
+                self.settings['backgroundColor'], Qt.MatchFixedString)
+        self.backgroundColorComboBox.setCurrentIndex(index)
+        self.backgroundColorComboBox.currentIndexChanged.connect(
+            self.updateColorPreviewLabel)
 
         labelsLayout = QVBoxLayout()
-        labelsLayout.addWidget(highlightColorLabel)
+        labelsLayout.addWidget(backgroundColorLabel)
         labelsLayout.addWidget(textColorLabel)
 
         choicesLayout = QVBoxLayout()
-        choicesLayout.addWidget(self.highlightColorComboBox)
+        choicesLayout.addWidget(self.backgroundColorComboBox)
         choicesLayout.addWidget(self.textColorComboBox)
+
+        self.colorPreviewLabel = QLabel('Example Text')
+        self.updateColorPreviewLabel()
+        colorPreviewLayout = QVBoxLayout()
+        colorPreviewLayout.addWidget(self.colorPreviewLabel)
 
         layout = QHBoxLayout()
         layout.addLayout(labelsLayout)
         layout.addLayout(choicesLayout)
+        layout.addLayout(colorPreviewLayout)
 
         groupBox = QGroupBox('Highlighting')
         groupBox.setLayout(layout)
