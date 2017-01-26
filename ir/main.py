@@ -559,7 +559,10 @@ class ReadingManager():
             mw.web.triggerPageAction(QWebPage.Copy)
             clipboard = QApplication.clipboard()
             mimeData = clipboard.mimeData()
-            selectedText = mimeData.html()
+            if quickKey['plainText']:
+                selectedText = mimeData.text()
+            else:
+                selectedText = mimeData.html()
             mw.readingManager.highlightText(quickKey['bgColor'],
                                             quickKey['textColor'])
 
