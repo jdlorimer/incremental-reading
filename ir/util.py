@@ -6,8 +6,10 @@ import stat
 import time
 
 try:
+    from PyQt4.QtCore import Qt
     from PyQt4.QtGui import QAction, QKeySequence, QMenu, QShortcut
 except ImportError:
+    from PyQt5.QtCore import Qt
     from PyQt5.QtGui import QKeySequence
     from PyQt5.QtWidgets import QAction, QMenu, QShortcut
 
@@ -45,6 +47,8 @@ def addMenuItem(menuName, text, function, keys=None):
         addMenu(menuName)
         mw.customMenus[menuName].addAction(action)
 
+    return action
+
 
 def addShortcut(function, keys):
     shortcut = QShortcut(QKeySequence(keys), mw)
@@ -61,6 +65,16 @@ def setField(note, fieldName, content):
     model = note.model()
     index, _ = mw.col.models.fieldMap(model)[fieldName]
     note.fields[index] = content
+
+
+def setComboBoxItem(comboBox, text):
+    index = comboBox.findText(text, Qt.MatchFixedString)
+    comboBox.setCurrentIndex(index)
+
+
+def removeComboBoxItem(comboBox, text):
+    index = comboBox.findText(text, Qt.MatchFixedString)
+    comboBox.removeItem(index)
 
 
 def updateModificationTime(path):
