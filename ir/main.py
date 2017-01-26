@@ -10,13 +10,17 @@ from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
 from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
                          QLabel, QLineEdit, QVBoxLayout)
 from PyQt4.QtWebKit import QWebPage
-from anki.notes import Note
+from anki import notes
 from anki.hooks import addHook, wrap
+from anki.notes import Note
+from anki.sound import clearAudioQueue
+from aqt import addcards, editcurrent
 from aqt import mw
-from aqt.editcurrent import EditCurrent
 from aqt.addcards import AddCards
+from aqt.editcurrent import EditCurrent
+from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
-from aqt.utils import showInfo, tooltip
+from aqt.utils import showInfo, showWarning, tooltip
 from aqt.webview import AnkiWebView
 
 from ir.settings import SettingsManager
@@ -31,6 +35,17 @@ AFMT = "When do you want to see this card again?"
 
 
 class ReadingManager():
+    def __init__(self):
+        # Track number of times add cards shortcut dialog is opened
+        self.acsCount = 0
+        # Track number of times vsa_resetRequiredState function is called
+        #   (should be same or 1 behind acsCount)
+        self.rrsCount = 0
+        # Track number of times vsa_reviewState function is called (should be
+        #   same or 1 behind acsCount)
+        self.rsCount = 0
+        self.quickKeyActions = []
+
     def loadPluginData(self):
         self.add_IRead_model()
         mw.settingsManager = SettingsManager()
@@ -82,12 +97,12 @@ class ReadingManager():
 
         mimeData = QApplication.clipboard().mimeData()
 
-        if self.settings['extractPlainText']:
+        if self.settings['plainText']:
             text = mimeData.text()
         else:
             text = mimeData.html()
 
-        self.highlightText(self.settings['highlightColor'],
+        self.highlightText(self.settings['bgColor'],
                            self.settings['textColor'])
 
         currentCard = mw.reviewer.card
@@ -101,10 +116,10 @@ class ReadingManager():
                  SOURCE_FIELD_NAME,
                  getField(currentNote, SOURCE_FIELD_NAME))
 
-        if self.settings['editSourceNote']:
+        if self.settings['editSource']:
             EditCurrent(mw)
 
-        if self.settings['editExtractedNote']:
+        if self.settings['editExtract']:
             addCards = AddCards(mw)
             addCards.editor.setNote(newNote)
             deckName = mw.col.decks.get(currentCard.did)['name']
@@ -161,7 +176,7 @@ class ReadingManager():
 
     def highlightText(self, backgroundColor=None, textColor=None):
         if not backgroundColor:
-            backgroundColor = self.settings['highlightColor']
+            backgroundColor = self.settings['bgColor']
         if not textColor:
             textColor = self.settings['textColor']
 
@@ -525,6 +540,72 @@ class ReadingManager():
                 cardDataList.append(cardData);
         return cardDataList;
 
+    def quickAdd(self, quickKey):
+        hasSelection = False
+        selectedText = ''
+
+        if len(mw.web.selectedText()) > 0:
+            hasSelection = True
+            mw.web.triggerPageAction(QWebPage.Copy)
+            clipboard = QApplication.clipboard()
+            mimeData = clipboard.mimeData()
+            selectedText = mimeData.html()
+            mw.readingManager.highlightText(quickKey['bgColor'],
+                                            quickKey['textColor'])
+
+        # Create new note with selected model and deck
+        newModel = mw.col.models.byName(quickKey['modelName'])
+        newNote = notes.Note(mw.col, newModel)
+        setField(newNote, quickKey['fieldName'], selectedText)
+
+        if mw.reviewer.card:
+            card = mw.reviewer.card
+            currentNote = card.note()
+            tags = currentNote.stringTags()
+            # Sets tags for the note, but still have to set them in the editor
+            #   if show dialog (see below)
+            newNote.setTagsFromStr(tags)
+
+            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+                for f in newModel['flds']:
+                    if(SOURCE_FIELD_NAME == f['name']):
+                        setField(newNote,
+                                 SOURCE_FIELD_NAME,
+                                 getField(currentNote, SOURCE_FIELD_NAME))
+
+        if quickKey['editExtract']:
+            self.acsCount += 1
+            if quickKey['editSource']:
+                self.editCurrent = editcurrent.EditCurrent(mw)
+            self.addCards = addcards.AddCards(mw)
+            self.addCards.editor.setNote(newNote)
+            if newNote.stringTags():
+                # Not sure why doesn't get set automatically since note has
+                #   associated tags, but ...
+                self.addCards.editor.tags.setText(newNote.stringTags().strip())
+            self.addCards.modelChooser.models.setText(quickKey['modelName'])
+            self.addCards.deckChooser.deck.setText(quickKey['deckName'])
+        elif hasSelection:
+            deckId = mw.col.decks.byName(quickKey['deckName'])['id']
+            newNote.model()['did'] = deckId
+            ret = newNote.dupeOrEmpty()
+            if ret == 1:
+                showWarning(_(
+                    'The first field is empty.'),
+                    help='AddItems#AddError')
+                return
+            cards = mw.col.addNote(newNote)
+            if not cards:
+                showWarning(_('''\
+                    The input you have provided would make an empty \
+                    question on all cards.'''), help='AddItems')
+                return
+
+            clearAudioQueue()
+            mw.col.autosave()
+            tooltip(_('Added'))
+
+
 
 class IRSchedulerCallback(QObject):
     @pyqtSlot(str)
@@ -662,6 +743,7 @@ addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
 # Dangerous: We are monkey patching a method beginning with _
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
 
+
 #Below monkey patching done to support Incremental Reading scheduler (change button labels and behaviors)
 def my_reviewer_answerButtonList(self, _old):
     answeredCard = self.card;
@@ -678,11 +760,13 @@ def my_reviewer_answerButtonList(self, _old):
     else:
         return _old(self);
 
+
 def my_reviewer_buttonTime(self, i, _old):
     answeredCard = self.card;
     #Only manipulate button time if Incremental Reading deck
     if(answeredCard.model()['name'] == IR_MODEL_NAME): return "<div class=spacer></div>";
     else: return _old(self, i);
+
 
 def my_reviewer_answerCard(self, ease, _old):
     #Get the card before scheduler kicks in, else you are looking at a different card or NONE (which gives error)
@@ -698,6 +782,25 @@ def my_reviewer_answerCard(self, ease, _old):
         #print "Card id: " + str(answeredCard.id);
         mw.readingManager.scheduleCard(answeredCard, ease);
 
+
+def resetRequiredState(self, oldState, _old):
+    specialHandling = False
+    if self.readingManager.acsCount - self.readingManager.rrsCount == 1:
+        specialHandling = True
+    self.readingManager.rrsCount = self.readingManager.acsCount
+    if specialHandling and mw.reviewer.card:
+        if oldState == 'resetRequired':
+            return _old(self, 'review')
+        else:
+            return _old(self, oldState)
+        return
+    else:
+        return _old(self, oldState)
+
 Reviewer._answerCard = wrap(Reviewer._answerCard, my_reviewer_answerCard, "around")
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList, my_reviewer_answerButtonList, "around")
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, my_reviewer_buttonTime, "around")
+
+AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
+                                  resetRequiredState,
+                                  'around')
