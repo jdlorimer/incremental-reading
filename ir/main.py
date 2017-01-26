@@ -24,7 +24,7 @@ from aqt.utils import showInfo, showWarning, tooltip
 from aqt.webview import AnkiWebView
 
 from ir.settings import SettingsManager
-from ir.util import getField, setField
+from ir.util import addMenuItem, getField, setField
 
 IR_MODEL_NAME = 'IR3'
 TEXT_FIELD_NAME = 'Text'
@@ -41,13 +41,15 @@ class ReadingManager():
         # Track number of times vsa_resetRequiredState function is called
         #   (should be same or 1 behind acsCount)
         self.rrsCount = 0
-        # Track number of times vsa_reviewState function is called (should be
-        #   same or 1 behind acsCount)
-        self.rsCount = 0
         self.quickKeyActions = []
+        self.controlsLoaded = False
 
     def loadPluginData(self):
-        self.add_IRead_model()
+        if not self.controlsLoaded:
+            self.addMenuItems()
+            self.controlsLoaded = True
+
+        self.addModel()
         mw.settingsManager = SettingsManager()
         self.settings = mw.settingsManager.settings
         addHook('reset', mw.readingManager.adjustZoomAndScroll)
@@ -55,7 +57,7 @@ class ReadingManager():
     def savePluginData(self):
         mw.settingsManager.saveSettings()
 
-    def add_IRead_model(self):
+    def addModel(self):
         "Only adds model if no model with the same name is present"
         col = mw.col
         mm = col.models
@@ -87,6 +89,20 @@ class ReadingManager():
             text_ord, text_field = fmap[TEXT_FIELD_NAME]
             source_ord, source_field = fmap[SOURCE_FIELD_NAME]
             source_field['sticky'] = True
+
+    def addMenuItems(self):
+        addMenuItem('Read',
+                    'General Options...',
+                    self.showSettingsDialog,
+                    'Alt+1')
+
+        addMenuItem('Read',
+                    'Organizer...',
+                    self.callIRSchedulerDialog,
+                    'Alt+2')
+
+    def showSettingsDialog(self):
+        mw.settingsManager.showSettingsDialog()
 
     def extract(self):
         if not mw.web.selectedText():
@@ -150,7 +166,8 @@ class ReadingManager():
         return titleEditBox.text()
 
     def adjustZoomAndScroll(self):
-        if mw.reviewer.card and mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+        if (mw.reviewer.card and
+                mw.reviewer.card.model()['name'] == IR_MODEL_NAME):
             cardID = str(mw.reviewer.card.id)
 
             if cardID not in self.settings['zoom']:
@@ -471,74 +488,67 @@ class ReadingManager():
         self.repositionCard(answeredCard, pos);
 
     def repositionCard(self, card, pos):
+        cds = []
+        cds.append(card.id)
+        mw.col.sched.forgetCards(cds)
 
-        #Clear card's current status (put in NEW queue)
-        cds = [];
-        cds.append(card.id);
-        mw.col.sched.forgetCards(cds);
+        # If opened dialog and chose not to specify a position, card ends up at
+        #   end of NEW queue by default
+        if pos < 0:
+            return
 
-        if(pos < 0):
-            return; #If opened dialog and chose not to specify a position, card ends up at end of NEW queue by default.
-
-        #Put card in new position
-        cds = self.getIRCards(card);
-        index = 0;
-        newCardOrder = [];
+        # Put card in new position
+        cds = self.getIRCards(card)
+        index = 0
+        newCardOrder = []
         for cid in cds:
-            #print "OLD Card Order (" + str(card.id) + "): " + str(cid);
-            if(cid != card.id):
-                if(index == pos):
-                    #print "At Index (" + str(cid) + " != " + str(card.id) + "): Repositioning card to " + str(index);
-                    newCardOrder.append(card.id);
-                    index+=1;
-                    newCardOrder.append(cid);
+            if cid != card.id:
+                if index == pos:
+                    newCardOrder.append(card.id)
+                    index += 1
+                    newCardOrder.append(cid)
                 else:
-                    newCardOrder.append(cid);
+                    newCardOrder.append(cid)
             else:
                 if(index == pos):
-                    #print "Repositioning card to " + str(index);
-                    newCardOrder.append(card.id);
-            index+=1;
-        #for cid in newCardOrder:
-        #    print "New Card Order (" + str(card.id) + "): " + str(cid);
-        mw.col.sched.sortCards(newCardOrder);
+                    newCardOrder.append(card.id)
+            index += 1
+        mw.col.sched.sortCards(newCardOrder)
 
     def repositionCards(self, cids):
-        #Clear card's current status (put in NEW queue)
-        mw.col.sched.forgetCards(cids);
-        #Reorder to match the list (cids) passed in
-        mw.col.sched.sortCards(cids);
+        mw.col.sched.forgetCards(cids)
+        mw.col.sched.sortCards(cids)
 
     def getIRCards(self, card):
-        cds = [];
+        cds = []
         for id, nid in mw.col.db.execute(
-                #"select id, nid from cards where type = 0 and did = " + str(card.did)):
                 "select id, nid from cards where did = " + str(card.did)):
-                    cds.append(id);
-        return cds;
+                    cds.append(id)
+        return cds
 
     def getCardDataList(self, deckID, cardID):
-        cardDataList = [];
-        note = None;
+        cardDataList = []
+        note = None
         for id, nid in mw.col.db.execute(
-            #"select id, nid from cards where type = 0 and did = " + str(card.did)):
             "select id, nid from cards where did = " + str(deckID)):
-                cardData = {};
-                cardData['id'] = id;
-                cardData['nid'] = nid;
-                note = mw.col.getNote(nid);
+                cardData = {}
+                cardData['id'] = id
+                cardData['nid'] = nid
+                note = mw.col.getNote(nid)
 
-                if(note.model()['name'] == IR_MODEL_NAME):
+                if note.model()['name'] == IR_MODEL_NAME:
                     cardData['title'] = (note['Title'][:64].encode('ascii',
                         errors='xmlcharrefreplace')).encode('string_escape')
-                else: cardData['title'] = 'No Title';
-                #cardData['title'] = 'No Title';
+                else:
+                    cardData['title'] = 'No Title'
 
-                if(cardID == id): cardData['isCurrent'] = 'true';
-                else: cardData['isCurrent'] = 'false';
+                if cardID == id:
+                    cardData['isCurrent'] = 'true'
+                else:
+                    cardData['isCurrent'] = 'false'
 
-                cardDataList.append(cardData);
-        return cardDataList;
+                cardDataList.append(cardData)
+        return cardDataList
 
     def quickAdd(self, quickKey):
         hasSelection = False
@@ -606,17 +616,17 @@ class ReadingManager():
             tooltip(_('Added'))
 
 
-
 class IRSchedulerCallback(QObject):
     @pyqtSlot(str)
     def updatePositions(self, ids):
-        cids = ids.split(",");
-        mw.readingManager.repositionCards(cids);
+        cids = ids.split(",")
+        mw.readingManager.repositionCards(cids)
+
 
 class IREJavaScriptCallback(QObject):
     @pyqtSlot(str)
     def htmlUpdated(self, context):
-        mw.readingManager.htmlUpdated();
+        mw.readingManager.htmlUpdated()
 
 
 def initJavaScript():
@@ -724,65 +734,6 @@ def initJavaScript():
     mw.web.eval(javaScript)
 
 
-# this will be called after Reviewer._keyHandler
-def my_reviewer_keyHandler(self, evt):
-    key = unicode(evt.text())
-    if key == "x": # e[X]tract
-        if self.card.note().model()['name'] == IR_MODEL_NAME:
-            mw.readingManager.extract()
-    elif key == "h": # [H]ighlight
-        if self.card.note().model()['name'] == IR_MODEL_NAME:
-            mw.readingManager.highlightText();
-
-mw.readingManager = ReadingManager()
-
-addHook('profileLoaded', mw.readingManager.loadPluginData)
-addHook('unloadProfile', mw.readingManager.savePluginData)
-addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
-
-# Dangerous: We are monkey patching a method beginning with _
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_reviewer_keyHandler)
-
-
-#Below monkey patching done to support Incremental Reading scheduler (change button labels and behaviors)
-def my_reviewer_answerButtonList(self, _old):
-    answeredCard = self.card;
-    #Only manipulate buttons if Incremental Reading deck
-    if(answeredCard.model()['name'] == IR_MODEL_NAME):
-        l = ((1, _("Soon")),)
-        cnt = mw.col.sched.answerButtons(self.card)
-        if cnt == 2:
-            return l + ((2, _("Later")),)
-        elif cnt == 3:
-            return l + ((2, _("Later")), (3, _("Custom")))
-        else:
-            return l + ((2, _("Later")), (3, _("MuchLater")), (4, _("Custom")))
-    else:
-        return _old(self);
-
-
-def my_reviewer_buttonTime(self, i, _old):
-    answeredCard = self.card;
-    #Only manipulate button time if Incremental Reading deck
-    if(answeredCard.model()['name'] == IR_MODEL_NAME): return "<div class=spacer></div>";
-    else: return _old(self, i);
-
-
-def my_reviewer_answerCard(self, ease, _old):
-    #Get the card before scheduler kicks in, else you are looking at a different card or NONE (which gives error)
-    answeredCard = self.card;
-
-    #Always do the regular Anki scheduling logic (for non-Incremental Reading decks, and also because UI behavior is assured
-    #to be consistent this way. Below code only manipulates the database, not the UI.)
-    _old(self, ease);
-
-    #Only manipulate the deck if this is an Incremental Reading deck
-    if(answeredCard.model()['name'] == IR_MODEL_NAME):
-        #print "Ease: " + str(ease);
-        #print "Card id: " + str(answeredCard.id);
-        mw.readingManager.scheduleCard(answeredCard, ease);
-
-
 def resetRequiredState(self, oldState, _old):
     specialHandling = False
     if self.readingManager.acsCount - self.readingManager.rrsCount == 1:
@@ -797,10 +748,63 @@ def resetRequiredState(self, oldState, _old):
     else:
         return _old(self, oldState)
 
-Reviewer._answerCard = wrap(Reviewer._answerCard, my_reviewer_answerCard, "around")
-Reviewer._answerButtonList = wrap(Reviewer._answerButtonList, my_reviewer_answerButtonList, "around")
-Reviewer._buttonTime = wrap(Reviewer._buttonTime, my_reviewer_buttonTime, "around")
+
+def answerButtonList(self, _old):
+    answeredCard = self.card
+    if answeredCard.model()['name'] == IR_MODEL_NAME:
+        l = ((1, _("Soon")),)
+        cnt = mw.col.sched.answerButtons(self.card)
+        if cnt == 2:
+            return l + ((2, _("Later")),)
+        elif cnt == 3:
+            return l + ((2, _("Later")), (3, _("Custom")))
+        else:
+            return l + ((2, _("Later")), (3, _("MuchLater")), (4, _("Custom")))
+    else:
+        return _old(self)
+
+
+def answerCard(self, ease, _old):
+    # Get the card before scheduler kicks in, else you are looking at a
+    #   different card or NONE (which gives error)
+    answeredCard = self.card
+
+    _old(self, ease)
+
+    if answeredCard.model()['name'] == IR_MODEL_NAME:
+        mw.readingManager.scheduleCard(answeredCard, ease)
+
+
+def buttonTime(self, i, _old):
+    answeredCard = self.card
+    if answeredCard.model()['name'] == IR_MODEL_NAME:
+        return "<div class=spacer></div>"
+    else:
+        return _old(self, i)
+
+
+def keyHandler(self, evt):
+    key = unicode(evt.text())
+    if self.card.note().model()['name'] == IR_MODEL_NAME:
+        if key == 'x':
+            mw.readingManager.extract()
+        elif key == 'h':
+            mw.readingManager.highlightText()
+
+mw.readingManager = ReadingManager()
 
 AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
                                   resetRequiredState,
                                   'around')
+
+Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
+                                  answerButtonList,
+                                  'around')
+
+Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
+Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
+Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler)
+
+addHook('profileLoaded', mw.readingManager.loadPluginData)
+addHook('unloadProfile', mw.readingManager.savePluginData)
+addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
