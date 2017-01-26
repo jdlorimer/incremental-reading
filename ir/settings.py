@@ -1,43 +1,45 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+from functools import partial
 import codecs
 import json
 import os
 
 try:
-    from PyQt4.QtCore import Qt
     from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
-                             QLineEdit, QRadioButton, QSpinBox, QVBoxLayout)
+                             QLineEdit, QPushButton, QRadioButton, QSpinBox,
+                             QTabWidget, QVBoxLayout, QWidget)
 except ImportError:
-    from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                                  QDialogButtonBox, QGroupBox, QHBoxLayout,
-                                 QLabel, QLineEdit, QRadioButton, QSpinBox,
-                                 QVBoxLayout)
+                                 QLabel, QLineEdit, QPushButton, QRadioButton,
+                                 QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 from aqt import mw
+from aqt.utils import showInfo
 
-import ir.util
+from ir.util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
+                     updateModificationTime)
 
 
 class SettingsManager():
     def __init__(self):
         self.loadSettings()
 
-    def addMissingSettings(self):
-        for key, value in self.defaults.items():
-            if key not in self.settings:
-                self.settings[key] = value
+    def saveSettings(self):
+        with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+            json.dump(self.settings, jsonFile)
+
+        updateModificationTime(self.mediaDir)
 
     def loadSettings(self):
-        self.defaults = {'editExtractedNote': False,
-                         'backgroundColor': 'yellow',
-                         'editSourceNote': False,
-                         'extractPlainText': False,
+        self.defaults = {'bgColor': 'yellow',
+                         'editExtract': False,
+                         'editSource': False,
+                         'plainText': False,
                          'generalZoom': 1,
-                         'lastDialogQuickKey': {},
                          'lineScrollFactor': 0.05,
                          'pageScrollFactor': 0.5,
                          'quickKeys': {},
@@ -59,80 +61,87 @@ class SettingsManager():
             with codecs.open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
             self.addMissingSettings()
+            self.removeOutdatedQuickKeys()
         else:
             self.settings = self.defaults
 
-    def saveSettings(self):
-        with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
-            json.dump(self.settings, jsonFile)
+        self.loadMenuItems()
 
-        # Touch the media folder to force sync
-        ir.util.updateModificationTime(self.mediaDir)
+    def addMissingSettings(self):
+        for k, v in self.defaults.items():
+            if k not in self.settings:
+                self.settings[k] = v
 
-    def getColorList(self):
-        moduleDir, _ = os.path.split(__file__)
-        colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
-        with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
-            return [line.strip() for line in colorsFile]
+    def removeOutdatedQuickKeys(self):
+        required = ['alt', 'bgColor', 'ctrl', 'deckName', 'editExtract',
+                    'editSource', 'fieldName', 'modelName', 'regularKey',
+                    'shift', 'textColor']
+
+        for keyCombo, quickKey in self.settings['quickKeys'].copy().items():
+            for k in required:
+                if k not in quickKey:
+                    self.settings['quickKeys'].pop(keyCombo)
+                    break
+
+    def loadMenuItems(self):
+        self.clearMenuItems()
+
+        for keyCombo, quickKey in self.settings['quickKeys'].items():
+            menuText = 'Add Card [%s -> %s]' % (quickKey['modelName'],
+                                                quickKey['deckName'])
+            function = partial(mw.readingManager.quickAdd, quickKey)
+            mw.readingManager.quickKeyActions.append(
+                addMenuItem('Read', menuText, function, keyCombo))
+
+    def clearMenuItems(self):
+        if mw.readingManager.quickKeyActions:
+            for action in mw.readingManager.quickKeyActions:
+                mw.customMenus['Read'].removeAction(action)
+            mw.readingManager.quickKeyActions = []
 
     def showSettingsDialog(self):
         dialog = QDialog(mw)
-        mainLayout = QVBoxLayout()
-        horizontalLayout1 = QHBoxLayout()
-        horizontalLayout2 = QHBoxLayout()
-        horizontalLayout3 = QHBoxLayout()
 
-        extractionGroupBox = self.createExtractionGroupBox()
-        highlightingGroupBox = self.createHighlightingGroupBox()
-        zoomGroupBox = self.createZoomGroupBox()
-        scrollGroupBox = self.createScrollGroupBox()
-        schedulingGroupBox = self.createSchedulingGroupBox()
+        zoomScrollLayout = QHBoxLayout()
+        zoomScrollLayout.addWidget(self.createZoomGroupBox())
+        zoomScrollLayout.addWidget(self.createScrollGroupBox())
+
+        zoomScrollTab = QWidget()
+        zoomScrollTab.setLayout(zoomScrollLayout)
+
+        tabWidget = QTabWidget()
+        tabWidget.addTab(self.createExtractionTab(), 'Extraction')
+        tabWidget.addTab(self.createHighlightingTab(), 'Highlighting')
+        tabWidget.addTab(self.createSchedulingTab(), 'Scheduling')
+        tabWidget.addTab(self.createQuickKeysTab(), 'Quick Keys')
+        tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.accepted.connect(dialog.accept)
 
-        horizontalLayout1.addWidget(extractionGroupBox)
-        horizontalLayout1.addWidget(highlightingGroupBox)
-        horizontalLayout2.addWidget(zoomGroupBox)
-        horizontalLayout2.addWidget(scrollGroupBox)
-        horizontalLayout3.addWidget(schedulingGroupBox)
-
-        mainLayout.addLayout(horizontalLayout1)
-        mainLayout.addLayout(horizontalLayout2)
-        mainLayout.addLayout(horizontalLayout3)
+        mainLayout = QVBoxLayout()
+        mainLayout.addWidget(tabWidget)
         mainLayout.addWidget(buttonBox)
 
         dialog.setLayout(mainLayout)
-        dialog.setWindowTitle('IR Options')
+        dialog.setWindowTitle('Incremental Reading Options')
         dialog.exec_()
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
-        self.settings['lineScrollFactor'] = self.lineScrollPercentSpinBox.value() / 100.0
-        self.settings['pageScrollFactor'] = self.pageScrollPercentSpinBox.value() / 100.0
-        self.settings['backgroundColor'] = self.backgroundColorComboBox.currentText()
-        self.settings['textColor'] = self.textColorComboBox.currentText()
+        self.settings['lineScrollFactor'] = self.lineStepSpinBox.value() / 100.0
+        self.settings['pageScrollFactor'] = self.pageStepSpinBox.value() / 100.0
+        self.settings['editExtract'] = self.editExtractButton.isChecked()
+        self.settings['editSource'] = self.editSourceCheckBox.isChecked()
+        self.settings['plainText'] = self.plainTextCheckBox.isChecked()
+        self.settings['schedSoonRandom'] = self.soonRandomCheckBox.isChecked()
+        self.settings['schedLaterRandom'] = self.laterRandomCheckBox.isChecked()
 
-        if self.editNoteButton.isChecked():
-            self.settings['editExtractedNote'] = True
-        else:
-            self.settings['editExtractedNote'] = False
-
-        if self.editSourceNoteCheckBox.isChecked():
-            self.settings['editSourceNote'] = True
-        else:
-            self.settings['editSourceNote'] = False
-
-        if self.extractPlainTextCheckBox.isChecked():
-            self.settings['extractPlainText'] = True
-        else:
-            self.settings['extractPlainText'] = False
-
-        self.settings['schedSoonRandom'] = self.soonRandomizeCheckBox.isChecked()
-        self.settings['schedLaterRandom'] = self.laterRandomizeCheckBox.isChecked()
         try:
-            self.settings['schedSoonInt'] = int(self.soonIntegerEditBox.text())
-            self.settings['schedLaterInt'] = int(self.laterIntegerEditBox.text())
+            self.settings['schedSoonInt'] = int(
+                self.soonIntegerEditBox.text())
+            self.settings['schedLaterInt'] = int(
+                self.laterIntegerEditBox.text())
         except:
             pass
 
@@ -148,93 +157,391 @@ class SettingsManager():
 
         mw.viewManager.resetZoom(mw.state)
 
-    def createExtractionGroupBox(self):
-        extractedTextLabel = QLabel('Extracted Text')
+    def createExtractionTab(self):
+        self.editExtractButton = QRadioButton('Edit Extracted Note')
+        enterTitleButton = QRadioButton('Enter Title Only')
 
-        self.editNoteButton = QRadioButton('Edit Note')
-        editTitleButton = QRadioButton('Edit Title')
-
-        if self.settings['editExtractedNote']:
-            self.editNoteButton.setChecked(True)
+        if self.settings['editExtract']:
+            self.editExtractButton.setChecked(True)
         else:
-            editTitleButton.setChecked(True)
+            enterTitleButton.setChecked(True)
 
-        radioButtonLayout = QHBoxLayout()
-        radioButtonLayout.addWidget(extractedTextLabel)
-        radioButtonLayout.addWidget(self.editNoteButton)
-        radioButtonLayout.addWidget(editTitleButton)
+        radioButtonsLayout = QHBoxLayout()
+        radioButtonsLayout.addWidget(self.editExtractButton)
+        radioButtonsLayout.addWidget(enterTitleButton)
+        radioButtonsLayout.addStretch()
 
-        self.editSourceNoteCheckBox = QCheckBox('Edit Source Note')
-        self.extractPlainTextCheckBox = QCheckBox('Extract as Plain Text')
+        self.editSourceCheckBox = QCheckBox('Edit Source Note')
+        self.plainTextCheckBox = QCheckBox('Extract as Plain Text')
 
-        if self.settings['editSourceNote']:
-            self.editSourceNoteCheckBox.setChecked(True)
+        if self.settings['editSource']:
+            self.editSourceCheckBox.setChecked(True)
 
-        if self.settings['extractPlainText']:
-            self.extractPlainTextCheckBox.setChecked(True)
+        if self.settings['plainText']:
+            self.plainTextCheckBox.setChecked(True)
 
-        groupBox = QGroupBox('Extraction')
         layout = QVBoxLayout()
-        layout.addLayout(radioButtonLayout)
-        layout.addWidget(self.editSourceNoteCheckBox)
-        layout.addWidget(self.extractPlainTextCheckBox)
+        layout.addLayout(radioButtonsLayout)
+        layout.addWidget(self.editSourceCheckBox)
+        layout.addWidget(self.plainTextCheckBox)
+        layout.addStretch()
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab
+
+    def createHighlightingTab(self):
+        colorsGroupBox = self.createColorsGroupBox()
+        colorPreviewGroupBox = self.createColorPreviewGroupBox()
+
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addWidget(colorsGroupBox)
+        horizontalLayout.addWidget(colorPreviewGroupBox)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Save)
+        buttonBox.accepted.connect(self.saveHighlightSettings)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.targetComboBox)
+        layout.addLayout(horizontalLayout)
+        layout.addWidget(buttonBox)
+        layout.addStretch()
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab
+
+    def saveHighlightSettings(self):
+        target = self.targetComboBox.currentText()
+        bgColor = self.bgColorComboBox.currentText()
+        textColor = self.textColorComboBox.currentText()
+
+        if target == '[General]':
+            self.settings['bgColor'] = bgColor
+            self.settings['textColor'] = textColor
+        else:
+            self.settings['quickKeys'][target]['bgColor'] = bgColor
+            self.settings['quickKeys'][target]['textColor'] = textColor
+
+    def createColorsGroupBox(self):
+        self.targetComboBox = QComboBox()
+        self.targetComboBox.addItem('[General]')
+        self.targetComboBox.addItems(self.settings['quickKeys'].keys())
+        self.targetComboBox.currentIndexChanged.connect(
+            self.updateHighlightingTab)
+
+        targetLayout = QHBoxLayout()
+        targetLayout.addWidget(self.targetComboBox)
+        targetLayout.addStretch()
+
+        colors = self.getColorList()
+
+        self.bgColorComboBox = QComboBox()
+        self.bgColorComboBox.addItems(colors)
+        setComboBoxItem(self.bgColorComboBox, self.settings['bgColor'])
+        self.bgColorComboBox.currentIndexChanged.connect(
+            self.updateColorPreview)
+
+        self.textColorComboBox = QComboBox()
+        self.textColorComboBox.addItems(colors)
+        setComboBoxItem(self.textColorComboBox, self.settings['textColor'])
+        self.textColorComboBox.currentIndexChanged.connect(
+            self.updateColorPreview)
+
+        bgColorLabel = QLabel('Background')
+        bgColorLayout = QHBoxLayout()
+        bgColorLayout.addWidget(bgColorLabel)
+        bgColorLayout.addSpacing(10)
+        bgColorLayout.addWidget(self.bgColorComboBox)
+
+        textColorLabel = QLabel('Text')
+        textColorLayout = QHBoxLayout()
+        textColorLayout.addWidget(textColorLabel)
+        textColorLayout.addSpacing(10)
+        textColorLayout.addWidget(self.textColorComboBox)
+
+        layout = QVBoxLayout()
+        layout.addLayout(bgColorLayout)
+        layout.addLayout(textColorLayout)
+        layout.addStretch()
+
+        groupBox = QGroupBox('Colors')
         groupBox.setLayout(layout)
 
         return groupBox
 
-    def updateColorPreviewLabel(self):
-        backgroundColor = self.backgroundColorComboBox.currentText()
+    def updateHighlightingTab(self):
+        target = self.targetComboBox.currentText()
+        if target == '[General]':
+            setComboBoxItem(self.bgColorComboBox,
+                            self.settings['bgColor'])
+            setComboBoxItem(self.textColorComboBox,
+                            self.settings['textColor'])
+        else:
+            setComboBoxItem(self.bgColorComboBox,
+                            self.settings['quickKeys'][target]['bgColor'])
+            setComboBoxItem(self.textColorComboBox,
+                            self.settings['quickKeys'][target]['textColor'])
+
+    def getColorList(self):
+        moduleDir, _ = os.path.split(__file__)
+        colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
+        with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
+            return [line.strip() for line in colorsFile]
+
+    def updateColorPreview(self):
+        bgColor = self.bgColorComboBox.currentText()
         textColor = self.textColorComboBox.currentText()
         styleSheet = ('QLabel {'
                       'background-color: %s;'
                       'color: %s;'
-                      'padding: 10px;}') % (backgroundColor, textColor)
+                      'padding: 10px;'
+                      'text-align: center;'
+                      'font-size: 16px;'
+                      'font-family: tahoma, geneva, sans-serif;'
+                      '}') % (bgColor, textColor)
         self.colorPreviewLabel.setStyleSheet(styleSheet)
 
-    def createHighlightingGroupBox(self):
-        backgroundColorLabel = QLabel('Background Color')
-        textColorLabel = QLabel('Text Color')
-
-        colors = self.getColorList()
-
-        self.textColorComboBox = QComboBox()
-        self.textColorComboBox.addItems(colors)
-        index = self.textColorComboBox.findText(
-                self.settings['textColor'], Qt.MatchFixedString)
-        self.textColorComboBox.setCurrentIndex(index)
-        self.textColorComboBox.currentIndexChanged.connect(
-            self.updateColorPreviewLabel)
-
-        self.backgroundColorComboBox = QComboBox()
-        self.backgroundColorComboBox.addItems(colors)
-        index = self.backgroundColorComboBox.findText(
-                self.settings['backgroundColor'], Qt.MatchFixedString)
-        self.backgroundColorComboBox.setCurrentIndex(index)
-        self.backgroundColorComboBox.currentIndexChanged.connect(
-            self.updateColorPreviewLabel)
-
-        labelsLayout = QVBoxLayout()
-        labelsLayout.addWidget(backgroundColorLabel)
-        labelsLayout.addWidget(textColorLabel)
-
-        choicesLayout = QVBoxLayout()
-        choicesLayout.addWidget(self.backgroundColorComboBox)
-        choicesLayout.addWidget(self.textColorComboBox)
-
+    def createColorPreviewGroupBox(self):
         self.colorPreviewLabel = QLabel('Example Text')
-        self.updateColorPreviewLabel()
+        self.updateColorPreview()
         colorPreviewLayout = QVBoxLayout()
         colorPreviewLayout.addWidget(self.colorPreviewLabel)
 
-        layout = QHBoxLayout()
-        layout.addLayout(labelsLayout)
-        layout.addLayout(choicesLayout)
-        layout.addLayout(colorPreviewLayout)
-
-        groupBox = QGroupBox('Highlighting')
-        groupBox.setLayout(layout)
+        groupBox = QGroupBox('Preview')
+        groupBox.setLayout(colorPreviewLayout)
 
         return groupBox
+
+    def createSchedulingTab(self):
+        soonLabel = QLabel('Soon Button')
+        laterLabel = QLabel('Later Button')
+
+        self.soonPercentButton = QRadioButton('Percent')
+        soonPositionButton = QRadioButton('Position')
+        self.laterPercentButton = QRadioButton('Percent')
+        laterPositionButton = QRadioButton('Position')
+        self.soonRandomCheckBox = QCheckBox('Randomize')
+        self.laterRandomCheckBox = QCheckBox('Randomize')
+
+        self.soonIntegerEditBox = QLineEdit()
+        self.soonIntegerEditBox.setFixedWidth(100)
+        self.laterIntegerEditBox = QLineEdit()
+        self.laterIntegerEditBox.setFixedWidth(100)
+
+        if self.settings['schedSoonType'] == 'pct':
+            self.soonPercentButton.setChecked(True)
+        else:
+            soonPositionButton.setChecked(True)
+
+        if self.settings['schedLaterType'] == 'pct':
+            self.laterPercentButton.setChecked(True)
+        else:
+            laterPositionButton.setChecked(True)
+
+        if self.settings['schedSoonRandom']:
+            self.soonRandomCheckBox.setChecked(True)
+
+        if self.settings['schedLaterRandom']:
+            self.laterRandomCheckBox.setChecked(True)
+
+        self.soonIntegerEditBox.setText(str(self.settings['schedSoonInt']))
+        self.laterIntegerEditBox.setText(str(self.settings['schedLaterInt']))
+
+        soonLayout = QHBoxLayout()
+        soonLayout.addWidget(soonLabel)
+        soonLayout.addStretch()
+        soonLayout.addWidget(self.soonIntegerEditBox)
+        soonLayout.addWidget(self.soonPercentButton)
+        soonLayout.addWidget(soonPositionButton)
+        soonLayout.addWidget(self.soonRandomCheckBox)
+
+        laterLayout = QHBoxLayout()
+        laterLayout.addWidget(laterLabel)
+        laterLayout.addStretch()
+        laterLayout.addWidget(self.laterIntegerEditBox)
+        laterLayout.addWidget(self.laterPercentButton)
+        laterLayout.addWidget(laterPositionButton)
+        laterLayout.addWidget(self.laterRandomCheckBox)
+
+        soonButtonGroup = QButtonGroup(soonLayout)
+        soonButtonGroup.addButton(self.soonPercentButton)
+        soonButtonGroup.addButton(soonPositionButton)
+
+        laterButtonGroup = QButtonGroup(laterLayout)
+        laterButtonGroup.addButton(self.laterPercentButton)
+        laterButtonGroup.addButton(laterPositionButton)
+
+        layout = QVBoxLayout()
+        layout.addLayout(soonLayout)
+        layout.addLayout(laterLayout)
+        layout.addStretch()
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab
+
+    def createQuickKeysTab(self):
+        destDeckLabel = QLabel('Destination Deck')
+        noteTypeLabel = QLabel('Note Type')
+        textFieldLabel = QLabel('Paste Text to Field')
+        keyComboLabel = QLabel('Key Combination')
+
+        self.quickKeysComboBox = QComboBox()
+        self.quickKeysComboBox.addItem('')
+        self.quickKeysComboBox.addItems(self.settings['quickKeys'].keys())
+        self.quickKeysComboBox.currentIndexChanged.connect(
+            self.updateQuickKeysTab)
+
+        self.destDeckComboBox = QComboBox()
+        self.noteTypeComboBox = QComboBox()
+        self.textFieldComboBox = QComboBox()
+        self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extrated Note')
+        self.quickKeyEditSourceCheckBox = QCheckBox('Edit Source Note')
+
+        self.ctrlKeyCheckBox = QCheckBox('Ctrl')
+        self.shiftKeyCheckBox = QCheckBox('Shift')
+        self.altKeyCheckBox = QCheckBox('Alt')
+        self.regularKeyComboBox = QComboBox()
+        self.regularKeyComboBox.addItem('')
+        self.regularKeyComboBox.addItems(
+            list('ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'))
+
+        destDeckLayout = QHBoxLayout()
+        destDeckLayout.addWidget(destDeckLabel)
+        destDeckLayout.addWidget(self.destDeckComboBox)
+
+        noteTypeLayout = QHBoxLayout()
+        noteTypeLayout.addWidget(noteTypeLabel)
+        noteTypeLayout.addWidget(self.noteTypeComboBox)
+
+        textFieldLayout = QHBoxLayout()
+        textFieldLayout.addWidget(textFieldLabel)
+        textFieldLayout.addWidget(self.textFieldComboBox)
+
+        keyComboLayout = QHBoxLayout()
+        keyComboLayout.addWidget(keyComboLabel)
+        keyComboLayout.addStretch()
+        keyComboLayout.addWidget(self.ctrlKeyCheckBox)
+        keyComboLayout.addWidget(self.shiftKeyCheckBox)
+        keyComboLayout.addWidget(self.altKeyCheckBox)
+        keyComboLayout.addWidget(self.regularKeyComboBox)
+
+        deckNames = sorted([d['name'] for d in mw.col.decks.all()])
+        self.destDeckComboBox.addItem('')
+        self.destDeckComboBox.addItems(deckNames)
+
+        modelNames = sorted([m['name'] for m in mw.col.models.all()])
+        self.noteTypeComboBox.addItem('')
+        self.noteTypeComboBox.addItems(modelNames)
+        self.noteTypeComboBox.currentIndexChanged.connect(self.updateFieldList)
+
+        newButton = QPushButton('New')
+        newButton.clicked.connect(self.clearQuickKeysTab)
+        deleteButton = QPushButton('Delete')
+        deleteButton.clicked.connect(self.deleteQuickKey)
+        saveButton = QPushButton('Save')
+        saveButton.clicked.connect(self.setQuickKey)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(newButton)
+        buttonLayout.addWidget(deleteButton)
+        buttonLayout.addWidget(saveButton)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.quickKeysComboBox)
+        layout.addLayout(destDeckLayout)
+        layout.addLayout(noteTypeLayout)
+        layout.addLayout(textFieldLayout)
+        layout.addLayout(keyComboLayout)
+        layout.addWidget(self.quickKeyEditExtractCheckBox)
+        layout.addWidget(self.quickKeyEditSourceCheckBox)
+        layout.addLayout(buttonLayout)
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab
+
+    def updateQuickKeysTab(self):
+        quickKey = self.quickKeysComboBox.currentText()
+        if quickKey:
+            model = self.settings['quickKeys'][quickKey]
+            setComboBoxItem(self.destDeckComboBox, model['deckName'])
+            setComboBoxItem(self.noteTypeComboBox, model['modelName'])
+            setComboBoxItem(self.textFieldComboBox, model['fieldName'])
+            self.ctrlKeyCheckBox.setChecked(model['ctrl'])
+            self.shiftKeyCheckBox.setChecked(model['shift'])
+            self.altKeyCheckBox.setChecked(model['alt'])
+            setComboBoxItem(self.regularKeyComboBox, model['regularKey'])
+            self.quickKeyEditExtractCheckBox.setChecked(model['editExtract'])
+            self.quickKeyEditSourceCheckBox.setChecked(model['editSource'])
+        else:
+            self.clearQuickKeysTab()
+
+    def updateFieldList(self):
+        modelName = self.noteTypeComboBox.currentText()
+        self.textFieldComboBox.clear()
+        if modelName:
+            model = mw.col.models.byName(modelName)
+            fieldNames = [f['name'] for f in model['flds']]
+            self.textFieldComboBox.addItems(fieldNames)
+
+    def clearQuickKeysTab(self):
+        self.quickKeysComboBox.setCurrentIndex(0)
+        self.destDeckComboBox.setCurrentIndex(0)
+        self.noteTypeComboBox.setCurrentIndex(0)
+        self.textFieldComboBox.setCurrentIndex(0)
+        self.ctrlKeyCheckBox.setChecked(False)
+        self.shiftKeyCheckBox.setChecked(False)
+        self.altKeyCheckBox.setChecked(False)
+        self.regularKeyComboBox.setCurrentIndex(0)
+        self.quickKeyEditExtractCheckBox.setChecked(False)
+        self.quickKeyEditSourceCheckBox.setChecked(False)
+
+    def deleteQuickKey(self):
+        quickKey = self.quickKeysComboBox.currentText()
+        if quickKey:
+            self.settings['quickKeys'].pop(quickKey)
+            removeComboBoxItem(self.quickKeysComboBox, quickKey)
+            self.clearQuickKeysTab()
+            self.loadMenuItems()
+
+    def setQuickKey(self):
+        quickKey = {'deckName': self.destDeckComboBox.currentText(),
+                    'modelName': self.noteTypeComboBox.currentText(),
+                    'fieldName': self.textFieldComboBox.currentText(),
+                    'ctrl': self.ctrlKeyCheckBox.isChecked(),
+                    'shift': self.shiftKeyCheckBox.isChecked(),
+                    'alt': self.altKeyCheckBox.isChecked(),
+                    'regularKey': self.regularKeyComboBox.currentText(),
+                    'bgColor': self.bgColorComboBox.currentText(),
+                    'textColor': self.textColorComboBox.currentText(),
+                    'editExtract': self.quickKeyEditExtractCheckBox.isChecked(),
+                    'editSource': self.quickKeyEditSourceCheckBox.isChecked()}
+
+        for k in ['deckName', 'modelName', 'regularKey']:
+            if not quickKey[k]:
+                showInfo('Please complete all settings. Destination deck,'
+                         ' note type, and a letter or number for the key'
+                         ' combination are required.')
+                return
+
+        keyCombo = ''
+        if quickKey['ctrl']:
+            keyCombo += 'Ctrl+'
+        if quickKey['shift']:
+            keyCombo += 'Shift+'
+        if quickKey['alt']:
+            keyCombo += 'Alt+'
+        keyCombo += quickKey['regularKey']
+
+        self.settings['quickKeys'][keyCombo] = quickKey
+        self.loadMenuItems()
 
     def createZoomGroupBox(self):
         zoomStepLabel = QLabel('Zoom Step')
@@ -256,22 +563,22 @@ class SettingsManager():
         generalZoomPercent = round(self.settings['generalZoom'] * 100)
         self.generalZoomSpinBox.setValue(generalZoomPercent)
 
-        labelsLayout = QVBoxLayout()
-        labelsLayout.addWidget(zoomStepLabel)
-        labelsLayout.addWidget(generalZoomLabel)
+        zoomStepLayout = QHBoxLayout()
+        zoomStepLayout.addWidget(zoomStepLabel)
+        zoomStepLayout.addStretch()
+        zoomStepLayout.addWidget(self.zoomStepSpinBox)
+        zoomStepLayout.addWidget(zoomStepPercentLabel)
 
-        spinBoxesLayout = QVBoxLayout()
-        spinBoxesLayout.addWidget(self.zoomStepSpinBox)
-        spinBoxesLayout.addWidget(self.generalZoomSpinBox)
+        generalZoomLayout = QHBoxLayout()
+        generalZoomLayout.addWidget(generalZoomLabel)
+        generalZoomLayout.addStretch()
+        generalZoomLayout.addWidget(self.generalZoomSpinBox)
+        generalZoomLayout.addWidget(generalZoomPercentLabel)
 
-        percentsLayout = QVBoxLayout()
-        percentsLayout.addWidget(zoomStepPercentLabel)
-        percentsLayout.addWidget(generalZoomPercentLabel)
-
-        layout = QHBoxLayout()
-        layout.addLayout(labelsLayout)
-        layout.addLayout(spinBoxesLayout)
-        layout.addLayout(percentsLayout)
+        layout = QVBoxLayout()
+        layout.addLayout(zoomStepLayout)
+        layout.addLayout(generalZoomLayout)
+        layout.addStretch()
 
         groupBox = QGroupBox('Zoom')
         groupBox.setLayout(layout)
@@ -279,110 +586,43 @@ class SettingsManager():
         return groupBox
 
     def createScrollGroupBox(self):
-        lineScrollStepLabel = QLabel('Line Up/Down Step')
-        lineScrollPercentLabel = QLabel('% of Window')
-        pageScrollStepLabel = QLabel('Page Up/Down Step')
-        pageScrollPercentLabel = QLabel('% of Window')
+        lineStepLabel = QLabel('Line Step')
+        lineStepPercentLabel = QLabel('%')
+        pageStepLabel = QLabel('Page Step')
+        pageStepPercentLabel = QLabel('%')
 
-        self.lineScrollPercentSpinBox = QSpinBox()
-        self.lineScrollPercentSpinBox.setMinimum(5)
-        self.lineScrollPercentSpinBox.setMaximum(100)
-        self.lineScrollPercentSpinBox.setSingleStep(5)
-        lineScrollPercent = round(self.settings['lineScrollFactor'] * 100)
-        self.lineScrollPercentSpinBox.setValue(lineScrollPercent)
+        self.lineStepSpinBox = QSpinBox()
+        self.lineStepSpinBox.setMinimum(5)
+        self.lineStepSpinBox.setMaximum(100)
+        self.lineStepSpinBox.setSingleStep(5)
+        self.lineStepSpinBox.setValue(
+            round(self.settings['lineScrollFactor'] * 100))
 
-        self.pageScrollPercentSpinBox = QSpinBox()
-        self.pageScrollPercentSpinBox.setMinimum(5)
-        self.pageScrollPercentSpinBox.setMaximum(100)
-        self.pageScrollPercentSpinBox.setSingleStep(5)
-        pageScrollPercent = round(self.settings['pageScrollFactor'] * 100)
-        self.pageScrollPercentSpinBox.setValue(pageScrollPercent)
+        self.pageStepSpinBox = QSpinBox()
+        self.pageStepSpinBox.setMinimum(5)
+        self.pageStepSpinBox.setMaximum(100)
+        self.pageStepSpinBox.setSingleStep(5)
+        self.pageStepSpinBox.setValue(
+            round(self.settings['pageScrollFactor'] * 100))
 
-        labelsLayout = QVBoxLayout()
-        labelsLayout.addWidget(lineScrollStepLabel)
-        labelsLayout.addWidget(pageScrollStepLabel)
+        lineStepLayout = QHBoxLayout()
+        lineStepLayout.addWidget(lineStepLabel)
+        lineStepLayout.addStretch()
+        lineStepLayout.addWidget(self.lineStepSpinBox)
+        lineStepLayout.addWidget(lineStepPercentLabel)
 
-        spinBoxesLayout = QVBoxLayout()
-        spinBoxesLayout.addWidget(self.lineScrollPercentSpinBox)
-        spinBoxesLayout.addWidget(self.pageScrollPercentSpinBox)
-
-        percentsLayout = QVBoxLayout()
-        percentsLayout.addWidget(lineScrollPercentLabel)
-        percentsLayout.addWidget(pageScrollPercentLabel)
-
-        layout = QHBoxLayout()
-        layout.addLayout(labelsLayout)
-        layout.addLayout(spinBoxesLayout)
-        layout.addLayout(percentsLayout)
-
-        groupBox = QGroupBox('Scroll')
-        groupBox.setLayout(layout)
-
-        return groupBox
-
-    def createSchedulingGroupBox(self):
-        soonLabel = QLabel('Soon Button')
-        laterLabel = QLabel('Later Button')
-
-        self.soonPercentButton = QRadioButton('Percent')
-        soonPositionButton = QRadioButton('Position')
-        self.laterPercentButton = QRadioButton('Percent')
-        laterPositionButton = QRadioButton('Position')
-        self.soonRandomizeCheckBox = QCheckBox('Randomize')
-        self.laterRandomizeCheckBox = QCheckBox('Randomize')
-
-        self.soonIntegerEditBox = QLineEdit()
-        self.soonIntegerEditBox.setFixedWidth(100)
-        self.laterIntegerEditBox = QLineEdit()
-        self.laterIntegerEditBox.setFixedWidth(100)
-
-        if self.settings['schedSoonType'] == 'pct':
-            self.soonPercentButton.setChecked(True)
-        else:
-            soonPositionButton.setChecked(True)
-
-        if self.settings['schedLaterType'] == 'pct':
-            self.laterPercentButton.setChecked(True)
-        else:
-            laterPositionButton.setChecked(True)
-
-        if self.settings['schedSoonRandom']:
-            self.soonRandomizeCheckBox.setChecked(True)
-
-        if self.settings['schedLaterRandom']:
-            self.laterRandomizeCheckBox.setChecked(True)
-
-        self.soonIntegerEditBox.setText(str(self.settings['schedSoonInt']))
-        self.laterIntegerEditBox.setText(str(self.settings['schedLaterInt']))
-
-        soonLayout = QHBoxLayout()
-        soonLayout.addWidget(soonLabel)
-        soonLayout.addWidget(self.soonIntegerEditBox)
-        soonLayout.addWidget(self.soonPercentButton)
-        soonLayout.addWidget(soonPositionButton)
-        soonLayout.addWidget(self.soonRandomizeCheckBox)
-
-        laterLayout = QHBoxLayout()
-        laterLayout.addWidget(laterLabel)
-        laterLayout.addWidget(self.laterIntegerEditBox)
-        laterLayout.addWidget(self.laterPercentButton)
-        laterLayout.addWidget(laterPositionButton)
-        laterLayout.addWidget(self.laterRandomizeCheckBox)
-
-        groupBox = QGroupBox('Scheduling')
-
-        soonButtonGroup = QButtonGroup(groupBox)
-        soonButtonGroup.addButton(self.soonPercentButton)
-        soonButtonGroup.addButton(soonPositionButton)
-
-        laterButtonGroup = QButtonGroup(groupBox)
-        laterButtonGroup.addButton(self.laterPercentButton)
-        laterButtonGroup.addButton(laterPositionButton)
+        pageStepLayout = QHBoxLayout()
+        pageStepLayout.addWidget(pageStepLabel)
+        pageStepLayout.addStretch()
+        pageStepLayout.addWidget(self.pageStepSpinBox)
+        pageStepLayout.addWidget(pageStepPercentLabel)
 
         layout = QVBoxLayout()
-        layout.addLayout(soonLayout)
-        layout.addLayout(laterLayout)
+        layout.addLayout(lineStepLayout)
+        layout.addLayout(pageStepLayout)
+        layout.addStretch()
 
+        groupBox = QGroupBox('Scroll')
         groupBox.setLayout(layout)
 
         return groupBox
