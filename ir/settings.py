@@ -556,6 +556,8 @@ class SettingsManager():
         self.settings['quickKeys'][keyCombo] = quickKey
         self.loadMenuItems()
 
+        showInfo('New shortcut added: %s' % keyCombo)
+
     def createZoomGroupBox(self):
         zoomStepLabel = QLabel('Zoom Step')
         zoomStepPercentLabel = QLabel('%')
