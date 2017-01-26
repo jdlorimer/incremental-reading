@@ -26,7 +26,13 @@ from ir.util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
 
 class SettingsManager():
     def __init__(self):
+        self.settingsChanged = False
         self.loadSettings()
+
+        if self.settingsChanged:
+            showInfo('Your Incremental Reading settings file has been modified'
+                     ' for compatibility reasons. Please take a moment to'
+                     ' reconfigure the add-on to your liking.')
 
     def saveSettings(self):
         with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
@@ -71,6 +77,7 @@ class SettingsManager():
         for k, v in self.defaults.items():
             if k not in self.settings:
                 self.settings[k] = v
+                self.settingsChanged = True
 
     def removeOutdatedQuickKeys(self):
         required = ['alt', 'bgColor', 'ctrl', 'deckName', 'editExtract',
@@ -81,6 +88,7 @@ class SettingsManager():
             for k in required:
                 if k not in quickKey:
                     self.settings['quickKeys'].pop(keyCombo)
+                    self.settingsChanged = True
                     break
 
     def loadMenuItems(self):
