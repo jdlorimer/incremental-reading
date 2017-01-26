@@ -409,6 +409,7 @@ class SettingsManager():
         self.textFieldComboBox = QComboBox()
         self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extrated Note')
         self.quickKeyEditSourceCheckBox = QCheckBox('Edit Source Note')
+        self.quickKeyPlainTextCheckBox = QCheckBox('Extract as Plain Text')
 
         self.ctrlKeyCheckBox = QCheckBox('Ctrl')
         self.shiftKeyCheckBox = QCheckBox('Shift')
@@ -468,6 +469,7 @@ class SettingsManager():
         layout.addLayout(keyComboLayout)
         layout.addWidget(self.quickKeyEditExtractCheckBox)
         layout.addWidget(self.quickKeyEditSourceCheckBox)
+        layout.addWidget(self.quickKeyPlainTextCheckBox)
         layout.addLayout(buttonLayout)
 
         tab = QWidget()
@@ -488,6 +490,7 @@ class SettingsManager():
             setComboBoxItem(self.regularKeyComboBox, model['regularKey'])
             self.quickKeyEditExtractCheckBox.setChecked(model['editExtract'])
             self.quickKeyEditSourceCheckBox.setChecked(model['editSource'])
+            self.quickKeyPlainTextCheckBox.setChecked(model['plainText'])
         else:
             self.clearQuickKeysTab()
 
@@ -510,6 +513,7 @@ class SettingsManager():
         self.regularKeyComboBox.setCurrentIndex(0)
         self.quickKeyEditExtractCheckBox.setChecked(False)
         self.quickKeyEditSourceCheckBox.setChecked(False)
+        self.quickKeyPlainTextCheckBox.setChecked(False)
 
     def deleteQuickKey(self):
         quickKey = self.quickKeysComboBox.currentText()
@@ -530,7 +534,8 @@ class SettingsManager():
                     'bgColor': self.bgColorComboBox.currentText(),
                     'textColor': self.textColorComboBox.currentText(),
                     'editExtract': self.quickKeyEditExtractCheckBox.isChecked(),
-                    'editSource': self.quickKeyEditSourceCheckBox.isChecked()}
+                    'editSource': self.quickKeyEditSourceCheckBox.isChecked(),
+                    'plainText': self.quickKeyPlainTextCheckBox.isChecked()}
 
         for k in ['deckName', 'modelName', 'regularKey']:
             if not quickKey[k]:
