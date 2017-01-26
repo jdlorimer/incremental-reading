@@ -8,15 +8,35 @@ from aqt import mw
 
 from ir.util import addMenuItem, addShortcut
 
-
 IR_MODEL_NAME = 'IR3'
-SOURCE_FIELD_NAME = 'Source'
 
 
 class ViewManager():
     def __init__(self):
         self.controlsLoaded = False
         self.previousState = None
+
+    def load(self):
+        self.settings = mw.settingsManager.settings
+
+        if not self.controlsLoaded:
+            self.addMenuItems()
+            self.addShortcuts()
+            self.controlsLoaded = True
+
+        mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
+        self.resetZoom('deckBrowser')
+
+    def addMenuItems(self):
+        addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
+        addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
+
+    def addShortcuts(self):
+        addShortcut(self.lineUp, 'Up')
+        addShortcut(self.lineDown, 'Down')
+        addShortcut(self.pageUp, 'PgUp')
+        addShortcut(self.pageDown, 'PgDown')
+        addShortcut(self.zoomIn, 'Ctrl+=')
 
     def zoomIn(self):
         if mw.reviewer.card:
@@ -29,7 +49,8 @@ class ViewManager():
                 self.settings['zoom'][cardID] += self.settings['zoomStep']
                 mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
             else:
-                newFactor = mw.web.textSizeMultiplier() + self.settings['zoomStep']
+                newFactor = (mw.web.textSizeMultiplier() +
+                             self.settings['zoomStep'])
                 mw.web.setTextSizeMultiplier(newFactor)
 
     def zoomOut(self):
@@ -43,7 +64,8 @@ class ViewManager():
                 self.settings['zoom'][cardID] -= self.settings['zoomStep']
                 mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
             else:
-                newFactor = mw.web.textSizeMultiplier() - self.settings['zoomStep']
+                newFactor = (mw.web.textSizeMultiplier() -
+                             self.settings['zoomStep'])
                 mw.web.setTextSizeMultiplier(newFactor)
 
     def setScrollPosition(self, newPosition):
@@ -52,8 +74,8 @@ class ViewManager():
 
     def saveScrollPosition(self):
         if (mw.reviewer.card and
-            mw.reviewer.state == 'question' and
-            mw.state == 'review'):
+                mw.reviewer.state == 'question' and
+                mw.state == 'review'):
             currentPosition = mw.web.page().mainFrame().scrollPosition().y()
             self.settings['scroll'][str(mw.reviewer.card.id)] = currentPosition
 
@@ -87,27 +109,6 @@ class ViewManager():
         newPosition = min(pageBottom, (currentPosition + movementSize))
         self.setScrollPosition(newPosition)
 
-    def addShortcuts(self):
-        addShortcut(self.lineUp, 'Up')
-        addShortcut(self.lineDown, 'Down')
-        addShortcut(self.pageUp, 'PgUp')
-        addShortcut(self.pageDown, 'PgDown')
-        addShortcut(self.zoomIn, 'Ctrl+=')
-
-    def addMenuItems(self):
-        addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
-        addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
-
-        addMenuItem('Read',
-                    'General Options...',
-                    mw.settingsManager.showSettingsDialog,
-                    'Alt+1')
-
-        addMenuItem('Read',
-                    'Organizer...',
-                    mw.readingManager.callIRSchedulerDialog,
-                    'Alt+2')
-
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
             mw.web.setTextSizeMultiplier(self.settings['generalZoom'])
@@ -119,27 +120,13 @@ class ViewManager():
 
         self.previousState = state
 
-    def loadPluginData(self):
-        self.settings = mw.settingsManager.settings
-        if not self.controlsLoaded:
-            self.addMenuItems()
-            self.addShortcuts()
-            self.controlsLoaded = True
-
-        mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
-        self.resetZoom('deckBrowser')
-
-    def savePluginData(self):
-        mw.settingsManager.saveSettings()
-
 
 def saveScrollPosition(event):
     mw.viewManager.saveScrollPosition()
 
 mw.viewManager = ViewManager()
 
-addHook("profileLoaded", mw.viewManager.loadPluginData)
-addHook('unloadProfile', mw.viewManager.savePluginData)
+addHook('profileLoaded', mw.viewManager.load)
 
 mw.web.wheelEvent = wrap(mw.web.wheelEvent, saveScrollPosition)
 mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
