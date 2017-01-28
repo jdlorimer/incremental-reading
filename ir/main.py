@@ -45,13 +45,14 @@ class ReadingManager():
         self.controlsLoaded = False
 
     def loadPluginData(self):
+        mw.settingsManager = SettingsManager()
+        self.settings = mw.settingsManager.settings
+        self.addModel()
+
         if not self.controlsLoaded:
             self.addMenuItems()
             self.controlsLoaded = True
 
-        self.addModel()
-        mw.settingsManager = SettingsManager()
-        self.settings = mw.settingsManager.settings
         addHook('reset', mw.readingManager.adjustZoomAndScroll)
 
     def savePluginData(self):
@@ -62,25 +63,21 @@ class ReadingManager():
         col = mw.col
         mm = col.models
         iread_model = mm.byName(IR_MODEL_NAME)
-        if iread_model is None:
+        if not iread_model:
             iread_model = mm.new(IR_MODEL_NAME)
-            # Field for title:
             model_field = mm.newField(TITLE_FIELD_NAME)
             mm.addField(iread_model, model_field)
-            # Field for text:
             text_field = mm.newField(TEXT_FIELD_NAME)
             mm.addField(iread_model, text_field)
-            # Field for source:
             source_field = mm.newField(SOURCE_FIELD_NAME)
             source_field['sticky'] = True
             mm.addField(iread_model, source_field)
 
-            # Add template
             t = mm.newTemplate('IR Card')
             t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
             t['afmt'] = AFMT
+
             mm.addTemplate(iread_model, t)
-            # Add model to collection:
             mm.add(iread_model)
             return iread_model
         else:
@@ -92,17 +89,13 @@ class ReadingManager():
 
     def addMenuItems(self):
         addMenuItem('Read',
-                    'General Options...',
-                    self.showSettingsDialog,
+                    'Options...',
+                    mw.settingsManager.showSettings,
                     'Alt+1')
-
-        addMenuItem('Read',
-                    'Organizer...',
-                    self.callIRSchedulerDialog,
-                    'Alt+2')
+        addMenuItem('Read', 'Organizer...', self.showScheduler, 'Alt+2')
 
     def showSettingsDialog(self):
-        mw.settingsManager.showSettingsDialog()
+        mw.settingsManager.showSettings()
 
     def extract(self):
         if not mw.web.selectedText():
@@ -235,35 +228,32 @@ class ReadingManager():
 
     def htmlUpdated(self):
         #Called from javascript
-        curNote = mw.reviewer.card.note();
-        curNote['Text'] = mw.web.page().mainFrame().toHtml();
-        curNote.flush();
-        mw.web.setHtml(curNote['Text']);
-        self.adjustZoomAndScroll();
+        curNote = mw.reviewer.card.note()
+        curNote['Text'] = mw.web.page().mainFrame().toHtml()
+        curNote.flush()
+        mw.web.setHtml(curNote['Text'])
+        self.adjustZoomAndScroll()
 
-    #Needed this no-arg pass thru to be able to invoke dialog from menu
-    def callIRSchedulerDialog(self):
-        self.showIRSchedulerDialog(None);
-
-    def showIRSchedulerDialog(self, currentCard):
+    def showScheduler(self, currentCard=None):
         #Handle for dialog open without a current card from IR model
-        deckID = None;
-        cardID = None;
-        if(currentCard == None):
-            deck = mw._selectedDeck();
-            deckID = deck['id'];
+        deckID = None
+        cardID = None
+        if not currentCard:
+            deck = mw._selectedDeck()
+            deckID = deck['id']
         else:
-            deckID = currentCard.did;
-            cardID = currentCard.id;
+            deckID = currentCard.did
+            cardID = currentCard.id
 
         #Get the card data for the deck. Make sure it is an Incremental Reading deck (has IR cards) before showing dialog
-        cardDataList = self.getCardDataList(deckID, cardID);
-        hasIRCards = False;
+        cardDataList = self.getCardDataList(deckID, cardID)
+        hasIRCards = False
         for cd in cardDataList:
-            if(cd['title'] != 'No Title'): hasIRCards = True;
-        if(hasIRCards == False):
+            if cd['title'] != 'No Title':
+                hasIRCards = True
+        if not hasIRCards:
             showInfo(_("Please select an Incremental Reading deck."))
-            return;
+            return
 
         d = QDialog(mw)
         l = QVBoxLayout()
@@ -271,24 +261,24 @@ class ReadingManager():
         w = AnkiWebView()
         l.addWidget(w)
         #Add python object to take values back from javascript
-        callback = IRSchedulerCallback();
-        #callback.setCard(currentCard);
-        w.page().mainFrame().addToJavaScriptWindowObject("callback", callback);
+        callback = IRSchedulerCallback()
+        w.page().mainFrame().addToJavaScriptWindowObject("callback", callback)
         #Script functions move up / move down / delete / open
         getIRSchedulerDialogScript = """
         var cardList = new Array();
         """
-        index = 0;
+        index = 0
         for cardData in cardDataList:
-            index+=1;
-            getIRSchedulerDialogScript += "card = new Object();";
-            getIRSchedulerDialogScript += "card.id = " + str(cardData['id']) + ";";
-            getIRSchedulerDialogScript += "card.title = '" + str(cardData['title']) + "';";
-            getIRSchedulerDialogScript += "card.isCurrent = " + str(cardData['isCurrent']) + ";";
-            getIRSchedulerDialogScript += "card.checkbox = document.createElement('input');";
-            getIRSchedulerDialogScript += "card.checkbox.type = 'checkbox';";
-            if(cardData['isCurrent'] == 'true'): getIRSchedulerDialogScript += "card.checkbox.setAttribute('checked', 'true');";
-            getIRSchedulerDialogScript += "cardList[cardList.length] = card;";
+            index+=1
+            getIRSchedulerDialogScript += "card = new Object();"
+            getIRSchedulerDialogScript += "card.id = " + str(cardData['id']) + ";"
+            getIRSchedulerDialogScript += "card.title = '" + str(cardData['title']) + "';"
+            getIRSchedulerDialogScript += "card.isCurrent = " + str(cardData['isCurrent']) + ";"
+            getIRSchedulerDialogScript += "card.checkbox = document.createElement('input');"
+            getIRSchedulerDialogScript += "card.checkbox.type = 'checkbox';"
+            if cardData['isCurrent'] == 'true':
+                getIRSchedulerDialogScript += "card.checkbox.setAttribute('checked', 'true');"
+            getIRSchedulerDialogScript += "cardList[cardList.length] = card;"
 
         getIRSchedulerDialogScript += """
         function buildCardData() {
@@ -302,7 +292,7 @@ class ReadingManager():
             var row;
             var col;
             var cardData;
-            for(var i = 0; i < cardList.length; i++) {
+            for (var i = 0; i < cardList.length; i++) {
                 row = document.createElement('tr');
                 row.setAttribute('id','row' + i);
                 cardData = cardList[i];
@@ -332,10 +322,10 @@ class ReadingManager():
         }
 
         function reposition(origIndex, newIndex, isTopOfRange) {
-            if(newIndex < 0 || newIndex > (cardList.length-1)) return -1;
-            if(cardList[newIndex].checkbox.checked) return -1;
+            if (newIndex < 0 || newIndex > (cardList.length-1)) return -1;
+            if (cardList[newIndex].checkbox.checked) return -1;
 
-            if(isTopOfRange) {
+            if (isTopOfRange) {
                 document.getElementById('newPos').value = newIndex;
             }
             var removedCards = cardList.splice(origIndex,1);
@@ -345,13 +335,20 @@ class ReadingManager():
 
         function moveSelectedUp() {
             var topOfRange = -1;
-            for(var i = 0; i < cardList.length; i++) {
-                if(cardList[i].checkbox.checked) {
-                    if(topOfRange == -1) topOfRange = i;
-                    if(i == topOfRange) {
-                        if(document.getElementById('anchor').checked) continue; //Don't move end of range if anchored.
-                        else reposition(i, i - 1, true);
-                    } else reposition(i, i - 1, false);
+            for (var i = 0; i < cardList.length; i++) {
+                if (cardList[i].checkbox.checked) {
+                    if (topOfRange == -1) {
+                        topOfRange = i;
+                    }
+                    if (i == topOfRange) {
+                        if (document.getElementById('anchor').checked) {
+                            continue; //Don't move end of range if anchored.
+                        } else {
+                            reposition(i, i - 1, true);
+                        }
+                    } else {
+                        reposition(i, i - 1, false);
+                    }
                 }
             }
             buildCardData();
@@ -359,33 +356,38 @@ class ReadingManager():
 
         function moveSelectedDown() {
             var topOfRange = -1;
-            var bottomOfRange = -1
-            for(var i = 0; i < cardList.length; i++) {
-                if(cardList[i].checkbox.checked) {
-                    if(topOfRange == -1) topOfRange = i;
+            var bottomOfRange = -1;
+            for (var i = 0; i < cardList.length; i++) {
+                if (cardList[i].checkbox.checked) {
+                    if (topOfRange == -1) {
+                        topOfRange = i;
+                    }
                     bottomOfRange = i;
                 }
             }
-            for(var i = cardList.length-1; i > -1; i--) {
-                if(cardList[i].checkbox.checked) {
-                    if(i == bottomOfRange && document.getElementById('anchor').checked) {
+            for (var i = cardList.length-1; i > -1; i--) {
+                if (cardList[i].checkbox.checked) {
+                    if (i == bottomOfRange && document.getElementById('anchor').checked) {
                         continue; //Don't move end of range if anchored.
                     }
-                    if(i == topOfRange) reposition(i, i + 1, true);
-                    else reposition(i, i + 1, false);
+                    if (i == topOfRange) {
+                        reposition(i, i + 1, true);
+                    } else {
+                        reposition(i, i + 1, false);
+                    }
                 }
             }
             buildCardData();
         }
 
         function selectAll() {
-            for(var i = 0; i < cardList.length; i++) {
+            for (var i = 0; i < cardList.length; i++) {
                 cardList[i].checkbox.checked = true;
             }
         }
 
         function selectNone() {
-            for(var i = 0; i < cardList.length; i++) {
+            for (var i = 0; i < cardList.length; i++) {
                 cardList[i].checkbox.checked = false;
             }
         }
@@ -394,27 +396,35 @@ class ReadingManager():
             var newIndex = document.getElementById('newPos').value;
             var topOfRange = -1;
             origIndex = -1;
-            for(var i = 0; i < cardList.length; i++) {
-                if(cardList[i].checkbox.checked) {
-                    if(topOfRange == -1) topOfRange = i;
-                    if(origIndex == -1) {
+            for (var i = 0; i < cardList.length; i++) {
+                if (cardList[i].checkbox.checked) {
+                    if (topOfRange == -1) {
+                        topOfRange = i;
+                    }
+                    if (origIndex == -1) {
                         origIndex = i;
                         sizeOfMove = (newIndex - origIndex);
                     }
                 }
             }
-            if(sizeOfMove < 0) {
-                for(var i = 0; i < cardList.length; i++) {
-                    if(cardList[i].checkbox.checked) {
-                        if(i == topOfRange) reposition(i, i + sizeOfMove, true);
-                        else reposition(i, i + sizeOfMove, false);
+            if (sizeOfMove < 0) {
+                for (var i = 0; i < cardList.length; i++) {
+                    if (cardList[i].checkbox.checked) {
+                        if (i == topOfRange) {
+                            reposition(i, i + sizeOfMove, true);
+                        } else {
+                            reposition(i, i + sizeOfMove, false);
+                        }
                     }
                 }
             } else {
-                for(var i = cardList.length-1; i > -1; i--) {
-                    if(cardList[i].checkbox.checked) {
-                        if(i == topOfRange) reposition(i, i + sizeOfMove, true);
-                        else reposition(i, i + sizeOfMove, false);
+                for (var i = cardList.length-1; i > -1; i--) {
+                    if (cardList[i].checkbox.checked) {
+                        if (i == topOfRange) {
+                            reposition(i, i + sizeOfMove, true);
+                        } else {
+                            reposition(i, i + sizeOfMove, false);
+                        }
                     }
                 }
             }
@@ -423,27 +433,27 @@ class ReadingManager():
 
         function updatePositions() {
             var cids = new Array();
-            for(var i=0; i < cardList.length; i++) {
+            for (var i=0; i < cardList.length; i++) {
                 cids[cids.length] = parseInt(cardList[i].id);
             }
             callback.updatePositions(cids);
         };
-        """;
+        """
 
         #Incremental Reading list as a list of nested <div> tags (like a table, but more flexible)
         #position,title,series id, sequence number,card id (hidden)
-        newPosField = "<span style='font-weight:bold'>Card Position: </span><input type='text' id='newPos' size='5' value='0' />&nbsp;<span style='font-weight:bold'>of " + str(len(cardDataList)) + "</span>&nbsp;&nbsp;";
-        newPosField += "<input type='button' value='Apply' onclick='directMove()' />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-weight:bold'>Pin Top/Bottom? </span><input type='checkbox' id='anchor'/>";
+        newPosField = "<span style='font-weight:bold'>Card Position: </span><input type='text' id='newPos' size='5' value='0' />&nbsp;<span style='font-weight:bold'>of " + str(len(cardDataList)) + "</span>&nbsp;&nbsp;"
+        newPosField += "<input type='button' value='Apply' onclick='directMove()' />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-weight:bold'>Pin Top/Bottom? </span><input type='checkbox' id='anchor'/>"
 
-        upDownButtons = "<input type='button' value='Move Up' onclick='moveSelectedUp()'/><input type='button' value='Move Down' onclick='moveSelectedDown()'/>";
-        upDownButtons += "<input type='button' value='Select All' onclick='selectAll()'/><input type='button' value='Select None' onclick='selectNone()'/>";
+        upDownButtons = "<input type='button' value='Move Up' onclick='moveSelectedUp()'/><input type='button' value='Move Down' onclick='moveSelectedDown()'/>"
+        upDownButtons += "<input type='button' value='Select All' onclick='selectAll()'/><input type='button' value='Select None' onclick='selectNone()'/>"
 
-        html = "<html><head><script>" + getIRSchedulerDialogScript + "</script></head><body onLoad='buildCardData()'>";
-        html += "<p>" + newPosField;
-        html += "<p>" + upDownButtons;
-        html += "<div id='cardList'></div>";
-        html += "</body></html>";
-        w.stdHtml(html);
+        html = "<html><head><script>" + getIRSchedulerDialogScript + "</script></head><body onLoad='buildCardData()'>"
+        html += "<p>" + newPosField
+        html += "<p>" + upDownButtons
+        html += "<div id='cardList'></div>"
+        html += "</body></html>"
+        w.stdHtml(html)
         bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
@@ -452,46 +462,53 @@ class ReadingManager():
         d.setLayout(l)
         d.setWindowModality(Qt.WindowModal)
         d.resize(500, 500)
-        choice = d.exec_();
-        if(choice == 1):
-            w.eval("updatePositions()");
-        else:
-            if(currentCard != None): self.repositionCard(currentCard, -1);
+        choice = d.exec_()
+        if choice == 1:
+            w.eval("updatePositions()")
+        elif currentCard:
+            self.repositionCard(currentCard, -1)
 
     def scheduleCard(self, answeredCard, ease):
-        cnt = -1;
-        pct = -1;
+        cnt = -1
+        pct = -1
 
-        if(ease == 1): #soon
-            if(self.settings['schedSoonType'] == 'pct'):
-                if(self.settings['schedSoonRandom'] == True): pct = float(random.randint(1, self.settings['schedSoonInt']))/float(100);
-                else: pct = float(self.settings['schedSoonInt'])/float(100);
+        if ease == 1: #soon
+            if self.settings['schedSoonType'] == 'pct':
+                if self.settings['schedSoonRandom']:
+                    pct = float(random.randint(1, self.settings['schedSoonInt'])) / float(100)
+                else:
+                    pct = float(self.settings['schedSoonInt']) / float(100)
             else:
-                cnt = self.settings['schedSoonInt'];
-                if(self.settings['schedSoonRandom'] == True): cnt = random.randint(1, self.settings['schedSoonInt']);
-        elif(ease == 2):
-            if(self.settings['schedSoonType'] == 'pct'):
-                if(self.settings['schedLaterRandom'] == True): pct = float(random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt']))/float(100);
-                else: pct = float(self.settings['schedLaterInt'])/float(100);
+                cnt = self.settings['schedSoonInt']
+                if self.settings['schedSoonRandom']:
+                    cnt = random.randint(1, self.settings['schedSoonInt'])
+        elif ease == 2:
+            if self.settings['schedSoonType'] == 'pct':
+                if self.settings['schedLaterRandom']:
+                    pct = float(random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt'])) / float(100)
+                else:
+                    pct = float(self.settings['schedLaterInt']) / float(100)
             else:
-                cnt = self.settings['schedLaterInt'];
-                if(self.settings['schedLaterRandom'] == True): cnt = random.randint(self.settings['schedSoonInt'], self.settings['schedLaterInt']);
-        elif(ease == 3):
-            mw.readingManager.showIRSchedulerDialog(answeredCard);
-            return;
-        elif(ease == 4):
-            pct = 1;
-        if(pct > -1):
-            cds = mw.readingManager.getIRCards(answeredCard);
-            pos = int(len(cds) * pct);
-            tooltip(_("Card moved (" + str(int(100*pct)) + "%) to position:  " + str(pos)), period=1500);
-        elif(cnt > -1):
-            pos = cnt;
-            tooltip(_("Card moved to position:  " + str(pos)), period=1500);
+                cnt = self.settings['schedLaterInt']
+                if self.settings['schedLaterRandom']:
+                    cnt = random.randint(self.settings['schedSoonInt'],
+                                         self.settings['schedLaterInt'])
+        elif ease == 3:
+            mw.readingManager.showScheduler(answeredCard)
+            return
+        elif ease == 4:
+            pct = 1
+        if pct > -1:
+            cds = mw.readingManager.getIRCards(answeredCard)
+            pos = int(len(cds) * pct)
+            tooltip(_("Card moved (" + str(int(100*pct)) + "%) to position:  " + str(pos)), period=1500)
+        elif cnt > -1:
+            pos = cnt
+            tooltip(_("Card moved to position:  " + str(pos)), period=1500)
         else:
             pos = 5; #reasonable default
-            tooltip(_("Card moved by default to position:  " + str(pos)), period=1500);
-        self.repositionCard(answeredCard, pos);
+            tooltip(_("Card moved by default to position:  " + str(pos)), period=1500)
+        self.repositionCard(answeredCard, pos)
 
     def repositionCard(self, card, pos):
         cds = []
@@ -515,8 +532,7 @@ class ReadingManager():
                     newCardOrder.append(cid)
                 else:
                     newCardOrder.append(cid)
-            else:
-                if(index == pos):
+            elif index == pos:
                     newCardOrder.append(card.id)
             index += 1
         mw.col.sched.sortCards(newCardOrder)
@@ -587,7 +603,7 @@ class ReadingManager():
 
             if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
                 for f in newModel['flds']:
-                    if(SOURCE_FIELD_NAME == f['name']):
+                    if SOURCE_FIELD_NAME == f['name']:
                         setField(newNote,
                                  SOURCE_FIELD_NAME,
                                  getField(currentNote, SOURCE_FIELD_NAME))
@@ -666,7 +682,7 @@ def initJavaScript():
         var startNode, endNode;
         startNode = document.getElementById('s' + identifier);
         endNode = document.getElementById('e' + identifier);
-        if(startNode) {
+        if (startNode) {
             range = document.createRange();
             range.setStartAfter(startNode);
             range.setEndBefore(endNode);
@@ -682,7 +698,7 @@ def initJavaScript():
 
     function markRange(identifier, backgroundColor, textColor) {
         var range, sel = window.getSelection();
-        if(sel.rangeCount && sel.getRangeAt) {
+        if (sel.rangeCount && sel.getRangeAt) {
             range = sel.getRangeAt(0);
             var startNode = document.createElement('span');
             startNode.setAttribute('id', ('s' + identifier));
@@ -712,7 +728,7 @@ def initJavaScript():
         var startNode, endNode, range, sel;
         startNode = document.getElementById('s' + identifier);
         endNode = document.getElementById('e' + identifier);
-        if(startNode && endNode) {
+        if (startNode && endNode) {
             range = document.createRange();
             range.setStartAfter(startNode);
             range.setEndBefore(endNode);
@@ -731,7 +747,7 @@ def initJavaScript():
             startNode = startNodesXPathResult.iterateNext();
         }
         var id;
-        for(var i=0; i < sNodes.length; i++) {
+        for (var i=0; i < sNodes.length; i++) {
             startNode = sNodes[i];
             id = startNode.id.substring(1);
             selectMarkedRange(id);
