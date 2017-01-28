@@ -197,15 +197,8 @@ class ReadingManager():
         if not textColor:
             textColor = self.settings['textColor']
 
-        # No obvious/easy way to do this with BeautifulSoup
-        def removeOuterDiv(html):
-            withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
-            withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
-            return withoutCloseDiv
-
         currentCard = mw.reviewer.card
         currentModelName = currentCard.model()['name']
-        currentNote = currentCard.note()
 
         # Need to make this general
         # Limited because of reference to 'Text' field
@@ -216,16 +209,29 @@ class ReadingManager():
                                                        textColor)
             script += "highlight('%s', '%s');" % (backgroundColor, textColor)
             mw.web.eval(script)
+            self.saveText()
 
-            page = mw.web.page().mainFrame().toHtml()
-            soup = BeautifulSoup(page)
-            irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
+    def saveText(self):
+        # No obvious/easy way to do this with BeautifulSoup
+        def removeOuterDiv(html):
+            withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
+            withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
+            return withoutCloseDiv
 
-            if irTextDiv:
-                withoutDiv = removeOuterDiv(irTextDiv)
-                currentNote['Text'] = unicode(withoutDiv)
-                currentNote.flush()
-                self.adjustZoomAndScroll()
+        page = mw.web.page().mainFrame().toHtml()
+        soup = BeautifulSoup(page)
+        irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
+
+        if irTextDiv:
+            note = mw.reviewer.card.note()
+            withoutDiv = removeOuterDiv(irTextDiv)
+            note['Text'] = unicode(withoutDiv)
+            note.flush()
+            self.adjustZoomAndScroll()
+
+    def removeText(self):
+        mw.web.eval('removeText()')
+        self.saveText()
 
     def htmlUpdated(self):
         #Called from javascript
@@ -733,6 +739,22 @@ def initJavaScript():
                       startNode.getAttribute('ir-text-color'))
         }
     }
+
+    function removeText() {
+        var range, sel = window.getSelection();
+        if (sel.rangeCount && sel.getRangeAt) {
+            range = sel.getRangeAt(0);
+            var startNode = document.createElement('span');
+            range.insertNode(startNode);
+            var endNode = document.createElement('span');
+            range.collapse(false);
+            range.insertNode(endNode);
+            range.setStartAfter(startNode);
+            range.setEndBefore(endNode);
+            sel.addRange(range);
+            range.deleteContents();
+        }
+    }
     """
     mw.web.eval(javaScript)
 
@@ -789,10 +811,13 @@ def buttonTime(self, i, _old):
 def keyHandler(self, evt):
     key = unicode(evt.text())
     if self.card.note().model()['name'] == IR_MODEL_NAME:
-        if key == 'x':
+        if key == mw.settingsManager.settings['extractKey']:
             mw.readingManager.extract()
-        elif key == 'h':
+        elif key == mw.settingsManager.settings['highlightKey']:
             mw.readingManager.highlightText()
+        elif key == mw.settingsManager.settings['removeKey']:
+            mw.readingManager.removeText()
+
 
 mw.readingManager = ReadingManager()
 
