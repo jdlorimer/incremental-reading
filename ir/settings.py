@@ -110,7 +110,7 @@ class SettingsManager():
                 mw.customMenus['Read'].removeAction(action)
             mw.readingManager.quickKeyActions = []
 
-    def showSettingsDialog(self):
+    def showSettings(self):
         dialog = QDialog(mw)
 
         zoomScrollLayout = QHBoxLayout()
