@@ -791,7 +791,7 @@ def resetRequiredState(self, oldState, _old):
 
 def answerButtonList(self, _old):
     answeredCard = self.card
-    if answeredCard.model()['name'] == self.settings['modelName']:
+    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -811,13 +811,13 @@ def answerCard(self, ease, _old):
 
     _old(self, ease)
 
-    if answeredCard.model()['name'] == self.settings['modelName']:
+    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
         mw.readingManager.scheduleCard(answeredCard, ease)
 
 
 def buttonTime(self, i, _old):
     answeredCard = self.card
-    if answeredCard.model()['name'] == self.settings['modelName']:
+    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
         return "<div class=spacer></div>"
     else:
         return _old(self, i)
@@ -827,7 +827,8 @@ def keyHandler(self, evt, _old):
     key = unicode(evt.text())
     handled = False
 
-    if self.card.note().model()['name'] == self.settings['modelName']:
+    if (self.card.note().model()['name'] ==
+            mw.settingsManager.settings['modelName']):
         if key == mw.settingsManager.settings['extractKey'].lower():
             mw.readingManager.extract()
             handled = True
