@@ -7,11 +7,13 @@ import json
 import os
 
 try:
+    from PyQt4.QtCore import Qt
     from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
                              QLineEdit, QPushButton, QRadioButton, QSpinBox,
                              QTabWidget, QVBoxLayout, QWidget)
 except ImportError:
+    from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                                  QDialogButtonBox, QGroupBox, QHBoxLayout,
                                  QLabel, QLineEdit, QPushButton, QRadioButton,
@@ -121,6 +123,8 @@ class SettingsManager():
         zoomScrollTab.setLayout(zoomScrollLayout)
 
         tabWidget = QTabWidget()
+        tabWidget.setUsesScrollButtons(False)
+        tabWidget.addTab(self.createGeneralTab(), 'General')
         tabWidget.addTab(self.createExtractionTab(), 'Extraction')
         tabWidget.addTab(self.createHighlightingTab(), 'Highlighting')
         tabWidget.addTab(self.createSchedulingTab(), 'Scheduling')
@@ -167,6 +171,80 @@ class SettingsManager():
             self.settings['schedLaterType'] = 'cnt'
 
         mw.viewManager.resetZoom(mw.state)
+
+    def createGeneralTab(self):
+        extractKeyLabel = QLabel('Extract Key')
+        highlightKeyLabel = QLabel('Highlight Key')
+        removeKeyLabel = QLabel('Remove Key')
+
+        self.extractKeyComboBox = QComboBox()
+        self.highlightKeyComboBox = QComboBox()
+        self.removeKeyComboBox = QComboBox()
+
+        keys = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789')
+        for comboBox in [self.extractKeyComboBox,
+                         self.highlightKeyComboBox,
+                         self.removeKeyComboBox]:
+            comboBox.addItems(keys)
+
+        self.setDefaultKeys()
+
+        extractKeyLayout = QHBoxLayout()
+        extractKeyLayout.addWidget(extractKeyLabel)
+        extractKeyLayout.addWidget(self.extractKeyComboBox)
+
+        highlightKeyLayout = QHBoxLayout()
+        highlightKeyLayout.addWidget(highlightKeyLabel)
+        highlightKeyLayout.addWidget(self.highlightKeyComboBox)
+
+        removeKeyLayout = QHBoxLayout()
+        removeKeyLayout.addWidget(removeKeyLabel)
+        removeKeyLayout.addWidget(self.removeKeyComboBox)
+
+        saveButton = QPushButton('Save')
+        saveButton.clicked.connect(self.saveKeys)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(saveButton)
+
+        basicControlsLayout = QVBoxLayout()
+        basicControlsLayout.addLayout(extractKeyLayout)
+        basicControlsLayout.addLayout(highlightKeyLayout)
+        basicControlsLayout.addLayout(removeKeyLayout)
+        basicControlsLayout.addLayout(buttonLayout)
+        basicControlsLayout.addStretch()
+
+        groupBox = QGroupBox('Basic Controls')
+        groupBox.setLayout(basicControlsLayout)
+
+        layout = QHBoxLayout()
+        layout.addWidget(groupBox)
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab
+
+    def setDefaultKeys(self):
+        setComboBoxItem(self.extractKeyComboBox, self.settings['extractKey'])
+        setComboBoxItem(self.highlightKeyComboBox,
+                        self.settings['highlightKey'])
+        setComboBoxItem(self.removeKeyComboBox, self.settings['removeKey'])
+
+    def saveKeys(self):
+        keys = [self.extractKeyComboBox.currentText(),
+                self.highlightKeyComboBox.currentText(),
+                self.removeKeyComboBox.currentText()]
+
+        if len(set(keys)) < 3:
+            showInfo('There is a conflict with the keys you have chosen.'
+                     ' Please try again.')
+            self.setDefaultKeys()
+        else:
+            self.settings['extractKey'] = self.extractKeyComboBox.currentText()
+            self.settings['highlightKey'] = self.highlightKeyComboBox.currentText()
+            self.settings['removeKey'] = self.removeKeyComboBox.currentText()
 
     def createExtractionTab(self):
         self.editExtractButton = QRadioButton('Edit Extracted Note')
@@ -309,11 +387,11 @@ class SettingsManager():
                       'background-color: %s;'
                       'color: %s;'
                       'padding: 10px;'
-                      'text-align: center;'
                       'font-size: 16px;'
                       'font-family: tahoma, geneva, sans-serif;'
                       '}') % (bgColor, textColor)
         self.colorPreviewLabel.setStyleSheet(styleSheet)
+        self.colorPreviewLabel.setAlignment(Qt.AlignCenter)
 
     def createColorPreviewGroupBox(self):
         self.colorPreviewLabel = QLabel('Example Text')
