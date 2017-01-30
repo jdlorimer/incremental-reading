@@ -8,8 +8,6 @@ from aqt import mw
 
 from ir.util import addMenuItem, addShortcut
 
-IR_MODEL_NAME = 'IR3'
-
 
 class ViewManager():
     def __init__(self):
@@ -40,7 +38,7 @@ class ViewManager():
 
     def zoomIn(self):
         if mw.reviewer.card:
-            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
                 cardID = str(mw.reviewer.card.id)
 
                 if cardID not in self.settings['zoom']:
@@ -55,7 +53,7 @@ class ViewManager():
 
     def zoomOut(self):
         if mw.reviewer.card:
-            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
                 cardID = str(mw.reviewer.card.id)
 
                 if cardID not in self.settings['zoom']:
@@ -115,7 +113,8 @@ class ViewManager():
         elif (state == 'review' and
               self.previousState != 'review' and
               mw.reviewer.card and
-              mw.reviewer.card.note().model()['name'] != IR_MODEL_NAME):
+              (mw.reviewer.card.note().model()['name'] !=
+               self.settings['modelName'])):
             mw.web.setTextSizeMultiplier(1)
 
         self.previousState = state
