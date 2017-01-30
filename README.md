@@ -11,22 +11,32 @@ The main things this add-on allows you to do:
 * Maintain scroll position and zoom on a per-card basis
 * Extract selected text into a new card by pressing 'x'
 * Highlight selected text by pressing 'h'
+* Remove selected text by pressing 'r'
 * Create custom shortcuts to quickly add cards
 * Control the scheduling of incremental reading cards
 * Rearrange cards in the built-in organiser
 
 ### New to Version 3
 
-* The following options have been added to give more control over how text is extracted:
-  * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
-  * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
-  * Open the source note for editing on each extraction
-* It is also now possible to control several aspects of how zooming and scrolling operate:
-  * _Zoom Step_ (the amount that magnification changes when zooming in or out)
-  * _General Zoom_ (the zoom level for the deck browser and overview screens)
-  * _Line Up/Down Step_ (the amount the page moves up or down when the Up or Down direction keys are used)
-  * _Page Up/Down Step_ (same as above, but with the Page Up and Page Down keys)
-* Both the background color and text color used for highlighting can be customized, and the main options dialog offers a list of possible colors
+* All existing options have been consolidated into a single tabbed dialog, and several new ones added
+* Remove uninteresting/junk test from note with a single key-press
+* New options to control how text is extracted:
+    * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
+    * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
+    * Open the source note for editing on each extraction
+* New options for several aspects of zoom and scroll functionality:
+    * _Zoom Step_ (the amount that magnification changes when zooming in or out)
+    * _General Zoom_ (the zoom level for the deck browser and overview screens)
+    * _Line Step_ (the amount the page moves up or down when the Up or Down direction keys are used)
+    * _Page Step_ (same as above, but with the Page Up and Page Down keys)
+* Highlighting:
+    * Both the background color and text color used for highlighting can be customized
+    * A drop-down list of available colors is provided
+    * A preview is now displayed when selecting highlight colors
+* Quick Keys
+    * A list of all existing Quick Keys is now shown, to allow easy modification
+    * Unwanted Quick Keys can be easily deleted
+    * A plain text extraction option has also been added
 
 ## Installation
 
