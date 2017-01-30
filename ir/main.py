@@ -25,6 +25,7 @@ from aqt.webview import AnkiWebView
 
 from ir.settings import SettingsManager
 from ir.util import addMenuItem, getField, setField
+from ir.view import ViewManager
 
 TEXT_FIELD_NAME = 'Text'
 SOURCE_FIELD_NAME = 'Source'
@@ -43,19 +44,26 @@ class ReadingManager():
         self.quickKeyActions = []
         self.controlsLoaded = False
 
-    def loadPluginData(self):
+        addHook('profileLoaded', self.onProfileLoaded)
+        addHook('reset', self.adjustZoomAndScroll)
+        addHook('showQuestion', self.adjustZoomAndScroll)
+
+    def onProfileLoaded(self):
         mw.settingsManager = SettingsManager()
+        mw.viewManager = ViewManager()
+
         self.settings = mw.settingsManager.settings
+        mw.viewManager.settings = mw.settingsManager.settings
+
         self.addModel()
 
         if not self.controlsLoaded:
             self.addMenuItems()
             self.controlsLoaded = True
+            mw.viewManager.addMenuItems()
+            mw.viewManager.addShortcuts()
 
-        addHook('reset', mw.readingManager.adjustZoomAndScroll)
-
-    def savePluginData(self):
-        mw.settingsManager.saveSettings()
+        mw.viewManager.resetZoom('deckBrowser')
 
     def addModel(self):
         "Only adds model if no model with the same name is present"
@@ -844,9 +852,6 @@ def keyHandler(self, evt, _old):
     else:
         _old(self, evt)
 
-
-mw.readingManager = ReadingManager()
-
 AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
                                   resetRequiredState,
                                   'around')
@@ -858,7 +863,3 @@ Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
 Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
-
-addHook('profileLoaded', mw.readingManager.loadPluginData)
-addHook('unloadProfile', mw.readingManager.savePluginData)
-addHook('showQuestion', mw.readingManager.adjustZoomAndScroll)
