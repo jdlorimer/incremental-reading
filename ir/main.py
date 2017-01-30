@@ -824,15 +824,25 @@ def buttonTime(self, i, _old):
         return _old(self, i)
 
 
-def keyHandler(self, evt):
+def keyHandler(self, evt, _old):
     key = unicode(evt.text())
+    handled = False
+
     if self.card.note().model()['name'] == IR_MODEL_NAME:
-        if key == mw.settingsManager.settings['extractKey']:
+        if key == mw.settingsManager.settings['extractKey'].lower():
             mw.readingManager.extract()
-        elif key == mw.settingsManager.settings['highlightKey']:
+            handled = True
+        elif key == mw.settingsManager.settings['highlightKey'].lower():
             mw.readingManager.highlightText()
-        elif key == mw.settingsManager.settings['removeKey']:
+            handled = True
+        elif key == mw.settingsManager.settings['removeKey'].lower():
             mw.readingManager.removeText()
+            handled = True
+
+    if handled:
+        return True
+    else:
+        _old(self, evt)
 
 
 mw.readingManager = ReadingManager()
@@ -847,7 +857,7 @@ Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
 
 Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler)
+Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
 
 addHook('profileLoaded', mw.readingManager.loadPluginData)
 addHook('unloadProfile', mw.readingManager.savePluginData)
