@@ -50,6 +50,7 @@ class SettingsManager():
                          'generalZoom': 1,
                          'highlightKey': 'h',
                          'lineScrollFactor': 0.05,
+                         'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
