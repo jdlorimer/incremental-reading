@@ -26,7 +26,6 @@ from aqt.webview import AnkiWebView
 from ir.settings import SettingsManager
 from ir.util import addMenuItem, getField, setField
 
-IR_MODEL_NAME = 'IR3'
 TEXT_FIELD_NAME = 'Text'
 SOURCE_FIELD_NAME = 'Source'
 TITLE_FIELD_NAME = 'Title'
@@ -62,9 +61,9 @@ class ReadingManager():
         "Only adds model if no model with the same name is present"
         col = mw.col
         mm = col.models
-        iread_model = mm.byName(IR_MODEL_NAME)
+        iread_model = mm.byName(self.settings['modelName'])
         if not iread_model:
-            iread_model = mm.new(IR_MODEL_NAME)
+            iread_model = mm.new(self.settings['modelName'])
             model_field = mm.newField(TITLE_FIELD_NAME)
             mm.addField(iread_model, model_field)
             text_field = mm.newField(TEXT_FIELD_NAME)
@@ -116,7 +115,7 @@ class ReadingManager():
 
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
-        model = mw.col.models.byName(IR_MODEL_NAME)
+        model = mw.col.models.byName(self.settings['modelName'])
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
 
@@ -133,7 +132,7 @@ class ReadingManager():
             addCards.editor.setNote(newNote)
             deckName = mw.col.decks.get(currentCard.did)['name']
             addCards.deckChooser.deck.setText(deckName)
-            addCards.modelChooser.models.setText(IR_MODEL_NAME)
+            addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
             setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
             newNote.model()['did'] = currentCard.did
@@ -160,7 +159,7 @@ class ReadingManager():
 
     def adjustZoomAndScroll(self):
         if (mw.reviewer.card and
-                mw.reviewer.card.model()['name'] == IR_MODEL_NAME):
+                mw.reviewer.card.model()['name'] == self.settings['modelName']):
             cardID = str(mw.reviewer.card.id)
 
             if cardID not in self.settings['zoom']:
@@ -195,7 +194,7 @@ class ReadingManager():
 
         # Need to make this general
         # Limited because of reference to 'Text' field
-        if currentCard and currentModelName == IR_MODEL_NAME:
+        if currentCard and currentModelName == self.settings['modelName']:
             identifier = str(int(time.time() * 10))
             script = "markRange('%s', '%s', '%s');" % (identifier,
                                                        backgroundColor,
@@ -558,7 +557,7 @@ class ReadingManager():
                 cardData['nid'] = nid
                 note = mw.col.getNote(nid)
 
-                if note.model()['name'] == IR_MODEL_NAME:
+                if note.model()['name'] == self.settings['modelName']:
                     cardData['title'] = (note['Title'][:64].encode('ascii',
                         errors='xmlcharrefreplace')).encode('string_escape')
                 else:
@@ -601,7 +600,7 @@ class ReadingManager():
             #   if show dialog (see below)
             newNote.setTagsFromStr(tags)
 
-            if mw.reviewer.card.model()['name'] == IR_MODEL_NAME:
+            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
                 for f in newModel['flds']:
                     if SOURCE_FIELD_NAME == f['name']:
                         setField(newNote,
@@ -792,7 +791,7 @@ def resetRequiredState(self, oldState, _old):
 
 def answerButtonList(self, _old):
     answeredCard = self.card
-    if answeredCard.model()['name'] == IR_MODEL_NAME:
+    if answeredCard.model()['name'] == self.settings['modelName']:
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -812,13 +811,13 @@ def answerCard(self, ease, _old):
 
     _old(self, ease)
 
-    if answeredCard.model()['name'] == IR_MODEL_NAME:
+    if answeredCard.model()['name'] == self.settings['modelName']:
         mw.readingManager.scheduleCard(answeredCard, ease)
 
 
 def buttonTime(self, i, _old):
     answeredCard = self.card
-    if answeredCard.model()['name'] == IR_MODEL_NAME:
+    if answeredCard.model()['name'] == self.settings['modelName']:
         return "<div class=spacer></div>"
     else:
         return _old(self, i)
@@ -828,7 +827,7 @@ def keyHandler(self, evt, _old):
     key = unicode(evt.text())
     handled = False
 
-    if self.card.note().model()['name'] == IR_MODEL_NAME:
+    if self.card.note().model()['name'] == self.settings['modelName']:
         if key == mw.settingsManager.settings['extractKey'].lower():
             mw.readingManager.extract()
             handled = True
