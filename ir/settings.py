@@ -19,6 +19,7 @@ except ImportError:
                                  QLabel, QLineEdit, QPushButton, QRadioButton,
                                  QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
+from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo
 
@@ -35,6 +36,8 @@ class SettingsManager():
             showInfo('Your Incremental Reading settings file has been modified'
                      ' for compatibility reasons. Please take a moment to'
                      ' reconfigure the add-on to your liking.')
+
+        addHook('unloadProfile', self.saveSettings)
 
     def saveSettings(self):
         with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
