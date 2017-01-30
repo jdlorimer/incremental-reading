@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from PyQt4.QtCore import QPoint, Qt
-from anki.hooks import addHook, wrap
+from anki.hooks import wrap
 from aqt import mw
 
 from ir.util import addMenuItem, addShortcut
@@ -11,19 +11,12 @@ from ir.util import addMenuItem, addShortcut
 
 class ViewManager():
     def __init__(self):
-        self.controlsLoaded = False
         self.previousState = None
-
-    def load(self):
-        self.settings = mw.settingsManager.settings
-
-        if not self.controlsLoaded:
-            self.addMenuItems()
-            self.addShortcuts()
-            self.controlsLoaded = True
-
         mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
-        self.resetZoom('deckBrowser')
+        mw.web.wheelEvent = wrap(mw.web.wheelEvent, self.saveScrollPosition)
+        mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
+                                        self.saveScrollPosition,
+                                        'before')
 
     def addMenuItems(self):
         addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
@@ -70,7 +63,7 @@ class ViewManager():
         mw.web.page().mainFrame().setScrollPosition(QPoint(0, newPosition))
         self.saveScrollPosition()
 
-    def saveScrollPosition(self):
+    def saveScrollPosition(self, event=None):
         if (mw.reviewer.card and
                 mw.reviewer.state == 'question' and
                 mw.state == 'review'):
@@ -118,16 +111,3 @@ class ViewManager():
             mw.web.setTextSizeMultiplier(1)
 
         self.previousState = state
-
-
-def saveScrollPosition(event):
-    mw.viewManager.saveScrollPosition()
-
-mw.viewManager = ViewManager()
-
-addHook('profileLoaded', mw.viewManager.load)
-
-mw.web.wheelEvent = wrap(mw.web.wheelEvent, saveScrollPosition)
-mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
-                                saveScrollPosition,
-                                'before')
