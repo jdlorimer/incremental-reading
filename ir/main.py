@@ -5,11 +5,19 @@ import time
 import random
 import re
 
-from BeautifulSoup import BeautifulSoup
-from PyQt4.QtCore import QObject, QPoint, Qt, SIGNAL, SLOT, pyqtSlot
-from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
-                         QLabel, QLineEdit, QVBoxLayout)
-from PyQt4.QtWebKit import QWebPage
+try:
+    from BeautifulSoup import BeautifulSoup
+    from PyQt4.QtCore import QObject, Qt, pyqtSlot
+    from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox,
+                             QHBoxLayout, QLabel, QLineEdit, QVBoxLayout)
+    from PyQt4.QtWebKit import QWebPage
+except ImportError:
+    from PyQt5.QtCore import QObject, Qt, pyqtSlot
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage as QWebPage
+    from PyQt5.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                                 QHBoxLayout, QLabel, QLineEdit, QVBoxLayout)
+    from bs4 import BeautifulSoup
+
 from anki import notes
 from anki.hooks import addHook, wrap
 from anki.notes import Note
@@ -152,10 +160,7 @@ class ReadingManager():
         titleEditBox = QLineEdit()
         titleEditBox.setFixedWidth(300)
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.connect(buttonBox,
-                          SIGNAL('accepted()'),
-                          dialog,
-                          SLOT('accept()'))
+        buttonBox.accepted.connect(dialog.accept)
         layout = QHBoxLayout()
         layout.addWidget(titleLabel)
         layout.addWidget(titleEditBox)
@@ -175,12 +180,8 @@ class ReadingManager():
             if cardID not in self.settings['scroll']:
                 self.settings['scroll'][cardID] = 0
 
-            mw.web.setTextSizeMultiplier(
-                    self.settings['zoom'][cardID])
-
-            position = self.settings['scroll'][cardID]
-            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
-
+            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+            mw.viewManager.setScroll()
             self.highlightAllRanges()
 
     def highlightAllRanges(self):
@@ -454,8 +455,8 @@ class ReadingManager():
         html += "</body></html>"
         w.stdHtml(html)
         bb = QDialogButtonBox(QDialogButtonBox.Close | QDialogButtonBox.Save)
-        bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
-        bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
+        bb.accepted.connect(d.accept)
+        bb.rejected.connect(d.reject)
         bb.setOrientation(Qt.Horizontal)
         l.addWidget(bb)
         d.setLayout(l)
