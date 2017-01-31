@@ -29,6 +29,13 @@ class ViewManager():
         addShortcut(self.pageDown, 'PgDown')
         addShortcut(self.zoomIn, 'Ctrl+=')
 
+    def setZoom(self, factor=None):
+        if factor:
+            mw.web.setTextSizeMultiplier(factor)
+        else:
+            mw.web.setTextSizeMultiplier(
+                self.settings['zoom'][str(mw.reviewer.card.id)])
+
     def zoomIn(self):
         if mw.reviewer.card:
             if mw.reviewer.card.model()['name'] == self.settings['modelName']:
@@ -112,6 +119,6 @@ class ViewManager():
               mw.reviewer.card and
               (mw.reviewer.card.note().model()['name'] !=
                self.settings['modelName'])):
-            mw.web.setTextSizeMultiplier(1)
+            self.setZoom(1)
 
         self.previousState = state
