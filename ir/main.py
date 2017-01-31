@@ -118,8 +118,7 @@ class ReadingManager():
         else:
             text = mimeData.html()
 
-        self.highlightText(self.settings['bgColor'],
-                           self.settings['textColor'])
+        self.highlightText()
 
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
@@ -185,11 +184,10 @@ class ReadingManager():
             self.highlightAllRanges()
 
     def highlightAllRanges(self):
-        # Add python object to take values back from javascript
-        pyCallback = IREJavaScriptCallback()
-        mw.web.page().mainFrame().addToJavaScriptWindowObject("pyCallback", pyCallback)
+        mw.web.page().mainFrame().addToJavaScriptWindowObject(
+            'pyCallback', IREJavaScriptCallback())
         initJavaScript()
-        mw.web.eval("highlightAllRanges()")
+        mw.web.eval('highlightAllRanges()')
 
     def highlightText(self, backgroundColor=None, textColor=None):
         if not backgroundColor:
@@ -234,7 +232,6 @@ class ReadingManager():
         self.saveText()
 
     def htmlUpdated(self):
-        #Called from javascript
         curNote = mw.reviewer.card.note()
         curNote['Text'] = mw.web.page().mainFrame().toHtml()
         curNote.flush()
@@ -242,7 +239,7 @@ class ReadingManager():
         self.adjustZoomAndScroll()
 
     def showScheduler(self, currentCard=None):
-        #Handle for dialog open without a current card from IR model
+        # Handle for dialog open without a current card from IR model
         deckID = None
         cardID = None
         if not currentCard:
@@ -252,14 +249,13 @@ class ReadingManager():
             deckID = currentCard.did
             cardID = currentCard.id
 
-        #Get the card data for the deck. Make sure it is an Incremental Reading deck (has IR cards) before showing dialog
         cardDataList = self.getCardDataList(deckID, cardID)
         hasIRCards = False
         for cd in cardDataList:
             if cd['title'] != 'No Title':
                 hasIRCards = True
         if not hasIRCards:
-            showInfo(_("Please select an Incremental Reading deck."))
+            showInfo(_('Please select an Incremental Reading deck.'))
             return
 
         d = QDialog(mw)
@@ -267,27 +263,24 @@ class ReadingManager():
         l.setMargin(0)
         w = AnkiWebView()
         l.addWidget(w)
-        #Add python object to take values back from javascript
-        callback = IRSchedulerCallback()
-        w.page().mainFrame().addToJavaScriptWindowObject("callback", callback)
-        #Script functions move up / move down / delete / open
-        getIRSchedulerDialogScript = """
+
+        script = '''
         var cardList = new Array();
-        """
+        '''
         index = 0
         for cardData in cardDataList:
-            index+=1
-            getIRSchedulerDialogScript += "card = new Object();"
-            getIRSchedulerDialogScript += "card.id = " + str(cardData['id']) + ";"
-            getIRSchedulerDialogScript += "card.title = '" + str(cardData['title']) + "';"
-            getIRSchedulerDialogScript += "card.isCurrent = " + str(cardData['isCurrent']) + ";"
-            getIRSchedulerDialogScript += "card.checkbox = document.createElement('input');"
-            getIRSchedulerDialogScript += "card.checkbox.type = 'checkbox';"
+            index += 1
+            script += "card = new Object();"
+            script += "card.id = " + str(cardData['id']) + ";"
+            script += "card.title = '" + str(cardData['title']) + "';"
+            script += "card.isCurrent = " + str(cardData['isCurrent']) + ";"
+            script += "card.checkbox = document.createElement('input');"
+            script += "card.checkbox.type = 'checkbox';"
             if cardData['isCurrent'] == 'true':
-                getIRSchedulerDialogScript += "card.checkbox.setAttribute('checked', 'true');"
-            getIRSchedulerDialogScript += "cardList[cardList.length] = card;"
+                script += "card.checkbox.setAttribute('checked', 'true');"
+            script += "cardList[cardList.length] = card;"
 
-        getIRSchedulerDialogScript += """
+        script += """
         function buildCardData() {
             var container = document.getElementById('cardList');
             container.innerHTML = '';
@@ -374,7 +367,8 @@ class ReadingManager():
             }
             for (var i = cardList.length-1; i > -1; i--) {
                 if (cardList[i].checkbox.checked) {
-                    if (i == bottomOfRange && document.getElementById('anchor').checked) {
+                    if (i == bottomOfRange &&
+                            document.getElementById('anchor').checked) {
                         continue; //Don't move end of range if anchored.
                     }
                     if (i == topOfRange) {
@@ -443,25 +437,23 @@ class ReadingManager():
             for (var i=0; i < cardList.length; i++) {
                 cids[cids.length] = parseInt(cardList[i].id);
             }
-            callback.updatePositions(cids);
+            return cids.join();
         };
         """
 
-        #Incremental Reading list as a list of nested <div> tags (like a table, but more flexible)
-        #position,title,series id, sequence number,card id (hidden)
         newPosField = "<span style='font-weight:bold'>Card Position: </span><input type='text' id='newPos' size='5' value='0' />&nbsp;<span style='font-weight:bold'>of " + str(len(cardDataList)) + "</span>&nbsp;&nbsp;"
         newPosField += "<input type='button' value='Apply' onclick='directMove()' />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style='font-weight:bold'>Pin Top/Bottom? </span><input type='checkbox' id='anchor'/>"
 
         upDownButtons = "<input type='button' value='Move Up' onclick='moveSelectedUp()'/><input type='button' value='Move Down' onclick='moveSelectedDown()'/>"
         upDownButtons += "<input type='button' value='Select All' onclick='selectAll()'/><input type='button' value='Select None' onclick='selectNone()'/>"
 
-        html = "<html><head><script>" + getIRSchedulerDialogScript + "</script></head><body onLoad='buildCardData()'>"
+        html = "<html><head><script>" + script + "</script></head><body onLoad='buildCardData()'>"
         html += "<p>" + newPosField
         html += "<p>" + upDownButtons
         html += "<div id='cardList'></div>"
         html += "</body></html>"
         w.stdHtml(html)
-        bb = QDialogButtonBox(QDialogButtonBox.Close|QDialogButtonBox.Save)
+        bb = QDialogButtonBox(QDialogButtonBox.Close | QDialogButtonBox.Save)
         bb.connect(bb, SIGNAL("accepted()"), d, SLOT("accept()"))
         bb.connect(bb, SIGNAL("rejected()"), d, SLOT("reject()"))
         bb.setOrientation(Qt.Horizontal)
@@ -471,15 +463,17 @@ class ReadingManager():
         d.resize(500, 500)
         choice = d.exec_()
         if choice == 1:
-            w.eval("updatePositions()")
+            cids = w.page().mainFrame().evaluateJavaScript('updatePositions()')
+            self.repositionCards(cids)
+#            w.eval("updatePositions()")
         elif currentCard:
             self.repositionCard(currentCard, -1)
 
-    def scheduleCard(self, answeredCard, ease):
+    def scheduleCard(self, card, ease):
         cnt = -1
         pct = -1
 
-        if ease == 1: #soon
+        if ease == 1:  # soon
             if self.settings['schedSoonType'] == 'pct':
                 if self.settings['schedSoonRandom']:
                     pct = float(random.randint(1, self.settings['schedSoonInt'])) / float(100)
@@ -501,21 +495,21 @@ class ReadingManager():
                     cnt = random.randint(self.settings['schedSoonInt'],
                                          self.settings['schedLaterInt'])
         elif ease == 3:
-            mw.readingManager.showScheduler(answeredCard)
+            self.showScheduler(card)
             return
         elif ease == 4:
             pct = 1
         if pct > -1:
-            cds = mw.readingManager.getIRCards(answeredCard)
+            cds = self.getIRCards(card)
             pos = int(len(cds) * pct)
             tooltip(_("Card moved (" + str(int(100*pct)) + "%) to position:  " + str(pos)), period=1500)
         elif cnt > -1:
             pos = cnt
             tooltip(_("Card moved to position:  " + str(pos)), period=1500)
         else:
-            pos = 5; #reasonable default
+            pos = 5
             tooltip(_("Card moved by default to position:  " + str(pos)), period=1500)
-        self.repositionCard(answeredCard, pos)
+        self.repositionCard(card, pos)
 
     def repositionCard(self, card, pos):
         cds = []
@@ -545,6 +539,7 @@ class ReadingManager():
         mw.col.sched.sortCards(newCardOrder)
 
     def repositionCards(self, cids):
+        cids = [int(id) for id in cids.split(',')]
         mw.col.sched.forgetCards(cids)
         mw.col.sched.sortCards(cids)
 
@@ -559,24 +554,24 @@ class ReadingManager():
         cardDataList = []
         note = None
         for id, nid in mw.col.db.execute(
-            "select id, nid from cards where did = " + str(deckID)):
-                cardData = {}
-                cardData['id'] = id
-                cardData['nid'] = nid
-                note = mw.col.getNote(nid)
+                "select id, nid from cards where did = " + str(deckID)):
+            cardData = {}
+            cardData['id'] = id
+            cardData['nid'] = nid
+            note = mw.col.getNote(nid)
 
-                if note.model()['name'] == self.settings['modelName']:
-                    cardData['title'] = (note['Title'][:64].encode('ascii',
-                        errors='xmlcharrefreplace')).encode('string_escape')
-                else:
-                    cardData['title'] = 'No Title'
+            if note.model()['name'] == self.settings['modelName']:
+                cardData['title'] = (note['Title'][:64].encode('ascii',
+                    errors='xmlcharrefreplace')).encode('string_escape')
+            else:
+                cardData['title'] = 'No Title'
 
-                if cardID == id:
-                    cardData['isCurrent'] = 'true'
-                else:
-                    cardData['isCurrent'] = 'false'
+            if cardID == id:
+                cardData['isCurrent'] = 'true'
+            else:
+                cardData['isCurrent'] = 'false'
 
-                cardDataList.append(cardData)
+            cardDataList.append(cardData)
         return cardDataList
 
     def quickAdd(self, quickKey):
@@ -592,8 +587,8 @@ class ReadingManager():
                 selectedText = mimeData.text()
             else:
                 selectedText = mimeData.html()
-            mw.readingManager.highlightText(quickKey['bgColor'],
-                                            quickKey['textColor'])
+            self.highlightText(quickKey['bgColor'],
+                               quickKey['textColor'])
 
         # Create new note with selected model and deck
         newModel = mw.col.models.byName(quickKey['modelName'])
@@ -646,13 +641,6 @@ class ReadingManager():
             clearAudioQueue()
             mw.col.autosave()
             tooltip(_('Added'))
-
-
-class IRSchedulerCallback(QObject):
-    @pyqtSlot(str)
-    def updatePositions(self, ids):
-        cids = ids.split(",")
-        mw.readingManager.repositionCards(cids)
 
 
 class IREJavaScriptCallback(QObject):
@@ -746,7 +734,8 @@ def initJavaScript():
     }
 
     function highlightAllRanges() {
-        var startNodesXPathResult = document.evaluate('//*[@ir-bg-color]', document, null, XPathResult.ANY_TYPE, null);
+        var startNodesXPathResult = document.evaluate(
+            '//*[@ir-bg-color]', document, null, XPathResult.ANY_TYPE, null);
         var sNodes = new Array();
         var startNode = startNodesXPathResult.iterateNext();
         while(startNode) {
@@ -798,8 +787,7 @@ def resetRequiredState(self, oldState, _old):
 
 
 def answerButtonList(self, _old):
-    answeredCard = self.card
-    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
+    if self.card.model()['name'] == mw.settingsManager.settings['modelName']:
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -815,18 +803,17 @@ def answerButtonList(self, _old):
 def answerCard(self, ease, _old):
     # Get the card before scheduler kicks in, else you are looking at a
     #   different card or NONE (which gives error)
-    answeredCard = self.card
+    card = self.card
 
     _old(self, ease)
 
-    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
-        mw.readingManager.scheduleCard(answeredCard, ease)
+    if card.model()['name'] == mw.settingsManager.settings['modelName']:
+        mw.readingManager.scheduleCard(card, ease)
 
 
 def buttonTime(self, i, _old):
-    answeredCard = self.card
-    if answeredCard.model()['name'] == mw.settingsManager.settings['modelName']:
-        return "<div class=spacer></div>"
+    if self.card.model()['name'] == mw.settingsManager.settings['modelName']:
+        return '<div class=spacer></div>'
     else:
         return _old(self, i)
 
