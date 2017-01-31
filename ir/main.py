@@ -52,8 +52,8 @@ class ReadingManager():
         self.controlsLoaded = False
 
         addHook('profileLoaded', self.onProfileLoaded)
-        addHook('reset', self.adjustZoomAndScroll)
-        addHook('showQuestion', self.adjustZoomAndScroll)
+        addHook('reset', self.restoreView)
+        addHook('showQuestion', self.restoreView)
 
     def onProfileLoaded(self):
         mw.settingsManager = SettingsManager()
@@ -161,26 +161,24 @@ class ReadingManager():
         dialog.exec_()
         return titleEditBox.text()
 
-    def adjustZoomAndScroll(self):
-        if (mw.reviewer.card and
-                mw.reviewer.card.model()['name'] == self.settings['modelName']):
-            cardID = str(mw.reviewer.card.id)
+    def restoreView(self):
+        card = mw.reviewer.card
+        if card and card.model()['name'] == self.settings['modelName']:
+            if card.id not in self.settings['zoom']:
+                self.settings['zoom'][card.id] = 1
 
-            if cardID not in self.settings['zoom']:
-                self.settings['zoom'][cardID] = 1
+            if card.id not in self.settings['scroll']:
+                self.settings['scroll'][card.id] = 0
 
-            if cardID not in self.settings['scroll']:
-                self.settings['scroll'][cardID] = 0
-
-            mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+            mw.viewManager.setZoom()
             mw.viewManager.setScroll()
-            self.highlightAllRanges()
+            self.restoreHighlighting()
 
-    def highlightAllRanges(self):
+    def restoreHighlighting(self):
         mw.web.page().mainFrame().addToJavaScriptWindowObject(
             'pyCallback', IREJavaScriptCallback())
         initJavaScript()
-        mw.web.eval('highlightAllRanges()')
+        mw.web.eval('restoreHighlighting()')
 
     def highlightText(self, backgroundColor=None, textColor=None):
         if not backgroundColor:
@@ -218,7 +216,7 @@ class ReadingManager():
             withoutDiv = removeOuterDiv(irTextDiv)
             note['Text'] = unicode(withoutDiv)
             note.flush()
-            self.adjustZoomAndScroll()
+            self.restoreView()
 
     def removeText(self):
         mw.web.eval('removeText()')
@@ -229,7 +227,7 @@ class ReadingManager():
         curNote['Text'] = mw.web.page().mainFrame().toHtml()
         curNote.flush()
         mw.web.setHtml(curNote['Text'])
-        self.adjustZoomAndScroll()
+        self.restoreView()
 
     def quickAdd(self, quickKey):
         hasSelection = False
@@ -390,7 +388,7 @@ def initJavaScript():
         }
     }
 
-    function highlightAllRanges() {
+    function restoreHighlighting() {
         var startNodesXPathResult = document.evaluate(
             '//*[@ir-bg-color]', document, null, XPathResult.ANY_TYPE, null);
         var sNodes = new Array();
