@@ -39,6 +39,9 @@ class SettingsManager():
 
         addHook('unloadProfile', self.saveSettings)
 
+    def addMenuItem(self):
+        addMenuItem('Read', 'Options...', self.showDialog, 'Alt+1')
+
     def saveSettings(self):
         with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
@@ -116,7 +119,7 @@ class SettingsManager():
                 mw.customMenus['Read'].removeAction(action)
             mw.readingManager.quickKeyActions = []
 
-    def showSettings(self):
+    def showDialog(self):
         dialog = QDialog(mw)
 
         zoomScrollLayout = QHBoxLayout()
