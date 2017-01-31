@@ -16,21 +16,17 @@ class Scheduler():
 
     def showDialog(self, currentCard=None):
         # Handle for dialog open without a current card from IR model
-        deckID = None
-        cardID = None
+        did = None
+        cid = None
         if not currentCard:
             deck = mw._selectedDeck()
-            deckID = deck['id']
+            did = deck['id']
         else:
-            deckID = currentCard.did
-            cardID = currentCard.id
+            did = currentCard.did
+            cid = currentCard.id
 
-        cardDataList = self.getCardDataList(deckID, cardID)
-        hasIRCards = False
-        for cd in cardDataList:
-            if cd['title'] != 'No Title':
-                hasIRCards = True
-        if not hasIRCards:
+        cardDataList = self.getCardDataList(did, cid)
+        if not cardDataList:
             showInfo(_('Please select an Incremental Reading deck.'))
             return
 
@@ -241,7 +237,6 @@ class Scheduler():
         if choice == 1:
             cids = w.page().mainFrame().evaluateJavaScript('updatePositions()')
             self.repositionCards(cids)
-#            w.eval("updatePositions()")
         elif currentCard:
             self.repositionCard(currentCard, -1)
 
@@ -249,7 +244,7 @@ class Scheduler():
         cnt = -1
         pct = -1
 
-        if ease == 1:  # soon
+        if ease == 1:
             if self.settings['schedSoonType'] == 'pct':
                 if self.settings['schedSoonRandom']:
                     pct = float(random.randint(1, self.settings['schedSoonInt'])) / float(100)
@@ -288,20 +283,19 @@ class Scheduler():
         self.repositionCard(card, pos)
 
     def repositionCard(self, card, pos):
-        cds = []
-        cds.append(card.id)
-        mw.col.sched.forgetCards(cds)
+        cids = []
+        cids.append(card.id)
+        mw.col.sched.forgetCards(cids)
 
         # If opened dialog and chose not to specify a position, card ends up at
         #   end of NEW queue by default
         if pos < 0:
             return
 
-        # Put card in new position
-        cds = self.getIRCards(card)
+        cids = self.getIRCards(card)
         index = 0
         newCardOrder = []
-        for cid in cds:
+        for cid in cids:
             if cid != card.id:
                 if index == pos:
                     newCardOrder.append(card.id)
@@ -320,17 +314,19 @@ class Scheduler():
         mw.col.sched.sortCards(cids)
 
     def getIRCards(self, card):
-        cds = []
+        cids = []
         for id, nid in mw.col.db.execute(
-                "select id, nid from cards where did = " + str(card.did)):
-                    cds.append(id)
-        return cds
+                'select id, nid from cards where did = ' + str(card.did)):
+            note = mw.col.getNote(nid)
+            if note.model()['name'] == self.settings['modelName']:
+                cids.append(id)
+        return cids
 
-    def getCardDataList(self, deckID, cardID):
+    def getCardDataList(self, did, cid):
         cardDataList = []
         note = None
         for id, nid in mw.col.db.execute(
-                "select id, nid from cards where did = " + str(deckID)):
+                'select id, nid from cards where did = ' + str(did)):
             cardData = {}
             cardData['id'] = id
             cardData['nid'] = nid
@@ -340,9 +336,9 @@ class Scheduler():
                 cardData['title'] = (note['Title'][:64].encode('ascii',
                     errors='xmlcharrefreplace')).encode('string_escape')
             else:
-                cardData['title'] = 'No Title'
+                continue
 
-            if cardID == id:
+            if cid == id:
                 cardData['isCurrent'] = 'true'
             else:
                 cardData['isCurrent'] = 'false'
