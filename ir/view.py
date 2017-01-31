@@ -13,9 +13,9 @@ class ViewManager():
     def __init__(self):
         self.previousState = None
         mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
-        mw.web.wheelEvent = wrap(mw.web.wheelEvent, self.saveScrollPosition)
+        mw.web.wheelEvent = wrap(mw.web.wheelEvent, self.saveScroll)
         mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
-                                        self.saveScrollPosition,
+                                        self.saveScroll,
                                         'before')
 
     def addMenuItems(self):
@@ -59,11 +59,15 @@ class ViewManager():
                              self.settings['zoomStep'])
                 mw.web.setTextSizeMultiplier(newFactor)
 
-    def setScrollPosition(self, newPosition):
-        mw.web.page().mainFrame().setScrollPosition(QPoint(0, newPosition))
-        self.saveScrollPosition()
+    def setScroll(self, position=None):
+        if position:
+            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
+            self.saveScroll()
+        else:
+            position = self.settings['scroll'][str(mw.reviewer.card.id)]
+            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
 
-    def saveScrollPosition(self, event=None):
+    def saveScroll(self, event=None):
         if (mw.reviewer.card and
                 mw.reviewer.state == 'question' and
                 mw.state == 'review'):
@@ -75,7 +79,7 @@ class ViewManager():
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['pageScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
-        self.setScrollPosition(newPosition)
+        self.setScroll(newPosition)
 
     def pageDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
@@ -83,14 +87,14 @@ class ViewManager():
         movementSize = pageHeight * self.settings['pageScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
-        self.setScrollPosition(newPosition)
+        self.setScroll(newPosition)
 
     def lineUp(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['lineScrollFactor']
         newPosition = max(0, (currentPosition - movementSize))
-        self.setScrollPosition(newPosition)
+        self.setScroll(newPosition)
 
     def lineDown(self):
         currentPosition = mw.web.page().mainFrame().scrollPosition().y()
@@ -98,7 +102,7 @@ class ViewManager():
         movementSize = pageHeight * self.settings['lineScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
         newPosition = min(pageBottom, (currentPosition + movementSize))
-        self.setScrollPosition(newPosition)
+        self.setScroll(newPosition)
 
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
