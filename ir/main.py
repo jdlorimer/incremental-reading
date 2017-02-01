@@ -164,11 +164,11 @@ class ReadingManager():
     def restoreView(self):
         card = mw.reviewer.card
         if card and card.model()['name'] == self.settings['modelName']:
-            if card.id not in self.settings['zoom']:
-                self.settings['zoom'][card.id] = 1
+            if str(card.id) not in self.settings['zoom']:
+                self.settings['zoom'][str(card.id)] = 1
 
-            if card.id not in self.settings['scroll']:
-                self.settings['scroll'][card.id] = 0
+            if str(card.id) not in self.settings['scroll']:
+                self.settings['scroll'][str(card.id)] = 0
 
             mw.viewManager.setZoom()
             mw.viewManager.setScroll()
