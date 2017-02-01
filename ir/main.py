@@ -265,37 +265,36 @@ class ReadingManager():
                                  SOURCE_FIELD_NAME,
                                  getField(currentNote, SOURCE_FIELD_NAME))
 
-        if quickKey['editExtract']:
-            self.acsCount += 1
+            if quickKey['editExtract']:
+                self.acsCount += 1
+                addCards = addcards.AddCards(mw)
+                addCards.editor.setNote(newNote)
+                if newNote.stringTags():
+                    addCards.editor.tags.setText(newNote.stringTags().strip())
+                addCards.modelChooser.models.setText(quickKey['modelName'])
+                addCards.deckChooser.deck.setText(quickKey['deckName'])
+            elif hasSelection:
+                deckId = mw.col.decks.byName(quickKey['deckName'])['id']
+                newNote.model()['did'] = deckId
+                ret = newNote.dupeOrEmpty()
+                if ret == 1:
+                    showWarning(_(
+                        'The first field is empty.'),
+                        help='AddItems#AddError')
+                    return
+                cards = mw.col.addNote(newNote)
+                if not cards:
+                    showWarning(_('''\
+                        The input you have provided would make an empty \
+                        question on all cards.'''), help='AddItems')
+                    return
+
+                clearAudioQueue()
+                mw.col.autosave()
+                tooltip(_('Added'))
+
             if quickKey['editSource']:
                 self.editCurrent = editcurrent.EditCurrent(mw)
-            self.addCards = addcards.AddCards(mw)
-            self.addCards.editor.setNote(newNote)
-            if newNote.stringTags():
-                # Not sure why doesn't get set automatically since note has
-                #   associated tags, but ...
-                self.addCards.editor.tags.setText(newNote.stringTags().strip())
-            self.addCards.modelChooser.models.setText(quickKey['modelName'])
-            self.addCards.deckChooser.deck.setText(quickKey['deckName'])
-        elif hasSelection:
-            deckId = mw.col.decks.byName(quickKey['deckName'])['id']
-            newNote.model()['did'] = deckId
-            ret = newNote.dupeOrEmpty()
-            if ret == 1:
-                showWarning(_(
-                    'The first field is empty.'),
-                    help='AddItems#AddError')
-                return
-            cards = mw.col.addNote(newNote)
-            if not cards:
-                showWarning(_('''\
-                    The input you have provided would make an empty \
-                    question on all cards.'''), help='AddItems')
-                return
-
-            clearAudioQueue()
-            mw.col.autosave()
-            tooltip(_('Added'))
 
 
 class IREJavaScriptCallback(QObject):
