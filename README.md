@@ -18,8 +18,10 @@ The main things this add-on allows you to do:
 
 ### New to Version 3
 
+#### Features
+
 * All existing options have been consolidated into a single tabbed dialog, and several new ones added
-* Remove uninteresting/junk test from note with a single key-press
+* Remove uninteresting/junk text from note with a single key-press
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
     * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
@@ -37,6 +39,13 @@ The main things this add-on allows you to do:
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
+
+#### Bugfixes
+
+* Highlighting now causes fewer issues; saves only relevant part of page to note
+* Zoom factor and scroll position are now saved, and restored, more reliably
+* Fixed serious issue where, under certain conditions, the add-on would alter the scheduling of regular Anki cards
+* Fixed a bug where switching between profiles resulted in duplicate menu items
 
 ## Installation
 
