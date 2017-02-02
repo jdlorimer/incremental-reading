@@ -14,6 +14,7 @@ except ImportError:
     from PyQt5.QtWidgets import QAction, QMenu, QShortcut
 
 from aqt import mw
+from aqt.utils import showInfo
 
 
 def addMenu(name):
@@ -75,6 +76,19 @@ def setComboBoxItem(comboBox, text):
 def removeComboBoxItem(comboBox, text):
     index = comboBox.findText(text, Qt.MatchFixedString)
     comboBox.removeItem(index)
+
+
+def disableOutdated():
+    outdated = ['Incremental_Reading_Extension.py', 'View_Size_Adjust.py']
+    disabled = False
+    for filename in outdated:
+        path = os.path.join(mw.pm.addonFolder(), filename)
+        if os.path.isfile(path):
+            os.rename(path, path + '.old')
+            disabled = True
+    if disabled:
+        showInfo('One or more outdated add-on files have been deactivated.'
+                 ' Please restart Anki.')
 
 
 def updateModificationTime(path):
