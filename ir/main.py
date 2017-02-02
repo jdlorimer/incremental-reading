@@ -31,7 +31,7 @@ from aqt.utils import showInfo, showWarning, tooltip
 
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import getField, setField
+from ir.util import getField, disableOutdated, setField
 from ir.view import ViewManager
 
 TEXT_FIELD_NAME = 'Text'
@@ -65,6 +65,7 @@ class ReadingManager():
         self.scheduler.settings = mw.settingsManager.settings
 
         self.addModel()
+        disableOutdated()
 
         if not self.controlsLoaded:
             mw.settingsManager.addMenuItem()
