@@ -163,13 +163,13 @@ class ReadingManager():
         return titleEditBox.text()
 
     def restoreView(self):
-        card = mw.reviewer.card
-        if card and card.model()['name'] == self.settings['modelName']:
-            if str(card.id) not in self.settings['zoom']:
-                self.settings['zoom'][str(card.id)] = 1
+        cid = mw.reviewer.card.id
+        if self.haveValidCard():
+            if cid not in self.settings['zoom']:
+                self.settings['zoom'][cid] = 1
 
-            if str(card.id) not in self.settings['scroll']:
-                self.settings['scroll'][str(card.id)] = 0
+            if cid not in self.settings['scroll']:
+                self.settings['scroll'][cid] = 0
 
             mw.viewManager.setZoom()
             mw.viewManager.setScroll()
@@ -181,23 +181,18 @@ class ReadingManager():
         initJavaScript()
         mw.web.eval('restoreHighlighting()')
 
-    def highlightText(self, backgroundColor=None, textColor=None):
-        if not backgroundColor:
-            backgroundColor = self.settings['bgColor']
+    def highlightText(self, bgColor=None, textColor=None):
+        if not bgColor:
+            bgColor = self.settings['bgColor']
         if not textColor:
             textColor = self.settings['textColor']
 
-        currentCard = mw.reviewer.card
-        currentModelName = currentCard.model()['name']
-
-        # Need to make this general
-        # Limited because of reference to 'Text' field
-        if currentCard and currentModelName == self.settings['modelName']:
+        if self.haveValidCard():
             identifier = str(int(time.time() * 10))
             script = "markRange('%s', '%s', '%s');" % (identifier,
-                                                       backgroundColor,
+                                                       bgColor,
                                                        textColor)
-            script += "highlight('%s', '%s');" % (backgroundColor, textColor)
+            script += "highlight('%s', '%s');" % (bgColor, textColor)
             mw.web.eval(script)
             self.saveText()
 
@@ -259,7 +254,7 @@ class ReadingManager():
             #   if show dialog (see below)
             newNote.setTagsFromStr(tags)
 
-            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
+            if self.haveValidCard():
                 for f in newModel['flds']:
                     if SOURCE_FIELD_NAME == f['name']:
                         setField(newNote,
@@ -297,6 +292,14 @@ class ReadingManager():
             if quickKey['editSource']:
                 self.editCurrent = editcurrent.EditCurrent(mw)
 
+    def haveValidCard(self):
+        if (mw.reviewer.card and
+                mw.reviewer.card.model()['name'] ==
+                mw.settingsManager.settings['modelName']):
+            return True
+        else:
+            return False
+
 
 class IREJavaScriptCallback(QObject):
     @pyqtSlot(str)
@@ -306,7 +309,7 @@ class IREJavaScriptCallback(QObject):
 
 def initJavaScript():
     javaScript = """
-    function highlight(backgroundColor, textColor) {
+    function highlight(bgColor, textColor) {
         if (window.getSelection) {
             var range, sel = window.getSelection();
 
@@ -321,7 +324,7 @@ def initJavaScript():
             }
 
             document.execCommand("foreColor", false, textColor);
-            document.execCommand("hiliteColor", false, backgroundColor);
+            document.execCommand("hiliteColor", false, bgColor);
 
             document.designMode = "off";
             sel.removeAllRanges();
@@ -346,13 +349,13 @@ def initJavaScript():
         }
     }
 
-    function markRange(identifier, backgroundColor, textColor) {
+    function markRange(identifier, bgColor, textColor) {
         var range, sel = window.getSelection();
         if (sel.rangeCount && sel.getRangeAt) {
             range = sel.getRangeAt(0);
             var startNode = document.createElement('span');
             startNode.setAttribute('id', ('s' + identifier));
-            startNode.setAttribute('ir-bg-color', backgroundColor);
+            startNode.setAttribute('ir-bg-color', bgColor);
             startNode.setAttribute('ir-text-color', textColor);
             range.insertNode(startNode);
             var endNode = document.createElement('span');
@@ -442,7 +445,7 @@ def resetRequiredState(self, oldState, _old):
 
 
 def answerButtonList(self, _old):
-    if self.card.model()['name'] == mw.settingsManager.settings['modelName']:
+    if mw.readingManager.haveValidCard():
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -462,12 +465,12 @@ def answerCard(self, ease, _old):
 
     _old(self, ease)
 
-    if card.model()['name'] == mw.settingsManager.settings['modelName']:
+    if mw.readingManager.haveValidCard():
         mw.readingManager.scheduler.scheduleCard(card, ease)
 
 
 def buttonTime(self, i, _old):
-    if self.card.model()['name'] == mw.settingsManager.settings['modelName']:
+    if mw.readingManager.haveValidCard():
         return '<div class=spacer></div>'
     else:
         return _old(self, i)
@@ -477,8 +480,7 @@ def keyHandler(self, evt, _old):
     key = unicode(evt.text())
     handled = False
 
-    if (self.card.note().model()['name'] ==
-            mw.settingsManager.settings['modelName']):
+    if mw.readingManager.haveValidCard():
         if key == mw.settingsManager.settings['extractKey'].lower():
             mw.readingManager.extract()
             handled = True
