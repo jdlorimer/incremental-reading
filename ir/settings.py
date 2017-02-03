@@ -52,6 +52,7 @@ class SettingsManager():
         self.defaults = {'bgColor': 'yellow',
                          'editExtract': False,
                          'editSource': False,
+                         'extractDeck': None,
                          'extractKey': 'x',
                          'generalZoom': 1,
                          'highlightKey': 'h',
@@ -159,6 +160,11 @@ class SettingsManager():
         self.settings['schedSoonRandom'] = self.soonRandomCheckBox.isChecked()
         self.settings['schedLaterRandom'] = self.laterRandomCheckBox.isChecked()
 
+        if self.extractDeckComboBox.currentText() == '[Current Deck]':
+            self.settings['extractDeck'] = None
+        else:
+            self.settings['extractDeck'] = self.extractDeckComboBox.currentText()
+
         try:
             self.settings['schedSoonInt'] = int(
                 self.soonIntegerEditBox.text())
@@ -254,6 +260,22 @@ class SettingsManager():
             self.settings['removeKey'] = self.removeKeyComboBox.currentText()
 
     def createExtractionTab(self):
+        extractDeckLabel = QLabel('Extracts Deck')
+        self.extractDeckComboBox = QComboBox()
+        deckNames = sorted([d['name'] for d in mw.col.decks.all()])
+        self.extractDeckComboBox.addItem('[Current Deck]')
+        self.extractDeckComboBox.addItems(deckNames)
+
+        if self.settings['extractDeck']:
+            setComboBoxItem(self.extractDeckComboBox,
+                            self.settings['extractDeck'])
+        else:
+            setComboBoxItem(self.extractDeckComboBox, '[Current Deck]')
+
+        extractDeckLayout = QHBoxLayout()
+        extractDeckLayout.addWidget(extractDeckLabel)
+        extractDeckLayout.addWidget(self.extractDeckComboBox)
+
         self.editExtractButton = QRadioButton('Edit Extracted Note')
         enterTitleButton = QRadioButton('Enter Title Only')
 
@@ -277,6 +299,7 @@ class SettingsManager():
             self.plainTextCheckBox.setChecked(True)
 
         layout = QVBoxLayout()
+        layout.addLayout(extractDeckLayout)
         layout.addLayout(radioButtonsLayout)
         layout.addWidget(self.editSourceCheckBox)
         layout.addWidget(self.plainTextCheckBox)
