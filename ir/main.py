@@ -168,8 +168,8 @@ class ReadingManager():
         return titleEditBox.text()
 
     def restoreView(self):
-        cid = mw.reviewer.card.id
         if self.haveValidCard():
+            cid = mw.reviewer.card.id
             if cid not in self.settings['zoom']:
                 self.settings['zoom'][cid] = 1
 
