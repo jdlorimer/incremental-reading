@@ -39,13 +39,13 @@ class ViewManager():
     def zoomIn(self):
         if mw.reviewer.card:
             if mw.reviewer.card.model()['name'] == self.settings['modelName']:
-                cardID = str(mw.reviewer.card.id)
+                cid = str(mw.reviewer.card.id)
 
-                if cardID not in self.settings['zoom']:
-                    self.settings['zoom'][cardID] = 1
+                if cid not in self.settings['zoom']:
+                    self.settings['zoom'][cid] = 1
 
-                self.settings['zoom'][cardID] += self.settings['zoomStep']
-                mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+                self.settings['zoom'][cid] += self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
             else:
                 newFactor = (mw.web.textSizeMultiplier() +
                              self.settings['zoomStep'])
@@ -54,13 +54,13 @@ class ViewManager():
     def zoomOut(self):
         if mw.reviewer.card:
             if mw.reviewer.card.model()['name'] == self.settings['modelName']:
-                cardID = str(mw.reviewer.card.id)
+                cid = str(mw.reviewer.card.id)
 
-                if cardID not in self.settings['zoom']:
-                    self.settings['zoom'][cardID] = 1
+                if cid not in self.settings['zoom']:
+                    self.settings['zoom'][cid] = 1
 
-                self.settings['zoom'][cardID] -= self.settings['zoomStep']
-                mw.web.setTextSizeMultiplier(self.settings['zoom'][cardID])
+                self.settings['zoom'][cid] -= self.settings['zoomStep']
+                mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
             else:
                 newFactor = (mw.web.textSizeMultiplier() -
                              self.settings['zoomStep'])
