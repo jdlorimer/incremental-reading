@@ -169,7 +169,7 @@ class ReadingManager():
 
     def restoreView(self):
         if self.haveValidCard():
-            cid = mw.reviewer.card.id
+            cid = str(mw.reviewer.card.id)
             if cid not in self.settings['zoom']:
                 self.settings['zoom'][cid] = 1
 
