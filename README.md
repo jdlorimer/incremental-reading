@@ -1,6 +1,6 @@
 ## Introduction
 
-This is an updated version of the [Incremental Reading add-on]((https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The <a href="https://www.supermemo.com/help/read.htm" rel="nofollow">SuperMemo help article on the subject</a> is interesting, but the implementation here is quite different. Read it to get a general overview of the concept.
+This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The <a href="https://www.supermemo.com/help/read.htm" rel="nofollow">SuperMemo help article on the subject</a> is interesting, but the implementation here is quite different. Read it to get a general overview of the concept.
 
 I am not the original author of this add-on, but I've used the previous version long enough, and seriously enough, to have made substantial changes. Some of those changes might be of general interest, so I am gradually releasing them as version 3. All credit for the basic idea belongs to others.
 
@@ -25,7 +25,7 @@ The main things this add-on allows you to do:
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
     * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
-    * Open the source note for editing on each extraction
+    * Choose a destination deck for extracts
 * New options for several aspects of zoom and scroll functionality:
     * _Zoom Step_ (the amount that magnification changes when zooming in or out)
     * _General Zoom_ (the zoom level for the deck browser and overview screens)
