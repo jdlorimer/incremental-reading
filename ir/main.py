@@ -135,15 +135,20 @@ class ReadingManager():
         if self.settings['editSource']:
             EditCurrent(mw)
 
+        if self.settings['extractDeck']:
+            did = mw.col.decks.byName(self.settings['extractDeck'])['id']
+        else:
+            did = currentCard.did
+
         if self.settings['editExtract']:
             addCards = AddCards(mw)
             addCards.editor.setNote(newNote)
-            deckName = mw.col.decks.get(currentCard.did)['name']
+            deckName = mw.col.decks.get(did)['name']
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
             setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
-            newNote.model()['did'] = currentCard.did
+            newNote.model()['did'] = did
             mw.col.addNote(newNote)
 
     def getNewTitle(self):
