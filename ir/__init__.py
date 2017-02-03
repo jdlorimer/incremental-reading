@@ -6,6 +6,6 @@ from aqt import mw
 
 import ir.main
 
-__version__ = '3.6.2'
+__version__ = '3.6.3'
 
 mw.readingManager = ir.main.ReadingManager()
