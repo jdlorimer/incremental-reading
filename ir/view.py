@@ -67,7 +67,7 @@ class ViewManager():
                 mw.web.setTextSizeMultiplier(newFactor)
 
     def setScroll(self, position=None):
-        if position:
+        if position is not None:
             mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
             self.saveScroll()
         else:
