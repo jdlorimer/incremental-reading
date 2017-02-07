@@ -6,7 +6,7 @@ from PyQt4.QtCore import QPoint, Qt
 from anki.hooks import wrap
 from aqt import mw
 
-from ir.util import addMenuItem, addShortcut
+from ir.util import addMenuItem, addShortcut, viewingIrText
 
 
 class ViewManager():
@@ -37,79 +37,75 @@ class ViewManager():
                 self.settings['zoom'][str(mw.reviewer.card.id)])
 
     def zoomIn(self):
-        if mw.reviewer.card:
-            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
-                cid = str(mw.reviewer.card.id)
+        if viewingIrText():
+            cid = str(mw.reviewer.card.id)
 
-                if cid not in self.settings['zoom']:
-                    self.settings['zoom'][cid] = 1
+            if cid not in self.settings['zoom']:
+                self.settings['zoom'][cid] = 1
 
-                self.settings['zoom'][cid] += self.settings['zoomStep']
-                mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
-            else:
-                newFactor = (mw.web.textSizeMultiplier() +
-                             self.settings['zoomStep'])
-                mw.web.setTextSizeMultiplier(newFactor)
+            self.settings['zoom'][cid] += self.settings['zoomStep']
+            mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
+        elif mw.reviewer.card:
+            newFactor = (mw.web.textSizeMultiplier() +
+                         self.settings['zoomStep'])
+            mw.web.setTextSizeMultiplier(newFactor)
 
     def zoomOut(self):
-        if mw.reviewer.card:
-            if mw.reviewer.card.model()['name'] == self.settings['modelName']:
-                cid = str(mw.reviewer.card.id)
+        if viewingIrText():
+            cid = str(mw.reviewer.card.id)
 
-                if cid not in self.settings['zoom']:
-                    self.settings['zoom'][cid] = 1
+            if cid not in self.settings['zoom']:
+                self.settings['zoom'][cid] = 1
 
-                self.settings['zoom'][cid] -= self.settings['zoomStep']
-                mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
-            else:
-                newFactor = (mw.web.textSizeMultiplier() -
-                             self.settings['zoomStep'])
-                mw.web.setTextSizeMultiplier(newFactor)
+            self.settings['zoom'][cid] -= self.settings['zoomStep']
+            mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
+        elif mw.reviewer.card:
+            newFactor = (mw.web.textSizeMultiplier() -
+                         self.settings['zoomStep'])
+            mw.web.setTextSizeMultiplier(newFactor)
 
-    def setScroll(self, position=None):
-        if position is not None:
-            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
-            self.saveScroll()
+    def setScroll(self, pos=None):
+        if pos is None:
+            savedPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+            mw.web.page().mainFrame().setScrollPosition(QPoint(0, savedPos))
         else:
-            position = self.settings['scroll'][str(mw.reviewer.card.id)]
-            mw.web.page().mainFrame().setScrollPosition(QPoint(0, position))
+            mw.web.page().mainFrame().setScrollPosition(QPoint(0, pos))
+            self.saveScroll()
 
     def saveScroll(self, event=None):
-        if (mw.reviewer.card and
-                mw.reviewer.state == 'question' and
-                mw.state == 'review'):
-            currentPosition = mw.web.page().mainFrame().scrollPosition().y()
-            self.settings['scroll'][str(mw.reviewer.card.id)] = currentPosition
+        if viewingIrText():
+            pos = mw.web.page().mainFrame().scrollPosition().y()
+            self.settings['scroll'][str(mw.reviewer.card.id)] = pos
 
     def pageUp(self):
-        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        currentPos = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['pageScrollFactor']
-        newPosition = max(0, (currentPosition - movementSize))
-        self.setScroll(newPosition)
+        newPos = max(0, (currentPos - movementSize))
+        self.setScroll(newPos)
 
     def pageDown(self):
-        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        currentPos = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['pageScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
-        newPosition = min(pageBottom, (currentPosition + movementSize))
-        self.setScroll(newPosition)
+        newPos = min(pageBottom, (currentPos + movementSize))
+        self.setScroll(newPos)
 
     def lineUp(self):
-        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        currentPos = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['lineScrollFactor']
-        newPosition = max(0, (currentPosition - movementSize))
-        self.setScroll(newPosition)
+        newPos = max(0, (currentPos - movementSize))
+        self.setScroll(newPos)
 
     def lineDown(self):
-        currentPosition = mw.web.page().mainFrame().scrollPosition().y()
+        currentPos = mw.web.page().mainFrame().scrollPosition().y()
         pageHeight = mw.web.page().viewportSize().height()
         movementSize = pageHeight * self.settings['lineScrollFactor']
         pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
-        newPosition = min(pageBottom, (currentPosition + movementSize))
-        self.setScroll(newPosition)
+        newPos = min(pageBottom, (currentPos + movementSize))
+        self.setScroll(newPos)
 
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
