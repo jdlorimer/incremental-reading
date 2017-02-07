@@ -31,7 +31,7 @@ from aqt.utils import showInfo, showWarning, tooltip
 
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import getField, disableOutdated, setField
+from ir.util import disableOutdated, getField, isIrCard, setField, viewingIrText
 from ir.view import ViewManager
 
 TEXT_FIELD_NAME = 'Text'
@@ -168,7 +168,7 @@ class ReadingManager():
         return titleEditBox.text()
 
     def restoreView(self):
-        if self.haveValidCard():
+        if viewingIrText():
             cid = str(mw.reviewer.card.id)
             if cid not in self.settings['zoom']:
                 self.settings['zoom'][cid] = 1
@@ -192,14 +192,13 @@ class ReadingManager():
         if not textColor:
             textColor = self.settings['textColor']
 
-        if self.haveValidCard():
-            identifier = str(int(time.time() * 10))
-            script = "markRange('%s', '%s', '%s');" % (identifier,
-                                                       bgColor,
-                                                       textColor)
-            script += "highlight('%s', '%s');" % (bgColor, textColor)
-            mw.web.eval(script)
-            self.saveText()
+        identifier = str(int(time.time() * 10))
+        script = "markRange('%s', '%s', '%s');" % (identifier,
+                                                   bgColor,
+                                                   textColor)
+        script += "highlight('%s', '%s');" % (bgColor, textColor)
+        mw.web.eval(script)
+        self.saveText()
 
     def saveText(self):
         # No obvious/easy way to do this with BeautifulSoup
@@ -231,6 +230,9 @@ class ReadingManager():
         self.restoreView()
 
     def quickAdd(self, quickKey):
+        if not viewingIrText():
+            return
+
         hasSelection = False
         selectedText = ''
 
@@ -251,59 +253,49 @@ class ReadingManager():
         newNote = notes.Note(mw.col, newModel)
         setField(newNote, quickKey['fieldName'], selectedText)
 
-        if mw.reviewer.card:
-            card = mw.reviewer.card
-            currentNote = card.note()
-            tags = currentNote.stringTags()
-            # Sets tags for the note, but still have to set them in the editor
-            #   if show dialog (see below)
-            newNote.setTagsFromStr(tags)
+        card = mw.reviewer.card
+        currentNote = card.note()
+        tags = currentNote.stringTags()
+        # Sets tags for the note, but still have to set them in the editor
+        #   if show dialog (see below)
+        newNote.setTagsFromStr(tags)
 
-            if self.haveValidCard():
-                for f in newModel['flds']:
-                    if SOURCE_FIELD_NAME == f['name']:
-                        setField(newNote,
-                                 SOURCE_FIELD_NAME,
-                                 getField(currentNote, SOURCE_FIELD_NAME))
+        for f in newModel['flds']:
+            if SOURCE_FIELD_NAME == f['name']:
+                setField(newNote,
+                         SOURCE_FIELD_NAME,
+                         getField(currentNote, SOURCE_FIELD_NAME))
 
-            if quickKey['editExtract']:
-                self.acsCount += 1
-                addCards = addcards.AddCards(mw)
-                addCards.editor.setNote(newNote)
-                if newNote.stringTags():
-                    addCards.editor.tags.setText(newNote.stringTags().strip())
-                addCards.modelChooser.models.setText(quickKey['modelName'])
-                addCards.deckChooser.deck.setText(quickKey['deckName'])
-            elif hasSelection:
-                deckId = mw.col.decks.byName(quickKey['deckName'])['id']
-                newNote.model()['did'] = deckId
-                ret = newNote.dupeOrEmpty()
-                if ret == 1:
-                    showWarning(_(
-                        'The first field is empty.'),
-                        help='AddItems#AddError')
-                    return
-                cards = mw.col.addNote(newNote)
-                if not cards:
-                    showWarning(_('''\
-                        The input you have provided would make an empty \
-                        question on all cards.'''), help='AddItems')
-                    return
+        if quickKey['editExtract']:
+            self.acsCount += 1
+            addCards = addcards.AddCards(mw)
+            addCards.editor.setNote(newNote)
+            if newNote.stringTags():
+                addCards.editor.tags.setText(newNote.stringTags().strip())
+            addCards.modelChooser.models.setText(quickKey['modelName'])
+            addCards.deckChooser.deck.setText(quickKey['deckName'])
+        elif hasSelection:
+            deckId = mw.col.decks.byName(quickKey['deckName'])['id']
+            newNote.model()['did'] = deckId
+            ret = newNote.dupeOrEmpty()
+            if ret == 1:
+                showWarning(_(
+                    'The first field is empty.'),
+                    help='AddItems#AddError')
+                return
+            cards = mw.col.addNote(newNote)
+            if not cards:
+                showWarning(_('''\
+                    The input you have provided would make an empty \
+                    question on all cards.'''), help='AddItems')
+                return
 
-                clearAudioQueue()
-                mw.col.autosave()
-                tooltip(_('Added'))
+            clearAudioQueue()
+            mw.col.autosave()
+            tooltip(_('Added'))
 
-            if quickKey['editSource']:
-                self.editCurrent = editcurrent.EditCurrent(mw)
-
-    def haveValidCard(self):
-        if (mw.reviewer.card and
-                mw.reviewer.card.model()['name'] ==
-                mw.settingsManager.settings['modelName']):
-            return True
-        else:
-            return False
+        if quickKey['editSource']:
+            self.editCurrent = editcurrent.EditCurrent(mw)
 
 
 class IREJavaScriptCallback(QObject):
@@ -450,7 +442,7 @@ def resetRequiredState(self, oldState, _old):
 
 
 def answerButtonList(self, _old):
-    if mw.readingManager.haveValidCard():
+    if isIrCard():
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -470,12 +462,12 @@ def answerCard(self, ease, _old):
 
     _old(self, ease)
 
-    if mw.readingManager.haveValidCard():
+    if isIrCard():
         mw.readingManager.scheduler.scheduleCard(card, ease)
 
 
 def buttonTime(self, i, _old):
-    if mw.readingManager.haveValidCard():
+    if isIrCard():
         return '<div class=spacer></div>'
     else:
         return _old(self, i)
@@ -485,7 +477,7 @@ def keyHandler(self, evt, _old):
     key = unicode(evt.text())
     handled = False
 
-    if mw.readingManager.haveValidCard():
+    if viewingIrText():
         if key == mw.settingsManager.settings['extractKey'].lower():
             mw.readingManager.extract()
             handled = True
