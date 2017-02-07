@@ -1,7 +1,11 @@
 import random
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QDialog, QDialogButtonBox, QVBoxLayout
+try:
+    from PyQt4.QtCore import Qt
+    from PyQt4.QtGui import QDialog, QDialogButtonBox, QVBoxLayout
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
 from aqt import mw
 from aqt.utils import showInfo, tooltip
