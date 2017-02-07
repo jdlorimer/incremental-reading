@@ -17,6 +17,24 @@ from aqt import mw
 from aqt.utils import showInfo
 
 
+def isIrCard():
+    if (mw.reviewer.card and
+            mw.reviewer.card.model()['name'] ==
+            mw.settingsManager.settings['modelName']):
+        return True
+    else:
+        return False
+
+
+def viewingIrText():
+    if (isIrCard() and
+            mw.reviewer.state == 'question' and
+            mw.state == 'review'):
+        return True
+    else:
+        return False
+
+
 def addMenu(name):
     if not hasattr(mw, 'customMenus'):
         mw.customMenus = {}
