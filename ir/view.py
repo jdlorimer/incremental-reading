@@ -2,7 +2,11 @@
 
 from __future__ import unicode_literals
 
-from PyQt4.QtCore import QPoint, Qt
+try:
+    from PyQt4.QtCore import QPoint, Qt
+except ImportError:
+    pass
+
 from anki.hooks import wrap
 from aqt import mw
 
@@ -31,9 +35,9 @@ class ViewManager():
 
     def setZoom(self, factor=None):
         if factor:
-            mw.web.setTextSizeMultiplier(factor)
+            mw.web.setZoomFactor(factor)
         else:
-            mw.web.setTextSizeMultiplier(
+            mw.web.setZoomFactor(
                 self.settings['zoom'][str(mw.reviewer.card.id)])
 
     def zoomIn(self):
@@ -44,11 +48,10 @@ class ViewManager():
                 self.settings['zoom'][cid] = 1
 
             self.settings['zoom'][cid] += self.settings['zoomStep']
-            mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
+            mw.web.setZoomFactor(self.settings['zoom'][cid])
         elif mw.reviewer.card:
-            newFactor = (mw.web.textSizeMultiplier() +
-                         self.settings['zoomStep'])
-            mw.web.setTextSizeMultiplier(newFactor)
+            newFactor = mw.web.zoomFactor() + self.settings['zoomStep']
+            mw.web.setZoomFactor(newFactor)
 
     def zoomOut(self):
         if viewingIrText():
@@ -58,11 +61,10 @@ class ViewManager():
                 self.settings['zoom'][cid] = 1
 
             self.settings['zoom'][cid] -= self.settings['zoomStep']
-            mw.web.setTextSizeMultiplier(self.settings['zoom'][cid])
+            mw.web.setZoomFactor(self.settings['zoom'][cid])
         elif mw.reviewer.card:
-            newFactor = (mw.web.textSizeMultiplier() -
-                         self.settings['zoomStep'])
-            mw.web.setTextSizeMultiplier(newFactor)
+            newFactor = mw.web.zoomFactor() - self.settings['zoomStep']
+            mw.web.setZoomFactor(newFactor)
 
     def setScroll(self, pos=None):
         if pos is None:
@@ -109,7 +111,7 @@ class ViewManager():
 
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
-            mw.web.setTextSizeMultiplier(self.settings['generalZoom'])
+            mw.web.setZoomFactor(self.settings['generalZoom'])
         elif (state == 'review' and
               self.previousState != 'review' and
               mw.reviewer.card and
