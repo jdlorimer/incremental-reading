@@ -119,7 +119,8 @@ class ReadingManager():
         else:
             text = mimeData.html()
 
-        self.highlightText()
+        self.highlightText(self.settings['extractBgColor'],
+                           self.settings['extractTextColor'])
 
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
@@ -188,9 +189,9 @@ class ReadingManager():
 
     def highlightText(self, bgColor=None, textColor=None):
         if not bgColor:
-            bgColor = self.settings['bgColor']
+            bgColor = self.settings['highlightBgColor']
         if not textColor:
-            textColor = self.settings['textColor']
+            textColor = self.settings['highlightTextColor']
 
         identifier = str(int(time.time() * 10))
         script = "markRange('%s', '%s', '%s');" % (identifier,
@@ -245,8 +246,7 @@ class ReadingManager():
                 selectedText = mimeData.text()
             else:
                 selectedText = mimeData.html()
-            self.highlightText(quickKey['bgColor'],
-                               quickKey['textColor'])
+            self.highlightText(quickKey['bgColor'], quickKey['textColor'])
 
         # Create new note with selected model and deck
         newModel = mw.col.models.byName(quickKey['modelName'])
