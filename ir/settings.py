@@ -49,19 +49,22 @@ class SettingsManager():
         updateModificationTime(self.mediaDir)
 
     def loadSettings(self):
-        self.defaults = {'bgColor': 'yellow',
-                         'editExtract': False,
+        self.defaults = {'editExtract': False,
                          'editSource': False,
+                         'extractBgColor': 'Green',
                          'extractDeck': None,
-                         'extractKey': 'x',
+                         'extractKey': 'X',
+                         'extractTextColor': 'White',
                          'generalZoom': 1,
-                         'highlightKey': 'h',
+                         'highlightBgColor': 'Yellow',
+                         'highlightKey': 'H',
+                         'highlightTextColor': 'Black',
                          'lineScrollFactor': 0.05,
                          'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
-                         'removeKey': 'r',
+                         'removeKey': 'R',
                          'schedLaterInt': 50,
                          'schedLaterRandom': True,
                          'schedLaterType': 'pct',
@@ -69,7 +72,6 @@ class SettingsManager():
                          'schedSoonRandom': True,
                          'schedSoonType': 'pct',
                          'scroll': {},
-                         'textColor': 'black',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -337,16 +339,20 @@ class SettingsManager():
         bgColor = self.bgColorComboBox.currentText()
         textColor = self.textColorComboBox.currentText()
 
-        if target == '[General]':
-            self.settings['bgColor'] = bgColor
-            self.settings['textColor'] = textColor
+        if target == self.settings['highlightKey']:
+            self.settings['highlightBgColor'] = bgColor
+            self.settings['highlightTextColor'] = textColor
+        elif target == self.settings['extractKey']:
+            self.settings['extractBgColor'] = bgColor
+            self.settings['extractTextColor'] = textColor
         else:
             self.settings['quickKeys'][target]['bgColor'] = bgColor
             self.settings['quickKeys'][target]['textColor'] = textColor
 
     def createColorsGroupBox(self):
         self.targetComboBox = QComboBox()
-        self.targetComboBox.addItem('[General]')
+        self.targetComboBox.addItem(self.settings['highlightKey'])
+        self.targetComboBox.addItem(self.settings['extractKey'])
         self.targetComboBox.addItems(self.settings['quickKeys'].keys())
         self.targetComboBox.currentIndexChanged.connect(
             self.updateHighlightingTab)
@@ -359,13 +365,15 @@ class SettingsManager():
 
         self.bgColorComboBox = QComboBox()
         self.bgColorComboBox.addItems(colors)
-        setComboBoxItem(self.bgColorComboBox, self.settings['bgColor'])
+        setComboBoxItem(self.bgColorComboBox,
+                        self.settings['highlightBgColor'])
         self.bgColorComboBox.currentIndexChanged.connect(
             self.updateColorPreview)
 
         self.textColorComboBox = QComboBox()
         self.textColorComboBox.addItems(colors)
-        setComboBoxItem(self.textColorComboBox, self.settings['textColor'])
+        setComboBoxItem(self.textColorComboBox,
+                        self.settings['highlightTextColor'])
         self.textColorComboBox.currentIndexChanged.connect(
             self.updateColorPreview)
 
@@ -393,11 +401,16 @@ class SettingsManager():
 
     def updateHighlightingTab(self):
         target = self.targetComboBox.currentText()
-        if target == '[General]':
+        if target == self.settings['highlightKey']:
             setComboBoxItem(self.bgColorComboBox,
-                            self.settings['bgColor'])
+                            self.settings['highlightBgColor'])
             setComboBoxItem(self.textColorComboBox,
-                            self.settings['textColor'])
+                            self.settings['highlightTextColor'])
+        elif target == self.settings['extractKey']:
+            setComboBoxItem(self.bgColorComboBox,
+                            self.settings['extractBgColor'])
+            setComboBoxItem(self.textColorComboBox,
+                            self.settings['extractTextColor'])
         else:
             setComboBoxItem(self.bgColorComboBox,
                             self.settings['quickKeys'][target]['bgColor'])
