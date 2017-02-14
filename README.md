@@ -35,6 +35,7 @@ The main things this add-on allows you to do:
     * Both the background color and text color used for highlighting can be customized
     * A drop-down list of available colors is provided
     * A preview is now displayed when selecting highlight colors
+    * The colors applied to text extracted with 'x' can now be set independently
 * Quick Keys
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
