@@ -7,12 +7,14 @@ import json
 import os
 
 try:
+    ANKI_21 = False
     from PyQt4.QtCore import Qt
     from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
                              QLineEdit, QPushButton, QRadioButton, QSpinBox,
                              QTabWidget, QVBoxLayout, QWidget)
 except ImportError:
+    ANKI_21 = True
     from PyQt5.QtCore import Qt
     from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                                  QDialogButtonBox, QGroupBox, QHBoxLayout,
@@ -419,6 +421,8 @@ class SettingsManager():
 
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
+        if not ANKI_21:
+            moduleDir = moduleDir.decode('utf-8')
         colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
         with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
