@@ -1,17 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 import os
 import stat
 import time
 
-try:
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import QAction, QKeySequence, QMenu, QShortcut
-except ImportError:
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QKeySequence
-    from PyQt5.QtWidgets import QAction, QMenu, QShortcut
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QAction, QMenu, QShortcut
 
 from aqt import mw
 from aqt.utils import showInfo
