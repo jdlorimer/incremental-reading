@@ -1,3 +1,5 @@
+**Note: The version of the add-on in this branch has been modified to work with Anki 2.1. It is not backwards-compatible with previous versions.**
+
 ## Introduction
 
 This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The [SuperMemo help article](https://www.supermemo.com/help/read.htm) on the subject is interesting, but the implementation here is quite different. Read it to get a general overview of the concept.
@@ -89,7 +91,7 @@ Multiple people have contributed to this add-on, and it's somewhat unclear who t
 
 Tiago Barroso appears to be the person who began the project, and he has [stated](https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ) that he releases all of his add-ons under the ISC license.
 
-Frank Kmiec was responsible for vastly expanding the add-on, but unclear which license his changes were released under. Presuming he didn't specify one, the [terms and conditions of AnkiWeb](https://ankiweb.net/account/terms) suggest they were automatically released under the AGPL v3.
+Frank Kmiec was responsible for vastly expanding the add-on, but it's unclear which license his changes were released under. Presuming he didn't specify one, the [terms and conditions of AnkiWeb](https://ankiweb.net/account/terms) suggest they were automatically released under the AGPL v3.
 
 Aleksej's changes to Frank's version are ["multi-licensed under the same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+"](https://github.com/aleksejrs/anki-2.0-vsa-and-ire).
 
