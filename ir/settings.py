@@ -63,6 +63,9 @@ class SettingsManager():
                          'schedSoonRandom': True,
                          'schedSoonType': 'pct',
                          'scroll': {},
+                         'sourceField': 'Source',
+                         'textField': 'Text',
+                         'titleField': 'Title',
                          'zoom': {},
                          'zoomStep': 0.1}
 
