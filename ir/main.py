@@ -1,4 +1,5 @@
 import time
+from urllib.request import urlopen
 
 from PyQt5.QtCore import QObject, pyqtSlot
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
@@ -16,9 +17,12 @@ from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
+from bs4 import BeautifulSoup
+
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import disableOutdated, getField, isIrCard, setField, viewingIrText
+from ir.util import (addMenuItem, disableOutdated, getField, isIrCard, setField,
+                     viewingIrText)
 from ir.view import ViewManager
 
 TEXT_FIELD_NAME = 'Text'
@@ -57,6 +61,7 @@ class ReadingManager():
         if not self.controlsLoaded:
             mw.settingsManager.addMenuItem()
             self.scheduler.addMenuItem()
+            addMenuItem('Read', 'Import Webpage', self.importWebpage, 'Alt+3')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             self.controlsLoaded = True
@@ -144,25 +149,26 @@ class ReadingManager():
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
-            setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
+            title = self.getInput('Extract Text', 'Title')
+            setField(newNote, TITLE_FIELD_NAME, title)
             newNote.model()['did'] = did
             mw.col.addNote(newNote)
 
-    def getNewTitle(self):
+    def getInput(self, windowTitle, labelText):
         dialog = QDialog(mw)
-        dialog.setWindowTitle('Extract Text')
-        titleLabel = QLabel('Title')
-        titleEditBox = QLineEdit()
-        titleEditBox.setFixedWidth(300)
+        dialog.setWindowTitle(windowTitle)
+        label = QLabel(labelText)
+        editBox = QLineEdit()
+        editBox.setFixedWidth(300)
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.accepted.connect(dialog.accept)
         layout = QHBoxLayout()
-        layout.addWidget(titleLabel)
-        layout.addWidget(titleEditBox)
+        layout.addWidget(label)
+        layout.addWidget(editBox)
         layout.addWidget(buttonBox)
         dialog.setLayout(layout)
         dialog.exec_()
-        return titleEditBox.text()
+        return editBox.text()
 
     def restoreView(self):
         if viewingIrText():
@@ -290,6 +296,23 @@ class ReadingManager():
 
         if self.currentQuickKey['editSource']:
             self.editCurrent = editcurrent.EditCurrent(mw)
+
+    def importWebpage(self):
+        model = mw.col.models.byName(self.settings['modelName'])
+        newNote = Note(mw.col, model)
+        url = self.getInput('Import Webpage', 'URL')
+        title = self.getInput('Import Webpage', 'Title')
+        html = urlopen(url).read().decode('utf-8')
+        soup = BeautifulSoup(html, 'html.parser')
+        for iframe in soup.find_all('iframe'):
+            iframe.decompose()
+        setField(newNote, TITLE_FIELD_NAME, title)
+        setField(newNote, TEXT_FIELD_NAME, str(soup))
+        setField(newNote, SOURCE_FIELD_NAME, url)
+        did = mw.col.decks.byName(self.settings['importDeck'])['id']
+        newNote.model()['did'] = did
+        mw.col.addNote(newNote)
+        mw.deckBrowser.refresh()
 
 
 class IREJavaScriptCallback(QObject):
