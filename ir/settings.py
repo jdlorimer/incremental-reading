@@ -49,6 +49,7 @@ class SettingsManager():
                          'highlightBgColor': 'Yellow',
                          'highlightKey': 'H',
                          'highlightTextColor': 'Black',
+                         'importDeck': 'Default',
                          'lineScrollFactor': 0.05,
                          'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
