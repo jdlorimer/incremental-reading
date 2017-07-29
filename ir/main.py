@@ -1,9 +1,6 @@
 import time
-from urllib.request import urlopen
 
 from PyQt5.QtCore import QObject, pyqtSlot
-from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
-                             QLineEdit)
 
 from anki import notes
 from anki.hooks import addHook, wrap
@@ -17,19 +14,12 @@ from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
-from bs4 import BeautifulSoup
-
+from ir.importer import Importer
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import (addMenuItem, disableOutdated, getField, isIrCard, setField,
-                     viewingIrText)
+from ir.util import (addMenuItem, disableOutdated, getField, getInput, isIrCard,
+                     setField, viewingIrText)
 from ir.view import ViewManager
-
-TEXT_FIELD_NAME = 'Text'
-SOURCE_FIELD_NAME = 'Source'
-TITLE_FIELD_NAME = 'Title'
-
-AFMT = "When do you want to see this card again?"
 
 
 class ReadingManager():
@@ -50,10 +40,12 @@ class ReadingManager():
         mw.settingsManager = SettingsManager()
         mw.viewManager = ViewManager()
         self.scheduler = Scheduler()
+        self.importer = Importer()
 
         self.settings = mw.settingsManager.settings
         mw.viewManager.settings = mw.settingsManager.settings
         self.scheduler.settings = mw.settingsManager.settings
+        self.importer.settings = mw.settingsManager.settings
 
         self.addModel()
         disableOutdated()
@@ -61,7 +53,10 @@ class ReadingManager():
         if not self.controlsLoaded:
             mw.settingsManager.addMenuItem()
             self.scheduler.addMenuItem()
-            addMenuItem('Read', 'Import Webpage', self.importWebpage, 'Alt+3')
+            addMenuItem('Read',
+                        'Import Webpage',
+                        self.importer.importWebpage,
+                        'Alt+3')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             self.controlsLoaded = True
@@ -87,26 +82,26 @@ class ReadingManager():
         iread_model = mm.byName(self.settings['modelName'])
         if not iread_model:
             iread_model = mm.new(self.settings['modelName'])
-            model_field = mm.newField(TITLE_FIELD_NAME)
+            model_field = mm.newField(self.settings['titleField'])
             mm.addField(iread_model, model_field)
-            text_field = mm.newField(TEXT_FIELD_NAME)
+            text_field = mm.newField(self.settings['textField'])
             mm.addField(iread_model, text_field)
-            source_field = mm.newField(SOURCE_FIELD_NAME)
+            source_field = mm.newField(self.settings['sourceField'])
             source_field['sticky'] = True
             mm.addField(iread_model, source_field)
 
             t = mm.newTemplate('IR Card')
-            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
-            t['afmt'] = AFMT
+            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (self.settings['textField'])
+            t['afmt'] = 'When do you want to see this card again?'
 
             mm.addTemplate(iread_model, t)
             mm.add(iread_model)
             return iread_model
         else:
             fmap = mm.fieldMap(iread_model)
-            title_ord, title_field = fmap[TITLE_FIELD_NAME]
-            text_ord, text_field = fmap[TEXT_FIELD_NAME]
-            source_ord, source_field = fmap[SOURCE_FIELD_NAME]
+            title_ord, title_field = fmap[self.settings['titleField']]
+            text_ord, text_field = fmap[self.settings['textField']]
+            source_ord, source_field = fmap[self.settings['sourceField']]
             source_field['sticky'] = True
 
     def extract(self):
@@ -129,10 +124,10 @@ class ReadingManager():
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
 
-        setField(newNote, TEXT_FIELD_NAME, text)
+        setField(newNote, self.settings['textField'], text)
         setField(newNote,
-                 SOURCE_FIELD_NAME,
-                 getField(currentNote, SOURCE_FIELD_NAME))
+                 self.settings['sourceField'],
+                 getField(currentNote, self.settings['sourceField']))
 
         if self.settings['editSource']:
             EditCurrent(mw)
@@ -149,26 +144,10 @@ class ReadingManager():
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
-            title = self.getInput('Extract Text', 'Title')
-            setField(newNote, TITLE_FIELD_NAME, title)
+            title = getInput('Extract Text', 'Title')
+            setField(newNote, self.settings['titleField'], title)
             newNote.model()['did'] = did
             mw.col.addNote(newNote)
-
-    def getInput(self, windowTitle, labelText):
-        dialog = QDialog(mw)
-        dialog.setWindowTitle(windowTitle)
-        label = QLabel(labelText)
-        editBox = QLineEdit()
-        editBox.setFixedWidth(300)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.accepted.connect(dialog.accept)
-        layout = QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(editBox)
-        layout.addWidget(buttonBox)
-        dialog.setLayout(layout)
-        dialog.exec_()
-        return editBox.text()
 
     def restoreView(self):
         if viewingIrText():
@@ -259,10 +238,10 @@ class ReadingManager():
         newNote.setTagsFromStr(tags)
 
         for f in newModel['flds']:
-            if SOURCE_FIELD_NAME == f['name']:
+            if self.settings['sourceField'] == f['name']:
                 setField(newNote,
-                         SOURCE_FIELD_NAME,
-                         getField(currentNote, SOURCE_FIELD_NAME))
+                         self.settings['sourceField'],
+                         getField(currentNote, self.settings['sourceField']))
 
         if self.currentQuickKey['editExtract']:
             self.acsCount += 1
@@ -296,23 +275,6 @@ class ReadingManager():
 
         if self.currentQuickKey['editSource']:
             self.editCurrent = editcurrent.EditCurrent(mw)
-
-    def importWebpage(self):
-        model = mw.col.models.byName(self.settings['modelName'])
-        newNote = Note(mw.col, model)
-        url = self.getInput('Import Webpage', 'URL')
-        title = self.getInput('Import Webpage', 'Title')
-        html = urlopen(url).read().decode('utf-8')
-        soup = BeautifulSoup(html, 'html.parser')
-        for iframe in soup.find_all('iframe'):
-            iframe.decompose()
-        setField(newNote, TITLE_FIELD_NAME, title)
-        setField(newNote, TEXT_FIELD_NAME, str(soup))
-        setField(newNote, SOURCE_FIELD_NAME, url)
-        did = mw.col.decks.byName(self.settings['importDeck'])['id']
-        newNote.model()['did'] = did
-        mw.col.addNote(newNote)
-        mw.deckBrowser.refresh()
 
 
 class IREJavaScriptCallback(QObject):
