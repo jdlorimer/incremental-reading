@@ -24,11 +24,6 @@ from ir.view import ViewManager
 
 class ReadingManager():
     def __init__(self):
-        # Track number of times add cards shortcut dialog is opened
-        self.acsCount = 0
-        # Track number of times vsa_resetRequiredState function is called
-        #   (should be same or 1 behind acsCount)
-        self.rrsCount = 0
         self.quickKeyActions = []
         self.controlsLoaded = False
 
@@ -244,7 +239,6 @@ class ReadingManager():
                          getField(currentNote, self.settings['sourceField']))
 
         if self.currentQuickKey['editExtract']:
-            self.acsCount += 1
             addCards = addcards.AddCards(mw)
             addCards.editor.setNote(newNote)
             if newNote.stringTags():
@@ -417,21 +411,6 @@ def initJavaScript():
     mw.web.eval(javaScript)
 
 
-def resetRequiredState(self, oldState, _old):
-    specialHandling = False
-    if self.readingManager.acsCount - self.readingManager.rrsCount == 1:
-        specialHandling = True
-    self.readingManager.rrsCount = self.readingManager.acsCount
-    if specialHandling and mw.reviewer.card:
-        if oldState == 'resetRequired':
-            return _old(self, 'review')
-        else:
-            return _old(self, oldState)
-        return
-    else:
-        return _old(self, oldState)
-
-
 def answerButtonList(self, _old):
     if isIrCard():
         l = ((1, _("Soon")),)
@@ -463,10 +442,6 @@ def buttonTime(self, i, _old):
     else:
         return _old(self, i)
 
-
-AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
-                                  resetRequiredState,
-                                  'around')
 
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
                                   answerButtonList,
