@@ -1,8 +1,8 @@
-**Note: The version of the add-on available on AnkiWeb is not compatible with Anki 2.1. If you require Anki 2.1 support, please download the [anki21 development branch](https://github.com/luoliyan/incremental-reading-for-anki/tree/anki21).**
+**Note: The version of the add-on in this branch is not compatible with Anki 2.1. It will receive basic maintenance updates, but major changes will not be backported.**
 
 ## Introduction
 
-This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The [SuperMemo help article](https://www.supermemo.com/help/read.htm) on the subject is interesting, but the implementation here is quite different. Read it to get a general overview of the concept.
+This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation the technique (see the their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
 
 I am not the original author of this add-on, but I've used the previous version long enough, and seriously enough, to have made substantial changes. Some of those changes might be of general interest, so I am gradually releasing them as version 3. All credit for the basic idea belongs to others.
 
