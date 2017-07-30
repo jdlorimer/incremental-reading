@@ -1,21 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 import time
-import re
 
-try:
-    from BeautifulSoup import BeautifulSoup
-    from PyQt4.QtCore import QObject, pyqtSlot
-    from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox,
-                             QHBoxLayout, QLabel, QLineEdit)
-    from PyQt4.QtWebKit import QWebPage
-except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSlot
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage as QWebPage
-    from PyQt5.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                                 QHBoxLayout, QLabel, QLineEdit)
-    from bs4 import BeautifulSoup
+from PyQt5.QtCore import QObject, pyqtSlot
 
 from anki import notes
 from anki.hooks import addHook, wrap
@@ -29,25 +14,16 @@ from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
+from ir.importer import Importer
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import disableOutdated, getField, isIrCard, setField, viewingIrText
+from ir.util import (addMenuItem, disableOutdated, getField, getInput, isIrCard,
+                     setField, viewingIrText)
 from ir.view import ViewManager
-
-TEXT_FIELD_NAME = 'Text'
-SOURCE_FIELD_NAME = 'Source'
-TITLE_FIELD_NAME = 'Title'
-
-AFMT = "When do you want to see this card again?"
 
 
 class ReadingManager():
     def __init__(self):
-        # Track number of times add cards shortcut dialog is opened
-        self.acsCount = 0
-        # Track number of times vsa_resetRequiredState function is called
-        #   (should be same or 1 behind acsCount)
-        self.rrsCount = 0
         self.quickKeyActions = []
         self.controlsLoaded = False
 
@@ -59,10 +35,12 @@ class ReadingManager():
         mw.settingsManager = SettingsManager()
         mw.viewManager = ViewManager()
         self.scheduler = Scheduler()
+        self.importer = Importer()
 
         self.settings = mw.settingsManager.settings
         mw.viewManager.settings = mw.settingsManager.settings
         self.scheduler.settings = mw.settingsManager.settings
+        self.importer.settings = mw.settingsManager.settings
 
         self.addModel()
         disableOutdated()
@@ -70,11 +48,27 @@ class ReadingManager():
         if not self.controlsLoaded:
             mw.settingsManager.addMenuItem()
             self.scheduler.addMenuItem()
+            addMenuItem('Read',
+                        'Import Webpage',
+                        self.importer.importWebpage,
+                        'Alt+3')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
+
+        mw.moveToState = wrap(mw.moveToState, self.setShortcuts)
+
+    def setShortcuts(self, state, *args):
+        if state == 'review':
+            mw.setStateShortcuts([
+                (mw.settingsManager.settings['extractKey'].lower(),
+                 self.extract),
+                (mw.settingsManager.settings['highlightKey'].lower(),
+                 self.highlightText),
+                (mw.settingsManager.settings['removeKey'].lower(),
+                 self.removeText)])
 
     def addModel(self):
         "Only adds model if no model with the same name is present"
@@ -83,26 +77,26 @@ class ReadingManager():
         iread_model = mm.byName(self.settings['modelName'])
         if not iread_model:
             iread_model = mm.new(self.settings['modelName'])
-            model_field = mm.newField(TITLE_FIELD_NAME)
+            model_field = mm.newField(self.settings['titleField'])
             mm.addField(iread_model, model_field)
-            text_field = mm.newField(TEXT_FIELD_NAME)
+            text_field = mm.newField(self.settings['textField'])
             mm.addField(iread_model, text_field)
-            source_field = mm.newField(SOURCE_FIELD_NAME)
+            source_field = mm.newField(self.settings['sourceField'])
             source_field['sticky'] = True
             mm.addField(iread_model, source_field)
 
             t = mm.newTemplate('IR Card')
-            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
-            t['afmt'] = AFMT
+            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (self.settings['textField'])
+            t['afmt'] = 'When do you want to see this card again?'
 
             mm.addTemplate(iread_model, t)
             mm.add(iread_model)
             return iread_model
         else:
             fmap = mm.fieldMap(iread_model)
-            title_ord, title_field = fmap[TITLE_FIELD_NAME]
-            text_ord, text_field = fmap[TEXT_FIELD_NAME]
-            source_ord, source_field = fmap[SOURCE_FIELD_NAME]
+            title_ord, title_field = fmap[self.settings['titleField']]
+            text_ord, text_field = fmap[self.settings['textField']]
+            source_ord, source_field = fmap[self.settings['sourceField']]
             source_field['sticky'] = True
 
     def extract(self):
@@ -110,15 +104,12 @@ class ReadingManager():
             showInfo(_('Please select some text to extract.'))
             return
 
-        mw.web.triggerPageAction(QWebPage.Copy)
-
-        mimeData = QApplication.clipboard().mimeData()
-
         if self.settings['plainText']:
-            text = mimeData.text()
+            mw.web.evalWithCallback('getPlainText()', self.createExtractNote)
         else:
-            text = mimeData.html()
+            mw.web.evalWithCallback('getHtmlText()', self.createExtractNote)
 
+    def createExtractNote(self, text):
         self.highlightText(self.settings['extractBgColor'],
                            self.settings['extractTextColor'])
 
@@ -128,10 +119,10 @@ class ReadingManager():
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
 
-        setField(newNote, TEXT_FIELD_NAME, text)
+        setField(newNote, self.settings['textField'], text)
         setField(newNote,
-                 SOURCE_FIELD_NAME,
-                 getField(currentNote, SOURCE_FIELD_NAME))
+                 self.settings['sourceField'],
+                 getField(currentNote, self.settings['sourceField']))
 
         if self.settings['editSource']:
             EditCurrent(mw)
@@ -148,25 +139,10 @@ class ReadingManager():
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
-            setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
+            title = getInput('Extract Text', 'Title')
+            setField(newNote, self.settings['titleField'], title)
             newNote.model()['did'] = did
             mw.col.addNote(newNote)
-
-    def getNewTitle(self):
-        dialog = QDialog(mw)
-        dialog.setWindowTitle('Extract Text')
-        titleLabel = QLabel('Title')
-        titleEditBox = QLineEdit()
-        titleEditBox.setFixedWidth(300)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.accepted.connect(dialog.accept)
-        layout = QHBoxLayout()
-        layout.addWidget(titleLabel)
-        layout.addWidget(titleEditBox)
-        layout.addWidget(buttonBox)
-        dialog.setLayout(layout)
-        dialog.exec_()
-        return titleEditBox.text()
 
     def restoreView(self):
         if viewingIrText():
@@ -181,9 +157,15 @@ class ReadingManager():
             mw.viewManager.setScroll()
             self.restoreHighlighting()
 
+            def storePageInfo(pageInfo):
+                (mw.viewManager.viewportHeight,
+                 mw.viewManager.pageBottom) = pageInfo
+
+            mw.web.evalWithCallback(
+                '[window.innerHeight, document.body.scrollHeight];',
+                storePageInfo)
+
     def restoreHighlighting(self):
-        mw.web.page().mainFrame().addToJavaScriptWindowObject(
-            'pyCallback', IREJavaScriptCallback())
         initJavaScript()
         mw.web.eval('restoreHighlighting()')
 
@@ -202,22 +184,16 @@ class ReadingManager():
         self.saveText()
 
     def saveText(self):
-        # No obvious/easy way to do this with BeautifulSoup
-        def removeOuterDiv(html):
-            withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
-            withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
-            return withoutCloseDiv
+        def callback(text):
+            if text:
+                note = mw.reviewer.card.note()
+                note['Text'] = text
+                note.flush()
+                self.restoreView()
 
-        page = mw.web.page().mainFrame().toHtml()
-        soup = BeautifulSoup(page)
-        irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
-
-        if irTextDiv:
-            note = mw.reviewer.card.note()
-            withoutDiv = removeOuterDiv(irTextDiv)
-            note['Text'] = unicode(withoutDiv)
-            note.flush()
-            self.restoreView()
+        mw.web.evalWithCallback(
+            'document.getElementsByClassName("ir-text")[0].innerHTML;',
+            callback)
 
     def removeText(self):
         mw.web.eval('removeText()')
@@ -234,24 +210,20 @@ class ReadingManager():
         if not viewingIrText():
             return
 
-        hasSelection = False
-        selectedText = ''
+        self.currentQuickKey = quickKey
 
-        if len(mw.web.selectedText()) > 0:
-            hasSelection = True
-            mw.web.triggerPageAction(QWebPage.Copy)
-            clipboard = QApplication.clipboard()
-            mimeData = clipboard.mimeData()
-            if quickKey['plainText']:
-                selectedText = mimeData.text()
-            else:
-                selectedText = mimeData.html()
-            self.highlightText(quickKey['bgColor'], quickKey['textColor'])
+        if quickKey['plainText']:
+            mw.web.evalWithCallback('getPlainText()', self.createNote)
+        else:
+            mw.web.evalWithCallback('getHtmlText()', self.createNote)
 
-        # Create new note with selected model and deck
-        newModel = mw.col.models.byName(quickKey['modelName'])
+    def createNote(self, selectedText):
+        self.highlightText(self.currentQuickKey['bgColor'],
+                           self.currentQuickKey['textColor'])
+
+        newModel = mw.col.models.byName(self.currentQuickKey['modelName'])
         newNote = notes.Note(mw.col, newModel)
-        setField(newNote, quickKey['fieldName'], selectedText)
+        setField(newNote, self.currentQuickKey['fieldName'], selectedText)
 
         card = mw.reviewer.card
         currentNote = card.note()
@@ -261,21 +233,22 @@ class ReadingManager():
         newNote.setTagsFromStr(tags)
 
         for f in newModel['flds']:
-            if SOURCE_FIELD_NAME == f['name']:
+            if self.settings['sourceField'] == f['name']:
                 setField(newNote,
-                         SOURCE_FIELD_NAME,
-                         getField(currentNote, SOURCE_FIELD_NAME))
+                         self.settings['sourceField'],
+                         getField(currentNote, self.settings['sourceField']))
 
-        if quickKey['editExtract']:
-            self.acsCount += 1
+        if self.currentQuickKey['editExtract']:
             addCards = addcards.AddCards(mw)
             addCards.editor.setNote(newNote)
             if newNote.stringTags():
                 addCards.editor.tags.setText(newNote.stringTags().strip())
-            addCards.modelChooser.models.setText(quickKey['modelName'])
-            addCards.deckChooser.deck.setText(quickKey['deckName'])
-        elif hasSelection:
-            deckId = mw.col.decks.byName(quickKey['deckName'])['id']
+            addCards.modelChooser.models.setText(
+                self.currentQuickKey['modelName'])
+            addCards.deckChooser.deck.setText(
+                self.currentQuickKey['deckName'])
+        else:
+            deckId = mw.col.decks.byName(self.currentQuickKey['deckName'])['id']
             newNote.model()['did'] = deckId
             ret = newNote.dupeOrEmpty()
             if ret == 1:
@@ -294,7 +267,7 @@ class ReadingManager():
             mw.col.autosave()
             tooltip(_('Added'))
 
-        if quickKey['editSource']:
+        if self.currentQuickKey['editSource']:
             self.editCurrent = editcurrent.EditCurrent(mw)
 
 
@@ -422,23 +395,20 @@ def initJavaScript():
             range.deleteContents();
         }
     }
+
+    function getPlainText() {
+        return window.getSelection().toString();
+    }
+
+    function getHtmlText() {
+        var selection = window.getSelection();
+        var range = selection.getRangeAt(0);
+        var div = document.createElement('div');
+        div.appendChild(range.cloneContents());
+        return div.innerHTML;
+    }
     """
     mw.web.eval(javaScript)
-
-
-def resetRequiredState(self, oldState, _old):
-    specialHandling = False
-    if self.readingManager.acsCount - self.readingManager.rrsCount == 1:
-        specialHandling = True
-    self.readingManager.rrsCount = self.readingManager.acsCount
-    if specialHandling and mw.reviewer.card:
-        if oldState == 'resetRequired':
-            return _old(self, 'review')
-        else:
-            return _old(self, oldState)
-        return
-    else:
-        return _old(self, oldState)
 
 
 def answerButtonList(self, _old):
@@ -473,34 +443,9 @@ def buttonTime(self, i, _old):
         return _old(self, i)
 
 
-def keyHandler(self, evt, _old):
-    key = unicode(evt.text())
-    handled = False
-
-    if viewingIrText():
-        if key == mw.settingsManager.settings['extractKey'].lower():
-            mw.readingManager.extract()
-            handled = True
-        elif key == mw.settingsManager.settings['highlightKey'].lower():
-            mw.readingManager.highlightText()
-            handled = True
-        elif key == mw.settingsManager.settings['removeKey'].lower():
-            mw.readingManager.removeText()
-            handled = True
-
-    if handled:
-        return True
-    else:
-        _old(self, evt)
-
-AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
-                                  resetRequiredState,
-                                  'around')
-
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
                                   answerButtonList,
                                   'around')
 
 Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, keyHandler, 'around')
