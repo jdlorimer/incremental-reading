@@ -1,13 +1,7 @@
 import random
 
-try:
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
-    ANKI_21 = True
-except ImportError:
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import QDialog, QDialogButtonBox, QVBoxLayout
-    ANKI_21 = False
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QDialog, QDialogButtonBox, QVBoxLayout
 
 from aqt import mw
 from aqt.utils import showInfo, tooltip
@@ -240,16 +234,10 @@ class Scheduler():
         d.resize(500, 500)
         choice = d.exec_()
         if choice == 1:
-            if ANKI_21:
-                cids = w.page().runJavaScript('updatePositions()',self.callback)
-            else:
-                cids = w.page().mainFrame().evaluateJavaScript('updatePositions()')
-                self.repositionCards(cids)
+            cids = w.page().mainFrame().evaluateJavaScript('updatePositions()')
+            self.repositionCards(cids)
         elif currentCard:
             self.repositionCard(currentCard, -1)
-
-    def callback(self, cids):
-        self.repositionCards(cids)
 
     def scheduleCard(self, card, ease):
         cnt = -1
@@ -348,9 +336,8 @@ class Scheduler():
 
             cardData['title'] = note['Title'][:64]
 
-            if not ANKI_21:
-                cardData['title'] = cardData['title'].encode(
-                    'ascii', errors='xmlcharrefreplace').encode('string_escape')
+            cardData['title'] = cardData['title'].encode(
+                'ascii', errors='xmlcharrefreplace').encode('string_escape')
 
             if cid == id:
                 cardData['isCurrent'] = 'true'
