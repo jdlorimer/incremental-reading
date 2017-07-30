@@ -2,10 +2,7 @@
 
 from __future__ import unicode_literals
 
-try:
-    from PyQt4.QtCore import QPoint, Qt
-except ImportError:
-    pass
+from PyQt4.QtCore import QPoint, Qt
 
 from anki.hooks import wrap
 from aqt import mw
