@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
-try:
-    from PyQt4.QtCore import QPoint, Qt
-except ImportError:
-    pass
-
 from anki.hooks import wrap
 from aqt import mw
 
@@ -16,11 +7,8 @@ from ir.util import addMenuItem, addShortcut, viewingIrText
 class ViewManager():
     def __init__(self):
         self.previousState = None
-        mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
-        mw.web.wheelEvent = wrap(mw.web.wheelEvent, self.saveScroll)
-        mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
-                                        self.saveScroll,
-                                        'before')
+        mw.moveToState = wrap(mw.moveToState, self.resetZoom)
+        mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def addMenuItems(self):
         addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
@@ -69,44 +57,40 @@ class ViewManager():
     def setScroll(self, pos=None):
         if pos is None:
             savedPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-            mw.web.page().mainFrame().setScrollPosition(QPoint(0, savedPos))
+            mw.web.eval('window.scrollTo(0, {});'.format(savedPos))
         else:
-            mw.web.page().mainFrame().setScrollPosition(QPoint(0, pos))
+            mw.web.eval('window.scrollTo(0, {});'.format(pos))
             self.saveScroll()
 
     def saveScroll(self, event=None):
         if viewingIrText():
-            pos = mw.web.page().mainFrame().scrollPosition().y()
-            self.settings['scroll'][str(mw.reviewer.card.id)] = pos
+            def callback(currentPos):
+                self.settings['scroll'][str(mw.reviewer.card.id)] = currentPos
+
+            mw.web.evalWithCallback('window.pageYOffset;', callback)
 
     def pageUp(self):
-        currentPos = mw.web.page().mainFrame().scrollPosition().y()
-        pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight * self.settings['pageScrollFactor']
+        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+        movementSize = self.viewportHeight * self.settings['pageScrollFactor']
         newPos = max(0, (currentPos - movementSize))
         self.setScroll(newPos)
 
     def pageDown(self):
-        currentPos = mw.web.page().mainFrame().scrollPosition().y()
-        pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight * self.settings['pageScrollFactor']
-        pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
-        newPos = min(pageBottom, (currentPos + movementSize))
+        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+        movementSize = self.viewportHeight * self.settings['pageScrollFactor']
+        newPos = min(self.pageBottom, (currentPos + movementSize))
         self.setScroll(newPos)
 
     def lineUp(self):
-        currentPos = mw.web.page().mainFrame().scrollPosition().y()
-        pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight * self.settings['lineScrollFactor']
+        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+        movementSize = self.viewportHeight * self.settings['lineScrollFactor']
         newPos = max(0, (currentPos - movementSize))
         self.setScroll(newPos)
 
     def lineDown(self):
-        currentPos = mw.web.page().mainFrame().scrollPosition().y()
-        pageHeight = mw.web.page().viewportSize().height()
-        movementSize = pageHeight * self.settings['lineScrollFactor']
-        pageBottom = mw.web.page().mainFrame().scrollBarMaximum(Qt.Vertical)
-        newPos = min(pageBottom, (currentPos + movementSize))
+        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+        movementSize = self.viewportHeight * self.settings['lineScrollFactor']
+        newPos = min(self.pageBottom, (currentPos + movementSize))
         self.setScroll(newPos)
 
     def resetZoom(self, state, *args):

@@ -1,4 +1,4 @@
-**Note: The version of the add-on available on AnkiWeb is not compatible with Anki 2.1. If you require Anki 2.1 support, please download the [anki21 development branch](https://github.com/luoliyan/incremental-reading-for-anki/tree/anki21).**
+**Note: The version of the add-on in this branch has been modified to work with Anki 2.1. It is not backwards-compatible with previous versions.**
 
 ## Introduction
 
@@ -10,6 +10,7 @@ I am not the original author of this add-on, but I've used the previous version 
 
 The main things this add-on allows you to do:
 
+* Create Anki cards from webpages or text
 * Maintain scroll position and zoom on a per-card basis
 * Extract selected text into a new card by pressing 'x'
 * Highlight selected text by pressing 'h'
@@ -22,7 +23,7 @@ The main things this add-on allows you to do:
 
 #### Features
 
-* All existing options have been consolidated into a single tabbed dialog, and several new ones added
+* Automatically import a webpage into a new Anki card (Alt+3)
 * Remove unwanted text from note with a single key-press
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
@@ -42,6 +43,7 @@ The main things this add-on allows you to do:
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
+* All existing options have been consolidated into a single tabbed dialog, and several new ones added
 
 #### Bugfixes
 

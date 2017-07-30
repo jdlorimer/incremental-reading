@@ -1,17 +1,11 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 import os
 import stat
 import time
 
-try:
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import QAction, QKeySequence, QMenu, QShortcut
-except ImportError:
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QKeySequence
-    from PyQt5.QtWidgets import QAction, QMenu, QShortcut
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import (QAction, QDialog, QDialogButtonBox, QHBoxLayout,
+                             QLabel, QLineEdit, QMenu, QShortcut)
 
 from aqt import mw
 from aqt.utils import showInfo
@@ -113,3 +107,20 @@ def updateModificationTime(path):
     accessTime = os.stat(path)[stat.ST_ATIME]
     modificationTime = time.time()
     os.utime(path, (accessTime, modificationTime))
+
+
+def getInput(windowTitle, labelText):
+    dialog = QDialog(mw)
+    dialog.setWindowTitle(windowTitle)
+    label = QLabel(labelText)
+    editBox = QLineEdit()
+    editBox.setFixedWidth(300)
+    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+    buttonBox.accepted.connect(dialog.accept)
+    layout = QHBoxLayout()
+    layout.addWidget(label)
+    layout.addWidget(editBox)
+    layout.addWidget(buttonBox)
+    dialog.setLayout(layout)
+    dialog.exec_()
+    return editBox.text()

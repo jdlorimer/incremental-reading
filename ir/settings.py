@@ -1,25 +1,13 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 from functools import partial
 import codecs
 import json
 import os
 
-try:
-    ANKI_21 = False
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                             QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
-                             QLineEdit, QPushButton, QRadioButton, QSpinBox,
-                             QTabWidget, QVBoxLayout, QWidget)
-except ImportError:
-    ANKI_21 = True
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                                 QDialogButtonBox, QGroupBox, QHBoxLayout,
-                                 QLabel, QLineEdit, QPushButton, QRadioButton,
-                                 QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                             QDialogButtonBox, QGroupBox, QHBoxLayout,
+                             QLabel, QLineEdit, QPushButton, QRadioButton,
+                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
 from anki.hooks import addHook
 from aqt import mw
@@ -61,6 +49,7 @@ class SettingsManager():
                          'highlightBgColor': 'Yellow',
                          'highlightKey': 'H',
                          'highlightTextColor': 'Black',
+                         'importDeck': 'Default',
                          'lineScrollFactor': 0.05,
                          'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
@@ -74,6 +63,9 @@ class SettingsManager():
                          'schedSoonRandom': True,
                          'schedSoonType': 'pct',
                          'scroll': {},
+                         'sourceField': 'Source',
+                         'textField': 'Text',
+                         'titleField': 'Title',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -421,8 +413,6 @@ class SettingsManager():
 
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
-        if not ANKI_21:
-            moduleDir = moduleDir.decode('utf-8')
         colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
         with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
