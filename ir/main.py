@@ -4,18 +4,10 @@ from __future__ import unicode_literals
 import time
 import re
 
-try:
-    from BeautifulSoup import BeautifulSoup
-    from PyQt4.QtCore import QObject, pyqtSlot
-    from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox,
-                             QHBoxLayout, QLabel, QLineEdit)
-    from PyQt4.QtWebKit import QWebPage
-except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSlot
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage as QWebPage
-    from PyQt5.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                                 QHBoxLayout, QLabel, QLineEdit)
-    from bs4 import BeautifulSoup
+from PyQt4.QtCore import QObject, pyqtSlot
+from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
+                         QLabel, QLineEdit)
+from PyQt4.QtWebKit import QWebPage
 
 from anki import notes
 from anki.hooks import addHook, wrap
@@ -28,6 +20,8 @@ from aqt.editcurrent import EditCurrent
 from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
+
+from BeautifulSoup import BeautifulSoup
 
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
@@ -357,14 +351,6 @@ def initJavaScript():
             range.insertNode(startNode);
             var endNode = document.createElement('span');
             endNode.setAttribute('id', ('e' + identifier));
-            // editHighlightLink = document.createElement('a');
-            // editHighlightLink.setAttribute('href','javascript:');
-            // var tmp = ('unhighlight(' + identifier + '); return false;');
-            // editHighlightLink.setAttribute('onclick', tmp);
-            // sub = document.createElement('sub');
-            // sub.appendChild(document.createTextNode('#'));
-            // editHighlightLink.appendChild(sub);
-            // endNode.appendChild(editHighlightLink);
             range.collapse(false);
             range.insertNode(endNode);
             range.setStartAfter(startNode);
