@@ -45,6 +45,7 @@ class SettingsManager():
                          'extractDeck': None,
                          'extractKey': 'X',
                          'extractTextColor': 'White',
+                         'feedLog': {},
                          'generalZoom': 1,
                          'highlightBgColor': 'Yellow',
                          'highlightKey': 'H',
