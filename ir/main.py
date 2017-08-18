@@ -10,7 +10,6 @@ from aqt import addcards, editcurrent
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
-from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
@@ -35,12 +34,11 @@ class ReadingManager():
         mw.settingsManager = SettingsManager()
         mw.viewManager = ViewManager()
         self.scheduler = Scheduler()
-        self.importer = Importer()
+        self.importer = Importer(mw.settingsManager.settings)
 
         self.settings = mw.settingsManager.settings
         mw.viewManager.settings = mw.settingsManager.settings
         self.scheduler.settings = mw.settingsManager.settings
-        self.importer.settings = mw.settingsManager.settings
 
         self.addModel()
         disableOutdated()
@@ -52,6 +50,10 @@ class ReadingManager():
                         'Import Webpage',
                         self.importer.importWebpage,
                         'Alt+3')
+            addMenuItem('Read',
+                        'Import Feed',
+                        self.importer.importFeed,
+                        'Alt+4')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             self.controlsLoaded = True
