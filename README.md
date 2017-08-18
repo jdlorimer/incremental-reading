@@ -10,20 +10,21 @@ I am not the original author of this add-on, but I've used the previous version 
 
 The main things this add-on allows you to do:
 
-* Create Anki cards from webpages or text
-* Maintain scroll position and zoom on a per-card basis
-* Extract selected text into a new card by pressing 'x'
-* Highlight selected text by pressing 'h'
-* Remove selected text by pressing 'r'
+* Import content from web feeds (RSS, atom, etc.) or webpages
+* Extract selected text into a new card by pressing `x`
+* Highlight selected text by pressing `h`
+* Remove selected text by pressing `r`
 * Create custom shortcuts to quickly add cards
-* Control the scheduling of incremental reading cards
+* Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
+* Control the scheduling of incremental reading cards
 
 ### New to Version 3
 
 #### Features
 
-* Automatically import a webpage into a new Anki card (Alt+3)
+* Automatically import a single webpage into a new Anki card (`Alt+3`)
+* Automatically import a web feed into multiple new Anki cards (`Alt+4`)
 * Remove unwanted text from note with a single key-press
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
@@ -57,14 +58,14 @@ The main things this add-on allows you to do:
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-Once Anki is installed, go to Tools -> Add-ons -> Browse & Install, then enter the code 1081195335
+Once Anki is installed, go to Tools → Add-ons → Browse & Install, then enter the code `1081195335`.
 
 To install manually, copy the following files into your add-ons folder:
 
-* ir
-* ir_addons.py
+* `ir`
+* `ir_addons.py`
 
-If you are unsure where the add-ons folder is located, go to Tools -> Add-ons -> Open Add-ons Folder.
+If you are unsure where the add-ons folder is located, go to Tools → Add-ons → Open Add-ons Folder.
 
 ## Compatibility
 
@@ -76,8 +77,8 @@ If you already have incremental reading notes from a previous version, you will 
 
 If you have the following files in your media directory, you can safely delete them:
 
-* \_IncrementalReadingExtension.dat
-* \_ViewSizeAdjustAddon.dat
+* `_IncrementalReadingExtension.dat`
+* `_ViewSizeAdjustAddon.dat`
 
 There should be no compatibility problems when upgrading from an older v3 to a newer one. The add-on will make any necessary changes automatically.
 
@@ -85,7 +86,15 @@ There should be no compatibility problems when upgrading from an older v3 to a n
 
 If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). If you create a new topic, be sure to mention Incremental Reading in the title.
 
-Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub. Pull requests are also welcome.
+Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub. (Pull requests are also welcome, of course.)
+
+Please include the following information in your post:
+* The version of Anki you are using (e.g., v2.1.0-beta5)
+* The version of IR you are using (this can be found in `ir/__init__.py`)
+* The operating system you are using
+* Details of the problem
+
+I would also appreciate if you could try to replicate the problem with all other add-ons disabled.
 
 ## License
 
