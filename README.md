@@ -4,8 +4,6 @@
 
 This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
 
-I am not the original author of this add-on, but I've used the previous version long enough, and seriously enough, to have made substantial changes. Some of those changes might be of general interest, so I am gradually releasing them as version 3. All credit for the basic idea belongs to others.
-
 ## Features
 
 The main things this add-on allows you to do:
@@ -19,12 +17,18 @@ The main things this add-on allows you to do:
 * Rearrange cards in the built-in organiser
 * Control the scheduling of incremental reading cards
 
+### New to Version 4
+
+#### Features
+
+* Compatible with Anki 2.1
+* Automatically import a single webpage into a new Anki card (`Alt+3`)
+* Automatically import a web feed into multiple new Anki cards (`Alt+4`)
+
 ### New to Version 3
 
 #### Features
 
-* Automatically import a single webpage into a new Anki card (`Alt+3`)
-* Automatically import a web feed into multiple new Anki cards (`Alt+4`)
 * Remove unwanted text from note with a single key-press
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
@@ -58,9 +62,7 @@ The main things this add-on allows you to do:
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-Once Anki is installed, go to Tools → Add-ons → Browse & Install, then enter the code `1081195335`.
-
-To install manually, copy the following files into your add-ons folder:
+At present, v4 cannot be installed via AnkiWeb, since a separate section for Anki 2.1 add-ons has yet to be created. To install manually, download the GitHub repository ([here](https://github.com/luoliyan/incremental-reading-for-anki/archive/master.zip)) and extract the following files into your add-ons folder:
 
 * `ir`
 * `ir_addons.py`
@@ -69,18 +71,10 @@ If you are unsure where the add-ons folder is located, go to Tools → Add-ons �
 
 ## Compatibility
 
-Version 3 of this add-on is incompatible with previous versions in two respects.
+In general, the settings stored in `_ir.json` will be preserved when upgrading to newer versions of the add-on. The main exception to this rule is that v3 and v4 of the add-on are not backwards-compatible with v2. The newer versions store settings in a very different manner; as such, any v2 settings will be ignored.
 
-First, settings are stored in a completely different manner, so any previous settings will be ignored. Second, changes have been made to the card template, and the note type has been renamed.
+Additionally, changes were made to the v2 card template, so if you have incremental reading notes from v2, you will need to select them in the card browser and choose Edit → Change Note Type, to convert them to IR3 notes.
 
-If you already have incremental reading notes from a previous version, you will need to select them in the card browser and choose Edit -> Change Note Type, and convert them to IR3 notes.
-
-If you have the following files in your media directory, you can safely delete them:
-
-* `_IncrementalReadingExtension.dat`
-* `_ViewSizeAdjustAddon.dat`
-
-There should be no compatibility problems when upgrading from an older v3 to a newer one. The add-on will make any necessary changes automatically.
 
 ## Support
 
