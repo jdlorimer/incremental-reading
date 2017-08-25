@@ -1,4 +1,5 @@
 from urllib.request import urlopen
+from urllib.parse import urlsplit
 
 from anki.notes import Note
 from aqt import mw
@@ -17,12 +18,16 @@ class Importer:
         self.model = mw.col.models.byName(settings['modelName'])
 
     def _fetchWebpage(self, url):
+        if not urlsplit(url).scheme:
+            url = 'http://' + url
+
         html = urlopen(url).read().decode('utf-8')
         webpage = BeautifulSoup(html, 'html.parser')
-        for iframe in webpage.find_all('iframe'):
-            iframe.decompose()
-        for script in webpage.find_all('script'):
-            script.decompose()
+
+        for tagName in self.settings['badTags']:
+            for tag in webpage.find_all(tagName):
+                tag.decompose()
+
         return webpage
 
     def _createNote(self, title, text, source):
@@ -42,6 +47,9 @@ class Importer:
 
     def importFeed(self):
         url = getInput('Import Feed', 'URL')
+
+        if not urlsplit(url).scheme:
+            url = 'http://' + url
 
         if url in self.log and self.log[url]:
             feed = parse(url,
