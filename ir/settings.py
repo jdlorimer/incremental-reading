@@ -39,7 +39,8 @@ class SettingsManager():
         updateModificationTime(self.mediaDir)
 
     def loadSettings(self):
-        self.defaults = {'editExtract': False,
+        self.defaults = {'badTags': ['iframe', 'script'],
+                         'editExtract': False,
                          'editSource': False,
                          'extractBgColor': 'Green',
                          'extractDeck': None,
