@@ -2,16 +2,16 @@
 
 ## Introduction
 
-This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
+This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation of the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
 
 ## Features
 
 The main things this add-on allows you to do:
 
 * Import content from web feeds (RSS, atom, etc.) or webpages
-* Extract selected text into a new card by pressing `x`
-* Highlight selected text by pressing `h`
-* Remove selected text by pressing `r`
+* Extract selected text into a new card by pressing <kbd>x</kbd>
+* Highlight selected text by pressing <kbd>h</kbd>
+* Remove selected text by pressing <kbd>r</kbd>
 * Create custom shortcuts to quickly add cards
 * Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
@@ -22,8 +22,8 @@ The main things this add-on allows you to do:
 #### Features
 
 * Compatible with Anki 2.1
-* Automatically import a single webpage into a new Anki card (`Alt+3`)
-* Automatically import a web feed into multiple new Anki cards (`Alt+4`)
+* Automatically import a single webpage into a new Anki card (<kbd>Alt</kbd>+<kbd>3</kbd>)
+* Automatically import a web feed into multiple new Anki cards (<kbd>Alt</kbd>+<kbd>4</kbd>)
 
 ### New to Version 3
 
@@ -38,7 +38,7 @@ The main things this add-on allows you to do:
     * _Zoom Step_ (the amount that magnification changes when zooming in or out)
     * _General Zoom_ (the zoom level for the deck browser and overview screens)
     * _Line Step_ (the amount the page moves up or down when the Up or Down direction keys are used)
-    * _Page Step_ (same as above, but with the Page Up and Page Down keys)
+    * _Page Step_ (same as above, but with the <kbd>Page Up</kbd> and <kbd>Page Down</kbd> keys)
 * Highlighting:
     * Both the background color and text color used for highlighting can be customized
     * A drop-down list of available colors is provided
@@ -75,12 +75,9 @@ In general, the settings stored in `_ir.json` will be preserved when upgrading t
 
 Additionally, changes were made to the v2 card template, so if you have incremental reading notes from v2, you will need to select them in the card browser and choose Edit → Change Note Type, to convert them to IR3 notes.
 
-
 ## Support
 
-If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). If you create a new topic, be sure to mention Incremental Reading in the title.
-
-Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub. (Pull requests are also welcome, of course.)
+If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). It is best if you post in the existing thread ([here](https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support)), since I will recieve a notification of that by e-mail. Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub (where you can also make a pull request if you are so inclined).
 
 Please include the following information in your post:
 * The version of Anki you are using (e.g., v2.1.0-beta5)
