@@ -1,4 +1,4 @@
-from anki.hooks import wrap
+from anki.hooks import addHook
 from aqt import mw
 
 from ir.util import addMenuItem, addShortcut, viewingIrText
@@ -7,7 +7,7 @@ from ir.util import addMenuItem, addShortcut, viewingIrText
 class ViewManager():
     def __init__(self):
         self.previousState = None
-        mw.moveToState = wrap(mw.moveToState, self.resetZoom)
+        addHook('afterStateChange', self.resetZoom)
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def addMenuItems(self):
