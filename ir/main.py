@@ -59,8 +59,7 @@ class ReadingManager():
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
-
-        mw.moveToState = wrap(mw.moveToState, self.setShortcuts)
+        addHook('afterStateChange', self.setShortcuts)
 
     def setShortcuts(self, state, *args):
         if state == 'review':
