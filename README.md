@@ -1,7 +1,5 @@
 **Note: The version of the add-on in this branch has been modified to work with Anki 2.1. It is not backwards-compatible with previous versions of Anki. If you are using an older version of Anki 2, please download the legacy branch [here](https://github.com/luoliyan/incremental-reading-for-anki/archive/legacy.zip).**
 
-**Note: Currently, scroll position is not being restored when a card is loaded. This is a known issue, and is due to a change in the more recent Anki 2.1 betas. This will be addressed in the future.**
-
 ## Introduction
 
 This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation of the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
