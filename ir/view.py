@@ -54,14 +54,6 @@ class ViewManager():
             newFactor = mw.web.zoomFactor() - self.settings['zoomStep']
             mw.web.setZoomFactor(newFactor)
 
-    def setScroll(self, pos=None):
-        if pos is None:
-            savedPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-            mw.web.eval('window.scrollTo(0, {});'.format(savedPos))
-        else:
-            mw.web.eval('window.scrollTo(0, {});'.format(pos))
-            self.saveScroll()
-
     def saveScroll(self, event=None):
         if viewingIrText():
             def callback(currentPos):
@@ -73,25 +65,25 @@ class ViewManager():
         currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
         movementSize = self.viewportHeight * self.settings['pageScrollFactor']
         newPos = max(0, (currentPos - movementSize))
-        self.setScroll(newPos)
+        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def pageDown(self):
         currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
         movementSize = self.viewportHeight * self.settings['pageScrollFactor']
         newPos = min(self.pageBottom, (currentPos + movementSize))
-        self.setScroll(newPos)
+        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def lineUp(self):
         currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
         movementSize = self.viewportHeight * self.settings['lineScrollFactor']
         newPos = max(0, (currentPos - movementSize))
-        self.setScroll(newPos)
+        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def lineDown(self):
         currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
         movementSize = self.viewportHeight * self.settings['lineScrollFactor']
         newPos = min(self.pageBottom, (currentPos + movementSize))
-        self.setScroll(newPos)
+        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
