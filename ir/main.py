@@ -1,6 +1,4 @@
-import time
-
-from PyQt5.QtCore import QObject, pyqtSlot
+import os
 
 from anki import notes
 from anki.hooks import addHook, wrap
@@ -27,8 +25,12 @@ class ReadingManager():
         self.controlsLoaded = False
 
         addHook('profileLoaded', self.onProfileLoaded)
-        addHook('reset', self.restoreView)
-        addHook('showQuestion', self.restoreView)
+        addHook('prepareQuestion', self.restoreView)
+
+        moduleDir, _ = os.path.split(__file__)
+        jsFilePath = os.path.join(moduleDir, 'javascript.js')
+        with open(jsFilePath, encoding='utf-8') as jsFile:
+            self.mainJavaScript = jsFile.read()
 
     def onProfileLoaded(self):
         mw.settingsManager = SettingsManager()
@@ -87,7 +89,8 @@ class ReadingManager():
             mm.addField(iread_model, source_field)
 
             t = mm.newTemplate('IR Card')
-            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (self.settings['textField'])
+            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
+                self.settings['textField'])
             t['afmt'] = 'When do you want to see this card again?'
 
             mm.addTemplate(iread_model, t)
@@ -145,9 +148,10 @@ class ReadingManager():
             newNote.model()['did'] = did
             mw.col.addNote(newNote)
 
-    def restoreView(self):
+    def restoreView(self, question):
         if viewingIrText():
             cid = str(mw.reviewer.card.id)
+
             if cid not in self.settings['zoom']:
                 self.settings['zoom'][cid] = 1
 
@@ -155,8 +159,6 @@ class ReadingManager():
                 self.settings['scroll'][cid] = 0
 
             mw.viewManager.setZoom()
-            mw.viewManager.setScroll()
-            self.restoreHighlighting()
 
             def storePageInfo(pageInfo):
                 (mw.viewManager.viewportHeight,
@@ -166,9 +168,22 @@ class ReadingManager():
                 '[window.innerHeight, document.body.scrollHeight];',
                 storePageInfo)
 
-    def restoreHighlighting(self):
-        initJavaScript()
-        mw.web.eval('restoreHighlighting()')
+            savedPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+
+            javaScript = '''
+                <script>
+                %s
+
+                function restoreScroll() {
+                    window.scrollTo(0, %s);
+                }
+
+                onUpdateHook.push(restoreScroll);
+                </script>''' % (self.mainJavaScript, savedPos)
+
+            return question + javaScript
+        else:
+            return question
 
     def highlightText(self, bgColor=None, textColor=None):
         if not bgColor:
@@ -176,11 +191,7 @@ class ReadingManager():
         if not textColor:
             textColor = self.settings['highlightTextColor']
 
-        identifier = str(int(time.time() * 10))
-        script = "markRange('%s', '%s', '%s');" % (identifier,
-                                                   bgColor,
-                                                   textColor)
-        script += "highlight('%s', '%s');" % (bgColor, textColor)
+        script = "highlight('%s', '%s');" % (bgColor, textColor)
         mw.web.eval(script)
         self.saveText()
 
@@ -190,7 +201,6 @@ class ReadingManager():
                 note = mw.reviewer.card.note()
                 note['Text'] = text
                 note.flush()
-                self.restoreView()
 
         mw.web.evalWithCallback(
             'document.getElementsByClassName("ir-text")[0].innerHTML;',
@@ -199,13 +209,6 @@ class ReadingManager():
     def removeText(self):
         mw.web.eval('removeText()')
         self.saveText()
-
-    def htmlUpdated(self):
-        curNote = mw.reviewer.card.note()
-        curNote['Text'] = mw.web.page().mainFrame().toHtml()
-        curNote.flush()
-        mw.web.setHtml(curNote['Text'])
-        self.restoreView()
 
     def quickAdd(self, quickKey):
         if not viewingIrText():
@@ -270,146 +273,6 @@ class ReadingManager():
 
         if self.currentQuickKey['editSource']:
             self.editCurrent = editcurrent.EditCurrent(mw)
-
-
-class IREJavaScriptCallback(QObject):
-    @pyqtSlot(str)
-    def htmlUpdated(self, context):
-        mw.readingManager.htmlUpdated()
-
-
-def initJavaScript():
-    javaScript = """
-    function highlight(bgColor, textColor) {
-        if (window.getSelection) {
-            var range, sel = window.getSelection();
-
-            if (sel.rangeCount && sel.getRangeAt) {
-                range = sel.getRangeAt(0);
-            }
-
-            document.designMode = "on";
-            if (range) {
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-
-            document.execCommand("foreColor", false, textColor);
-            document.execCommand("hiliteColor", false, bgColor);
-
-            document.designMode = "off";
-            sel.removeAllRanges();
-        }
-    }
-
-    function unhighlight(identifier) {
-        var startNode, endNode;
-        startNode = document.getElementById('s' + identifier);
-        endNode = document.getElementById('e' + identifier);
-        if (startNode) {
-            range = document.createRange();
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-            highlight('white', 'black');
-            startNode.parentNode.removeChild(startNode);
-            endNode.parentNode.removeChild(endNode);
-            pyCallback.htmlUpdated('');
-        }
-    }
-
-    function markRange(identifier, bgColor, textColor) {
-        var range, sel = window.getSelection();
-        if (sel.rangeCount && sel.getRangeAt) {
-            range = sel.getRangeAt(0);
-            var startNode = document.createElement('span');
-            startNode.setAttribute('id', ('s' + identifier));
-            startNode.setAttribute('ir-bg-color', bgColor);
-            startNode.setAttribute('ir-text-color', textColor);
-            range.insertNode(startNode);
-            var endNode = document.createElement('span');
-            endNode.setAttribute('id', ('e' + identifier));
-            // editHighlightLink = document.createElement('a');
-            // editHighlightLink.setAttribute('href','javascript:');
-            // var tmp = ('unhighlight(' + identifier + '); return false;');
-            // editHighlightLink.setAttribute('onclick', tmp);
-            // sub = document.createElement('sub');
-            // sub.appendChild(document.createTextNode('#'));
-            // editHighlightLink.appendChild(sub);
-            // endNode.appendChild(editHighlightLink);
-            range.collapse(false);
-            range.insertNode(endNode);
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    }
-
-    function selectMarkedRange(identifier) {
-        var startNode, endNode, range, sel;
-        startNode = document.getElementById('s' + identifier);
-        endNode = document.getElementById('e' + identifier);
-        if (startNode && endNode) {
-            range = document.createRange();
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    }
-
-    function restoreHighlighting() {
-        var startNodesXPathResult = document.evaluate(
-            '//*[@ir-bg-color]', document, null, XPathResult.ANY_TYPE, null);
-        var sNodes = new Array();
-        var startNode = startNodesXPathResult.iterateNext();
-        while(startNode) {
-            sNodes.push(startNode);
-            startNode = startNodesXPathResult.iterateNext();
-        }
-        var id;
-        for (var i=0; i < sNodes.length; i++) {
-            startNode = sNodes[i];
-            id = startNode.id.substring(1);
-            selectMarkedRange(id);
-            highlight(startNode.getAttribute('ir-bg-color'),
-                      startNode.getAttribute('ir-text-color'))
-        }
-    }
-
-    function removeText() {
-        var range, sel = window.getSelection();
-        if (sel.rangeCount && sel.getRangeAt) {
-            range = sel.getRangeAt(0);
-            var startNode = document.createElement('span');
-            range.insertNode(startNode);
-            var endNode = document.createElement('span');
-            range.collapse(false);
-            range.insertNode(endNode);
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            sel.addRange(range);
-            range.deleteContents();
-        }
-    }
-
-    function getPlainText() {
-        return window.getSelection().toString();
-    }
-
-    function getHtmlText() {
-        var selection = window.getSelection();
-        var range = selection.getRangeAt(0);
-        var div = document.createElement('div');
-        div.appendChild(range.cloneContents());
-        return div.innerHTML;
-    }
-    """
-    mw.web.eval(javaScript)
 
 
 def answerButtonList(self, _old):
