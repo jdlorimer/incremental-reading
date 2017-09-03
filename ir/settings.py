@@ -13,8 +13,8 @@ from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo
 
-from ir.util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
-                     updateModificationTime)
+from .util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
+                   updateModificationTime)
 
 
 class SettingsManager():
@@ -57,7 +57,7 @@ class SettingsManager():
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
-                         'removeKey': 'R',
+                         'removeKey': 'Z',
                          'schedLaterInt': 50,
                          'schedLaterRandom': True,
                          'schedLaterType': 'pct',
