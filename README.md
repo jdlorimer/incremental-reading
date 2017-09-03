@@ -11,7 +11,7 @@ The main things this add-on allows you to do:
 * Import content from web feeds (RSS, atom, etc.) or webpages
 * Extract selected text into a new card by pressing <kbd>x</kbd>
 * Highlight selected text by pressing <kbd>h</kbd>
-* Remove selected text by pressing <kbd>r</kbd>
+* Remove selected text by pressing <kbd>z</kbd>
 * Create custom shortcuts to quickly add cards
 * Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
@@ -48,7 +48,7 @@ The main things this add-on allows you to do:
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
-* All existing options have been consolidated into a single tabbed dialog, and several new ones added
+* All options have been consolidated into a single tabbed dialog, and several new ones added
 
 #### Bugfixes
 
