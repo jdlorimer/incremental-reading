@@ -1,7 +1,7 @@
 from aqt import mw
 
-import ir.main
+from .main import ReadingManager
 
-__version__ = '4.2.3'
+__version__ = '4.2.4'
 
-mw.readingManager = ir.main.ReadingManager()
+mw.readingManager = ReadingManager()
