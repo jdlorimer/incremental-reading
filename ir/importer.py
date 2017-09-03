@@ -5,9 +5,9 @@ from anki.notes import Note
 from aqt import mw
 
 from bs4 import BeautifulSoup
-from ir.lib.feedparser import parse
+from .lib.feedparser import parse
 
-from ir.util import getInput, setField
+from .util import getInput, setField
 
 
 class Importer:
