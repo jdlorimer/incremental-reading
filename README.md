@@ -62,12 +62,7 @@ The main things this add-on allows you to do:
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-At present, v4 cannot be installed via AnkiWeb, since a separate section for Anki 2.1 add-ons has yet to be created. To install manually, download the GitHub repository ([here](https://github.com/luoliyan/incremental-reading-for-anki/archive/master.zip)) and extract the following files into your add-ons folder:
-
-* `ir`
-* `ir_addons.py`
-
-If you are unsure where the add-ons folder is located, go to Tools → Add-ons → Open Add-ons Folder.
+To install through Anki, navigate to Tools → Add-ons → Get Add-ons..., and enter the code `1152164089`. To install manually, download the GitHub repository ([here](https://github.com/luoliyan/incremental-reading-for-anki/archive/master.zip)) and place the `ir` folder into your add-ons folder.
 
 ## Compatibility
 
