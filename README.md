@@ -13,7 +13,7 @@ The main things this add-on allows you to do:
 * Maintain scroll position and zoom on a per-card basis
 * Extract selected text into a new card by pressing 'x'
 * Highlight selected text by pressing 'h'
-* Remove selected text by pressing 'r'
+* Remove selected text by pressing 'z'
 * Create custom shortcuts to quickly add cards
 * Control the scheduling of incremental reading cards
 * Rearrange cards in the built-in organiser
