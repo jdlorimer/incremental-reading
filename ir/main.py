@@ -11,12 +11,12 @@ from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
-from ir.importer import Importer
-from ir.settings import SettingsManager
-from ir.schedule import Scheduler
-from ir.util import (addMenuItem, disableOutdated, getField, getInput, isIrCard,
-                     setField, viewingIrText)
-from ir.view import ViewManager
+from .importer import Importer
+from .settings import SettingsManager
+from .schedule import Scheduler
+from .util import (addMenuItem, disableOutdated, getField, getInput, isIrCard,
+                   setField, viewingIrText)
+from .view import ViewManager
 
 
 class ReadingManager():
