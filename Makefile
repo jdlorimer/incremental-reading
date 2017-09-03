@@ -8,4 +8,6 @@ clean:
 	find . -name .ropeproject -type d -exec rm -rf {} +
 
 zipfile:
+	cp LICENSE-ISC ir/LICENSE.txt
 	cd ir && zip -r ../incremental-reading-v$(VERSION).zip *
+	rm ir/LICENSE.txt
