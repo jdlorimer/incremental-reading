@@ -57,7 +57,7 @@ class SettingsManager():
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
-                         'removeKey': 'R',
+                         'removeKey': 'Z',
                          'schedLaterInt': 50,
                          'schedLaterRandom': True,
                          'schedLaterType': 'pct',
