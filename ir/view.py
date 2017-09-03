@@ -1,7 +1,7 @@
 from anki.hooks import addHook
 from aqt import mw
 
-from ir.util import addMenuItem, addShortcut, viewingIrText
+from .util import addMenuItem, addShortcut, viewingIrText
 
 
 class ViewManager():
