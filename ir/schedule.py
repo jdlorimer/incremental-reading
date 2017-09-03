@@ -7,7 +7,7 @@ from aqt import mw
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
-from ir.util import addMenuItem
+from .util import addMenuItem
 
 
 class Scheduler():
