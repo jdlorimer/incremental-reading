@@ -17,7 +17,6 @@ from aqt import addcards, editcurrent
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
-from aqt.main import AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
@@ -37,11 +36,6 @@ AFMT = "When do you want to see this card again?"
 
 class ReadingManager():
     def __init__(self):
-        # Track number of times add cards shortcut dialog is opened
-        self.acsCount = 0
-        # Track number of times vsa_resetRequiredState function is called
-        #   (should be same or 1 behind acsCount)
-        self.rrsCount = 0
         self.quickKeyActions = []
         self.controlsLoaded = False
 
@@ -261,7 +255,6 @@ class ReadingManager():
                          getField(currentNote, SOURCE_FIELD_NAME))
 
         if quickKey['editExtract']:
-            self.acsCount += 1
             addCards = addcards.AddCards(mw)
             addCards.editor.setNote(newNote)
             if newNote.stringTags():
@@ -319,24 +312,6 @@ def initJavaScript():
 
             document.designMode = "off";
             sel.removeAllRanges();
-        }
-    }
-
-    function unhighlight(identifier) {
-        var startNode, endNode;
-        startNode = document.getElementById('s' + identifier);
-        endNode = document.getElementById('e' + identifier);
-        if (startNode) {
-            range = document.createRange();
-            range.setStartAfter(startNode);
-            range.setEndBefore(endNode);
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-            highlight('white', 'black');
-            startNode.parentNode.removeChild(startNode);
-            endNode.parentNode.removeChild(endNode);
-            pyCallback.htmlUpdated('');
         }
     }
 
@@ -412,21 +387,6 @@ def initJavaScript():
     mw.web.eval(javaScript)
 
 
-def resetRequiredState(self, oldState, _old):
-    specialHandling = False
-    if self.readingManager.acsCount - self.readingManager.rrsCount == 1:
-        specialHandling = True
-    self.readingManager.rrsCount = self.readingManager.acsCount
-    if specialHandling and mw.reviewer.card:
-        if oldState == 'resetRequired':
-            return _old(self, 'review')
-        else:
-            return _old(self, oldState)
-        return
-    else:
-        return _old(self, oldState)
-
-
 def answerButtonList(self, _old):
     if isIrCard():
         l = ((1, _("Soon")),)
@@ -478,10 +438,6 @@ def keyHandler(self, evt, _old):
         return True
     else:
         _old(self, evt)
-
-AnkiQt._resetRequiredState = wrap(AnkiQt._resetRequiredState,
-                                  resetRequiredState,
-                                  'around')
 
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
                                   answerButtonList,
