@@ -11,9 +11,9 @@ I am not the original author of this add-on, but I've used the previous version 
 The main things this add-on allows you to do:
 
 * Maintain scroll position and zoom on a per-card basis
-* Extract selected text into a new card by pressing 'x'
-* Highlight selected text by pressing 'h'
-* Remove selected text by pressing 'z'
+* Extract selected text into a new card by pressing <kbd>x</kbd>
+* Highlight selected text by pressing <kbd>h</kbd>
+* Remove selected text by pressing <kbd>z</kbd>
 * Create custom shortcuts to quickly add cards
 * Control the scheduling of incremental reading cards
 * Rearrange cards in the built-in organiser
@@ -32,12 +32,12 @@ The main things this add-on allows you to do:
     * _Zoom Step_ (the amount that magnification changes when zooming in or out)
     * _General Zoom_ (the zoom level for the deck browser and overview screens)
     * _Line Step_ (the amount the page moves up or down when the Up or Down direction keys are used)
-    * _Page Step_ (same as above, but with the Page Up and Page Down keys)
+    * _Page Step_ (same as above, but with the <kbd>Page Up</kbd> and <kbd>Page Down</kbd> keys)
 * Highlighting:
     * Both the background color and text color used for highlighting can be customized
     * A drop-down list of available colors is provided
     * A preview is now displayed when selecting highlight colors
-    * The colors applied to text extracted with 'x' can now be set independently
+    * The colors applied to text extracted with <kbd>x</kbd> can now be set independently
 * Quick Keys
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
@@ -55,14 +55,14 @@ The main things this add-on allows you to do:
 
 You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
 
-Once Anki is installed, go to Tools -> Add-ons -> Browse & Install, then enter the code 1081195335
+Once Anki is installed, go to Tools → Add-ons → Browse & Install, then enter the code `1081195335`.
 
 To install manually, copy the following files into your add-ons folder:
 
-* ir
-* ir_addons.py
+* `ir`
+* `ir_addons.py`
 
-If you are unsure where the add-ons folder is located, go to Tools -> Add-ons -> Open Add-ons Folder.
+If you are unsure where the add-ons folder is located, go to Tools → Add-ons → Open Add-ons Folder.
 
 ## Compatibility
 
@@ -70,12 +70,12 @@ Version 3 of this add-on is incompatible with previous versions in two respects.
 
 First, settings are stored in a completely different manner, so any previous settings will be ignored. Second, changes have been made to the card template, and the note type has been renamed.
 
-If you already have incremental reading notes from a previous version, you will need to select them in the card browser and choose Edit -> Change Note Type, and convert them to IR3 notes.
+If you already have incremental reading notes from a previous version, you will need to select them in the card browser and choose Edit → Change Note Type, and convert them to IR3 notes.
 
 If you have the following files in your media directory, you can safely delete them:
 
-* \_IncrementalReadingExtension.dat
-* \_ViewSizeAdjustAddon.dat
+* `_IncrementalReadingExtension.dat`
+* `_ViewSizeAdjustAddon.dat`
 
 There should be no compatibility problems when upgrading from an older v3 to a newer one. The add-on will make any necessary changes automatically.
 
