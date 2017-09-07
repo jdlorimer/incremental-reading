@@ -1,7 +1,9 @@
-from urllib.request import urlopen
+from ssl import _create_unverified_context
 from urllib.parse import urlsplit
+from urllib.request import urlopen
 
 from anki.notes import Note
+from anki.utils import isMac
 from aqt import mw
 
 from bs4 import BeautifulSoup
@@ -20,7 +22,12 @@ class Importer:
         if not urlsplit(url).scheme:
             url = 'http://' + url
 
-        html = urlopen(url).read().decode('utf-8')
+        if isMac:
+            context = _create_unverified_context()
+            html = urlopen(url, context=context).read().decode('utf-8')
+        else:
+            html = urlopen(url).read().decode('utf-8')
+
         webpage = BeautifulSoup(html, 'html.parser')
 
         for tagName in self.settings['badTags']:
@@ -30,7 +37,7 @@ class Importer:
         return webpage
 
     def _createNote(self, title, text, source):
-        did = mw.col.decks.byName(self.settings['importDeck'])['id']
+        did = mw.col.conf['curDeck']
         model = mw.col.models.byName(self.settings['modelName'])
         newNote = Note(mw.col, model)
         setField(newNote, self.settings['titleField'], title)
