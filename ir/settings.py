@@ -1,5 +1,4 @@
 from functools import partial
-import codecs
 import json
 import os
 
@@ -33,7 +32,7 @@ class SettingsManager():
         addMenuItem('Read', 'Options...', self.showDialog, 'Alt+1')
 
     def saveSettings(self):
-        with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
 
         updateModificationTime(self.mediaDir)
@@ -75,7 +74,7 @@ class SettingsManager():
         self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
         if os.path.isfile(self.jsonPath):
-            with codecs.open(self.jsonPath, encoding='utf-8') as jsonFile:
+            with open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
             self.addMissingSettings()
             self.removeOutdatedQuickKeys()
@@ -416,7 +415,7 @@ class SettingsManager():
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
         colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
-        with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
+        with open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
 
     def updateColorPreview(self):
