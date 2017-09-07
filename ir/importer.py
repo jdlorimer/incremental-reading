@@ -5,6 +5,7 @@ from anki.notes import Note
 from aqt import mw
 
 from bs4 import BeautifulSoup
+
 from .lib.feedparser import parse
 
 from .util import getInput, setField
@@ -14,8 +15,6 @@ class Importer:
     def __init__(self, settings):
         self.settings = settings
         self.log = self.settings['feedLog']
-        self.did = mw.col.decks.byName(settings['importDeck'])['id']
-        self.model = mw.col.models.byName(settings['modelName'])
 
     def _fetchWebpage(self, url):
         if not urlsplit(url).scheme:
@@ -31,11 +30,13 @@ class Importer:
         return webpage
 
     def _createNote(self, title, text, source):
-        newNote = Note(mw.col, self.model)
+        did = mw.col.decks.byName(self.settings['importDeck'])['id']
+        model = mw.col.models.byName(self.settings['modelName'])
+        newNote = Note(mw.col, model)
         setField(newNote, self.settings['titleField'], title)
         setField(newNote, self.settings['textField'], text)
         setField(newNote, self.settings['sourceField'], source)
-        newNote.model()['did'] = self.did
+        newNote.model()['did'] = did
         mw.col.addNote(newNote)
         mw.deckBrowser.refresh()
 
