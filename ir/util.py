@@ -11,9 +11,8 @@ from aqt import mw
 from aqt.utils import showInfo
 
 
-def isIrCard():
-    if (mw.reviewer.card and
-            mw.reviewer.card.model()['name'] ==
+def isIrCard(card):
+    if (card and card.model()['name'] ==
             mw.settingsManager.settings['modelName']):
         return True
     else:
