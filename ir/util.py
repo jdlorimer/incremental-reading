@@ -20,7 +20,7 @@ def isIrCard(card):
 
 
 def viewingIrText():
-    if (isIrCard() and
+    if (isIrCard(mw.reviewer.card) and
             mw.reviewer.state == 'question' and
             mw.state == 'review'):
         return True
