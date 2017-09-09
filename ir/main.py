@@ -74,7 +74,6 @@ class ReadingManager():
                  self.removeText)])
 
     def addModel(self):
-        "Only adds model if no model with the same name is present"
         col = mw.col
         mm = col.models
         iread_model = mm.byName(self.settings['modelName'])
@@ -276,7 +275,7 @@ class ReadingManager():
 
 
 def answerButtonList(self, _old):
-    if isIrCard():
+    if isIrCard(mw.reviewer.card):
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -290,18 +289,14 @@ def answerButtonList(self, _old):
 
 
 def answerCard(self, ease, _old):
-    # Get the card before scheduler kicks in, else you are looking at a
-    #   different card or NONE (which gives error)
-    card = self.card
-
+    card = self.card  # Copy card reference, before scheduler changes it
     _old(self, ease)
-
-    if isIrCard():
+    if isIrCard(card):
         mw.readingManager.scheduler.scheduleCard(card, ease)
 
 
 def buttonTime(self, i, _old):
-    if isIrCard():
+    if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
     else:
         return _old(self, i)
