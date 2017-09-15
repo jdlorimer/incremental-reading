@@ -25,7 +25,7 @@ class ReadingManager():
         self.controlsLoaded = False
 
         addHook('profileLoaded', self.onProfileLoaded)
-        addHook('prepareQuestion', self.restoreView)
+        addHook('prepareQA', self.restoreView)
 
         moduleDir, _ = os.path.split(__file__)
         jsFilePath = os.path.join(moduleDir, 'javascript.js')
@@ -147,9 +147,10 @@ class ReadingManager():
             newNote.model()['did'] = did
             mw.col.addNote(newNote)
 
-    def restoreView(self, question):
-        if viewingIrText():
-            cid = str(mw.reviewer.card.id)
+    def restoreView(self, html, card, context):
+        if (card.model()['name'] == self.settings['modelName'] and
+                context == 'reviewQuestion'):
+            cid = str(card.id)
 
             if cid not in self.settings['zoom']:
                 self.settings['zoom'][cid] = 1
@@ -167,7 +168,7 @@ class ReadingManager():
                 '[window.innerHeight, document.body.scrollHeight];',
                 storePageInfo)
 
-            savedPos = self.settings['scroll'][str(mw.reviewer.card.id)]
+            savedPos = self.settings['scroll'][cid]
 
             javaScript = '''
                 <script>
@@ -180,9 +181,9 @@ class ReadingManager():
                 onUpdateHook.push(restoreScroll);
                 </script>''' % (self.mainJavaScript, savedPos)
 
-            return question + javaScript
+            return html + javaScript
         else:
-            return question
+            return html
 
     def highlightText(self, bgColor=None, textColor=None):
         if not bgColor:
