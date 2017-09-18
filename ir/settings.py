@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 from functools import partial
+from sys import getfilesystemencoding
 import codecs
 import json
 import os
@@ -412,7 +413,7 @@ class SettingsManager():
 
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
-        moduleDir = moduleDir.decode('utf-8')
+        moduleDir = moduleDir.decode(getfilesystemencoding())
         colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
         with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
