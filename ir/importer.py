@@ -49,12 +49,19 @@ class Importer:
 
     def importWebpage(self):
         url = getInput('Import Webpage', 'URL')
+
+        if not url:
+            return
+
         webpage = self._fetchWebpage(url)
         body = '\n'.join(map(str, webpage.find('body').children))
         self._createNote(webpage.title.string, body, url)
 
     def importFeed(self):
         url = getInput('Import Feed', 'URL')
+
+        if not url:
+            return
 
         if not urlsplit(url).scheme:
             url = 'http://' + url
