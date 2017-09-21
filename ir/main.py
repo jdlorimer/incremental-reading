@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 
 from anki import notes
@@ -14,15 +15,16 @@ from aqt.utils import showInfo, showWarning, tooltip
 from .importer import Importer
 from .settings import SettingsManager
 from .schedule import Scheduler
-from .util import (addMenuItem, disableOutdated, getField, getInput, isIrCard,
-                   setField, viewingIrText)
+from .util import (addMenuItem, addShortcut, disableOutdated, getField,
+                   getInput, isIrCard, setField, viewingIrText)
 from .view import ViewManager
 
 
 class ReadingManager():
     def __init__(self):
-        self.quickKeyActions = []
         self.controlsLoaded = False
+        self.textHistory = defaultdict(list)
+        self.quickKeyActions = []
 
         addHook('profileLoaded', self.onProfileLoaded)
         addHook('prepareQA', self.restoreView)
@@ -56,6 +58,7 @@ class ReadingManager():
                         'Import Feed',
                         self.importer.importFeed,
                         'Alt+4')
+            addShortcut(self.undo, self.settings['undoKey'])
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             self.controlsLoaded = True
@@ -199,6 +202,7 @@ class ReadingManager():
         def callback(text):
             if text:
                 note = mw.reviewer.card.note()
+                self.textHistory[note.id].append(note['Text'])
                 note['Text'] = text
                 note.flush()
 
@@ -209,6 +213,19 @@ class ReadingManager():
     def removeText(self):
         mw.web.eval('removeText()')
         self.saveText()
+
+    def undo(self):
+        currentNote = mw.reviewer.card.note()
+
+        if (currentNote.id not in self.textHistory or
+                not self.textHistory[currentNote.id]):
+            showInfo('No undo history for this note.')
+            return
+
+        currentNote['Text'] = self.textHistory[currentNote.id].pop()
+        currentNote.flush()
+        mw.reset()
+        tooltip('Undone.')
 
     def quickAdd(self, quickKey):
         if not viewingIrText():
