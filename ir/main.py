@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import time
+from collections import defaultdict
 import re
+import time
 
 from PyQt4.QtCore import QObject, pyqtSlot
 from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
@@ -24,7 +25,8 @@ from BeautifulSoup import BeautifulSoup
 
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import disableOutdated, getField, isIrCard, setField, viewingIrText
+from ir.util import (addShortcut, disableOutdated, getField, isIrCard, setField,
+                     viewingIrText)
 from ir.view import ViewManager
 
 TEXT_FIELD_NAME = 'Text'
@@ -36,8 +38,9 @@ AFMT = "When do you want to see this card again?"
 
 class ReadingManager():
     def __init__(self):
-        self.quickKeyActions = []
         self.controlsLoaded = False
+        self.textHistory = defaultdict(list)
+        self.quickKeyActions = []
 
         addHook('profileLoaded', self.onProfileLoaded)
         addHook('reset', self.restoreView)
@@ -60,6 +63,7 @@ class ReadingManager():
             self.scheduler.addMenuItem()
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
+            addShortcut(self.undo, self.settings['undoKey'])
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
@@ -202,6 +206,7 @@ class ReadingManager():
 
         if irTextDiv:
             note = mw.reviewer.card.note()
+            self.textHistory[note.id].append(note['Text'])
             withoutDiv = removeOuterDiv(irTextDiv)
             note['Text'] = unicode(withoutDiv)
             note.flush()
@@ -210,6 +215,19 @@ class ReadingManager():
     def removeText(self):
         mw.web.eval('removeText()')
         self.saveText()
+
+    def undo(self):
+        currentNote = mw.reviewer.card.note()
+
+        if (currentNote.id not in self.textHistory or
+                not self.textHistory[currentNote.id]):
+            showInfo('No undo history for this note.')
+            return
+
+        currentNote['Text'] = self.textHistory[currentNote.id].pop()
+        currentNote.flush()
+        mw.reset()
+        tooltip('Undone.')
 
     def htmlUpdated(self):
         curNote = mw.reviewer.card.note()
@@ -388,7 +406,7 @@ def initJavaScript():
 
 
 def answerButtonList(self, _old):
-    if isIrCard():
+    if isIrCard(mw.reviewer.card):
         l = ((1, _("Soon")),)
         cnt = mw.col.sched.answerButtons(self.card)
         if cnt == 2:
@@ -402,18 +420,14 @@ def answerButtonList(self, _old):
 
 
 def answerCard(self, ease, _old):
-    # Get the card before scheduler kicks in, else you are looking at a
-    #   different card or NONE (which gives error)
     card = self.card
-
     _old(self, ease)
-
-    if isIrCard():
+    if isIrCard(card):
         mw.readingManager.scheduler.scheduleCard(card, ease)
 
 
 def buttonTime(self, i, _old):
-    if isIrCard():
+    if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
     else:
         return _old(self, i)
@@ -438,6 +452,7 @@ def keyHandler(self, evt, _old):
         return True
     else:
         _old(self, evt)
+
 
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
                                   answerButtonList,
