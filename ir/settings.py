@@ -66,6 +66,7 @@ class SettingsManager():
                          'schedSoonRandom': True,
                          'schedSoonType': 'pct',
                          'scroll': {},
+                         'undoKey': 'U',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -526,7 +527,7 @@ class SettingsManager():
         self.destDeckComboBox = QComboBox()
         self.noteTypeComboBox = QComboBox()
         self.textFieldComboBox = QComboBox()
-        self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extrated Note')
+        self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extracted Note')
         self.quickKeyEditSourceCheckBox = QCheckBox('Edit Source Note')
         self.quickKeyPlainTextCheckBox = QCheckBox('Extract as Plain Text')
 
