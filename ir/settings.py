@@ -67,6 +67,7 @@ class SettingsManager():
                          'sourceField': 'Source',
                          'textField': 'Text',
                          'titleField': 'Title',
+                         'undoKey': 'U',
                          'zoom': {},
                          'zoomStep': 0.1}
 
