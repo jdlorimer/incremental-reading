@@ -64,17 +64,15 @@ class ReadingManager():
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
-        addHook('afterStateChange', self.setShortcuts)
+        addHook('reviewStateShortcuts', self.setShortcuts)
 
-    def setShortcuts(self, state, *args):
-        if state == 'review':
-            mw.setStateShortcuts([
-                (mw.settingsManager.settings['extractKey'].lower(),
-                 self.extract),
-                (mw.settingsManager.settings['highlightKey'].lower(),
-                 self.highlightText),
-                (mw.settingsManager.settings['removeKey'].lower(),
-                 self.removeText)])
+    def setShortcuts(self, shortcuts):
+        shortcuts += [(mw.settingsManager.settings['extractKey'].lower(),
+                       self.extract),
+                      (mw.settingsManager.settings['highlightKey'].lower(),
+                       self.highlightText),
+                      (mw.settingsManager.settings['removeKey'].lower(),
+                       self.removeText)]
 
     def addModel(self):
         col = mw.col
