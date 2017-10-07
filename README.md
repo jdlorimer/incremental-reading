@@ -75,8 +75,8 @@ Additionally, changes were made to the v2 card template, so if you have incremen
 If any issues are encountered, please post details to the [Anki add-ons forum](https://anki.tenderapp.com/discussions/add-ons). It is best if you post in the existing thread ([here](https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support)), since I will recieve a notification of that by e-mail. Alternatively, feel free to [note an issue](https://github.com/luoliyan/incremental-reading-for-anki/issues) on GitHub (where you can also make a pull request if you are so inclined).
 
 Please include the following information in your post:
-* The version of Anki you are using (e.g., v2.1.0-beta5)
-* The version of IR you are using (this can be found in `ir/__init__.py`)
+* The version of Anki you are using (e.g., v2.1.0-beta5; can be found in Help → About...)
+* The version of IR you are using (this can be found in Read → About...)
 * The operating system you are using
 * Details of the problem
 
