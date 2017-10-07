@@ -13,8 +13,8 @@ from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
 from .importer import Importer
-from .settings import SettingsManager
 from .schedule import Scheduler
+from .settings import SettingsManager
 from .util import (addMenuItem, addShortcut, disableOutdated, getField,
                    getInput, isIrCard, setField, viewingIrText)
 from .view import ViewManager
@@ -48,23 +48,25 @@ class ReadingManager():
         disableOutdated()
 
         if not self.controlsLoaded:
-            mw.settingsManager.addMenuItem()
-            self.scheduler.addMenuItem()
-            addMenuItem('Read',
-                        'Import Webpage',
-                        self.importer.importWebpage,
-                        'Alt+3')
-            addMenuItem('Read',
-                        'Import Feed',
-                        self.importer.importFeed,
-                        'Alt+4')
-            addShortcut(self.undo, self.settings['undoKey'])
-            mw.viewManager.addMenuItems()
-            mw.viewManager.addShortcuts()
+            self.loadControls()
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
         addHook('reviewStateShortcuts', self.setShortcuts)
+
+    def loadControls(self):
+        mw.settingsManager.addMenuItem()
+        self.scheduler.addMenuItem()
+        addMenuItem('Read', 'Import Webpage',
+                    self.importer.importWebpage,
+                    'Alt+3')
+        addMenuItem('Read',
+                    'Import Feed',
+                    self.importer.importFeed,
+                    'Alt+4')
+        addShortcut(self.undo, self.settings['undoKey'])
+        mw.viewManager.addMenuItems()
+        mw.viewManager.addShortcuts()
 
     def setShortcuts(self, shortcuts):
         shortcuts += [(mw.settingsManager.settings['extractKey'].lower(),
