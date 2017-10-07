@@ -10,7 +10,7 @@ from aqt.webview import AnkiWebView
 from .util import addMenuItem
 
 
-class Scheduler():
+class Scheduler:
     def addMenuItem(self):
         addMenuItem('Read', 'Organizer...', self.showDialog, 'Alt+2')
 

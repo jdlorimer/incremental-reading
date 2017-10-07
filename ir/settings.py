@@ -16,7 +16,7 @@ from .util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
                    updateModificationTime)
 
 
-class SettingsManager():
+class SettingsManager:
     def __init__(self):
         self.settingsChanged = False
         self.loadSettings()
