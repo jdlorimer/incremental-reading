@@ -12,6 +12,7 @@ from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, showWarning, tooltip
 
+from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
@@ -67,6 +68,7 @@ class ReadingManager():
         addShortcut(self.undo, self.settings['undoKey'])
         mw.viewManager.addMenuItems()
         mw.viewManager.addShortcuts()
+        addMenuItem('Read', 'About...', showAbout)
 
     def setShortcuts(self, shortcuts):
         shortcuts += [(mw.settingsManager.settings['extractKey'].lower(),
