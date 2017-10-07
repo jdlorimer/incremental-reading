@@ -4,7 +4,7 @@ from aqt import mw
 from .util import addMenuItem, addShortcut, viewingIrText
 
 
-class ViewManager():
+class ViewManager:
     def __init__(self):
         self.previousState = None
         addHook('afterStateChange', self.resetZoom)

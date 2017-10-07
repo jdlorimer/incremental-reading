@@ -21,7 +21,7 @@ from .util import (addMenuItem, addShortcut, disableOutdated, getField,
 from .view import ViewManager
 
 
-class ReadingManager():
+class ReadingManager:
     def __init__(self):
         self.controlsLoaded = False
         self.textHistory = defaultdict(list)
