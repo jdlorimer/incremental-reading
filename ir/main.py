@@ -16,8 +16,8 @@ from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
-from .util import (addMenuItem, addShortcut, fixImages, getField, getInput,
-                   isIrCard, setField, viewingIrText)
+from .util import (addMenuItem, fixImages, getField, getInput, isIrCard,
+                   setField, viewingIrText)
 from .view import ViewManager
 
 
@@ -57,25 +57,22 @@ class ReadingManager:
     def loadControls(self):
         mw.settingsManager.addMenuItem()
         self.scheduler.addMenuItem()
-        addMenuItem('Read', 'Import Webpage',
+        addMenuItem('Read',
+                    'Import Webpage',
                     self.importer.importWebpage,
                     'Alt+3')
         addMenuItem('Read',
                     'Import Feed',
                     self.importer.importFeed,
                     'Alt+4')
-        addShortcut(self.undo, self.settings['undoKey'])
         mw.viewManager.addMenuItems()
-        mw.viewManager.addShortcuts()
         addMenuItem('Read', 'About...', showAbout)
 
     def setShortcuts(self, shortcuts):
-        shortcuts += [(mw.settingsManager.settings['extractKey'].lower(),
-                       self.extract),
-                      (mw.settingsManager.settings['highlightKey'].lower(),
-                       self.highlightText),
-                      (mw.settingsManager.settings['removeKey'].lower(),
-                       self.removeText)]
+        shortcuts += [(self.settings['extractKey'], self.extract),
+                      (self.settings['highlightKey'], self.highlightText),
+                      (self.settings['removeKey'], self.removeText),
+                      (self.settings['undoKey'], self.undo)]
 
     def addModel(self):
         col = mw.col
