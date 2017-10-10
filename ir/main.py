@@ -16,8 +16,8 @@ from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
-from .util import (addMenuItem, addShortcut, disableOutdated, fixImages,
-                   getField, getInput, isIrCard, setField, viewingIrText)
+from .util import (addMenuItem, addShortcut, fixImages, getField, getInput,
+                   isIrCard, setField, viewingIrText)
 from .view import ViewManager
 
 
@@ -46,7 +46,6 @@ class ReadingManager:
         self.scheduler.settings = mw.settingsManager.settings
 
         self.addModel()
-        disableOutdated()
 
         if not self.controlsLoaded:
             self.loadControls()
