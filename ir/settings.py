@@ -43,12 +43,12 @@ class SettingsManager:
                          'editSource': False,
                          'extractBgColor': 'Green',
                          'extractDeck': None,
-                         'extractKey': 'X',
+                         'extractKey': 'x',
                          'extractTextColor': 'White',
                          'feedLog': {},
                          'generalZoom': 1,
                          'highlightBgColor': 'Yellow',
-                         'highlightKey': 'H',
+                         'highlightKey': 'h',
                          'highlightTextColor': 'Black',
                          'importDeck': 'Default',
                          'limitGlobalWidth': False,
@@ -59,7 +59,7 @@ class SettingsManager:
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
-                         'removeKey': 'Z',
+                         'removeKey': 'z',
                          'schedLaterInt': 50,
                          'schedLaterRandom': True,
                          'schedLaterType': 'pct',
@@ -70,7 +70,7 @@ class SettingsManager:
                          'sourceField': 'Source',
                          'textField': 'Text',
                          'titleField': 'Title',
-                         'undoKey': 'U',
+                         'undoKey': 'u',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -164,7 +164,9 @@ class SettingsManager:
         if self.extractDeckComboBox.currentText() == '[Current Deck]':
             self.settings['extractDeck'] = None
         else:
-            self.settings['extractDeck'] = self.extractDeckComboBox.currentText()
+            self.settings['extractDeck'] = (self
+                                            .extractDeckComboBox
+                                            .currentText())
 
         try:
             self.settings['schedSoonInt'] = int(
@@ -305,9 +307,18 @@ class SettingsManager:
                      ' Please try again.')
             self.setDefaultKeys()
         else:
-            self.settings['extractKey'] = self.extractKeyComboBox.currentText()
-            self.settings['highlightKey'] = self.highlightKeyComboBox.currentText()
-            self.settings['removeKey'] = self.removeKeyComboBox.currentText()
+            self.settings['extractKey'] = (self
+                                           .extractKeyComboBox
+                                           .currentText()
+                                           .lower())
+            self.settings['highlightKey'] = (self
+                                             .highlightKeyComboBox
+                                             .currentText()
+                                             .lower())
+            self.settings['removeKey'] = (self
+                                          .removeKeyComboBox
+                                          .currentText()
+                                          .lower())
 
     def createExtractionTab(self):
         extractDeckLabel = QLabel('Extracts Deck')
