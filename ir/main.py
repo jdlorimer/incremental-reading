@@ -16,8 +16,8 @@ from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
-from .util import (addMenuItem, addShortcut, disableOutdated, getField,
-                   getInput, isIrCard, setField, viewingIrText)
+from .util import (addMenuItem, addShortcut, disableOutdated, fixImages,
+                   getField, getInput, isIrCard, setField, viewingIrText)
 from .view import ViewManager
 
 
@@ -127,7 +127,7 @@ class ReadingManager:
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
 
-        setField(newNote, self.settings['textField'], text)
+        setField(newNote, self.settings['textField'], fixImages(text))
         setField(newNote,
                  self.settings['sourceField'],
                  getField(currentNote, self.settings['sourceField']))
