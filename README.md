@@ -16,6 +16,7 @@ The main things this add-on allows you to do:
 * Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
 * Control the scheduling of incremental reading cards
+* Limit the width of cards (useful on large screens)
 
 ### New to Version 4
 
@@ -24,6 +25,7 @@ The main things this add-on allows you to do:
 * Compatible with Anki 2.1
 * Automatically import a single webpage into a new Anki card (<kbd>Alt</kbd>+<kbd>3</kbd>)
 * Automatically import a web feed into multiple new Anki cards (<kbd>Alt</kbd>+<kbd>4</kbd>)
+* Choose maximum width of cards, for ease of reading (see options: <kbd>Alt</kbd>+<kbd>1<kbd>)
 
 ### New to Version 3
 
