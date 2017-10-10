@@ -51,7 +51,10 @@ class SettingsManager:
                          'highlightKey': 'H',
                          'highlightTextColor': 'Black',
                          'importDeck': 'Default',
+                         'limitGlobalWidth': False,
+                         'limitWidth': True,
                          'lineScrollFactor': 0.05,
+                         'maxWidth': 600,
                          'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
                          'plainText': False,
@@ -168,6 +171,7 @@ class SettingsManager:
                 self.soonIntegerEditBox.text())
             self.settings['schedLaterInt'] = int(
                 self.laterIntegerEditBox.text())
+            self.settings['maxWidth'] = int(self.widthEditBox.text())
         except:
             pass
 
@@ -180,6 +184,16 @@ class SettingsManager:
             self.settings['schedLaterType'] = 'pct'
         else:
             self.settings['schedLaterType'] = 'cnt'
+
+        if self.limitAllCardsButton.isChecked():
+            self.settings['limitWidth'] = True
+            self.settings['limitGlobalWidth'] = True
+        elif self.limitIrCardsButton.isChecked():
+            self.settings['limitWidth'] = True
+            self.settings['limitGlobalWidth'] = False
+        else:
+            self.settings['limitWidth'] = False
+            self.settings['limitGlobalWidth'] = False
 
         mw.viewManager.resetZoom(mw.state)
 
@@ -219,18 +233,56 @@ class SettingsManager:
         buttonLayout.addStretch()
         buttonLayout.addWidget(saveButton)
 
-        basicControlsLayout = QVBoxLayout()
-        basicControlsLayout.addLayout(extractKeyLayout)
-        basicControlsLayout.addLayout(highlightKeyLayout)
-        basicControlsLayout.addLayout(removeKeyLayout)
-        basicControlsLayout.addLayout(buttonLayout)
-        basicControlsLayout.addStretch()
+        controlsLayout = QVBoxLayout()
+        controlsLayout.addLayout(extractKeyLayout)
+        controlsLayout.addLayout(highlightKeyLayout)
+        controlsLayout.addLayout(removeKeyLayout)
+        controlsLayout.addLayout(buttonLayout)
+        controlsLayout.addStretch()
 
-        groupBox = QGroupBox('Basic Controls')
-        groupBox.setLayout(basicControlsLayout)
+        controlsGroupBox = QGroupBox('Basic Controls')
+        controlsGroupBox.setLayout(controlsLayout)
+
+        widthLabel = QLabel('Card Width Limit:')
+        self.widthEditBox = QLineEdit()
+        self.widthEditBox.setFixedWidth(50)
+        self.widthEditBox.setText(str(self.settings['maxWidth']))
+        pixelsLabel = QLabel('pixels')
+
+        widthEditLayout = QHBoxLayout()
+        widthEditLayout.addWidget(widthLabel)
+        widthEditLayout.addWidget(self.widthEditBox)
+        widthEditLayout.addWidget(pixelsLabel)
+
+        applyLabel = QLabel('Apply to')
+        self.limitAllCardsButton = QRadioButton('All Cards')
+        self.limitIrCardsButton = QRadioButton('IR Cards')
+        limitNoneButton = QRadioButton('None')
+
+        if self.settings['limitWidth'] and self.settings['limitGlobalWidth']:
+            self.limitAllCardsButton.setChecked(True)
+        elif self.settings['limitWidth']:
+            self.limitIrCardsButton.setChecked(True)
+        else:
+            limitNoneButton.setChecked(True)
+
+        applyLayout = QHBoxLayout()
+        applyLayout.addWidget(applyLabel)
+        applyLayout.addWidget(self.limitAllCardsButton)
+        applyLayout.addWidget(self.limitIrCardsButton)
+        applyLayout.addWidget(limitNoneButton)
+
+        displayLayout = QVBoxLayout()
+        displayLayout.addLayout(widthEditLayout)
+        displayLayout.addLayout(applyLayout)
+        displayLayout.addStretch()
+
+        displayGroupBox = QGroupBox('Display')
+        displayGroupBox.setLayout(displayLayout)
 
         layout = QHBoxLayout()
-        layout.addWidget(groupBox)
+        layout.addWidget(controlsGroupBox)
+        layout.addWidget(displayGroupBox)
 
         tab = QWidget()
         tab.setLayout(layout)

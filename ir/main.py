@@ -153,6 +153,16 @@ class ReadingManager:
             mw.col.addNote(newNote)
 
     def restoreView(self, html, card, context):
+        javaScript = ''
+        limitWidthScript = '''
+            <script>
+            if (screen.width > {maxWidth} ) {{
+                var styleSheet = document.styleSheets[0];
+                styleSheet.insertRule(
+                    "div {{ width: {maxWidth}px; margin: 20px auto }}");
+            }}
+            </script>'''.format(maxWidth=self.settings['maxWidth'])
+
         if (card.model()['name'] == self.settings['modelName'] and
                 context == 'reviewQuestion'):
             cid = str(card.id)
@@ -186,9 +196,13 @@ class ReadingManager:
                 onUpdateHook.push(restoreScroll);
                 </script>''' % (self.mainJavaScript, savedPos)
 
-            return html + javaScript
-        else:
-            return html
+            if self.settings['limitWidth']:
+                javaScript = limitWidthScript + javaScript
+
+        elif self.settings['limitGlobalWidth']:
+            javaScript = limitWidthScript
+
+        return html + javaScript
 
     def highlightText(self, bgColor=None, textColor=None):
         if not bgColor:
