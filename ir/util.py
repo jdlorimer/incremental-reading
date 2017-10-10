@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (QAction, QDialog, QDialogButtonBox, QHBoxLayout,
-                             QLabel, QLineEdit, QMenu, QShortcut)
+                             QLabel, QLineEdit, QMenu)
 
 from aqt import mw
 
@@ -62,11 +62,6 @@ def addMenuItem(menuName, text, function, keys=None):
         mw.customMenus[menuName].addAction(action)
 
     return action
-
-
-def addShortcut(function, keys):
-    shortcut = QShortcut(QKeySequence(keys), mw)
-    shortcut.activated.connect(function)
 
 
 def getField(note, fieldName):
