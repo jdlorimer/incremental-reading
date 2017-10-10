@@ -1,25 +1,26 @@
 from anki.hooks import addHook
 from aqt import mw
 
-from .util import addMenuItem, addShortcut, viewingIrText
+from .util import addMenuItem, viewingIrText
 
 
 class ViewManager:
     def __init__(self):
         self.previousState = None
         addHook('afterStateChange', self.resetZoom)
+        addHook('reviewStateShortcuts', self.setShortcuts)
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def addMenuItems(self):
         addMenuItem('Read', 'Zoom In', self.zoomIn, 'Ctrl++')
         addMenuItem('Read', 'Zoom Out', self.zoomOut, 'Ctrl+-')
 
-    def addShortcuts(self):
-        addShortcut(self.lineUp, 'Up')
-        addShortcut(self.lineDown, 'Down')
-        addShortcut(self.pageUp, 'PgUp')
-        addShortcut(self.pageDown, 'PgDown')
-        addShortcut(self.zoomIn, 'Ctrl+=')
+    def setShortcuts(self, shortcuts):
+        shortcuts += [('Up', self.lineUp),
+                      ('Down', self.lineDown),
+                      ('PgUp', self.pageUp),
+                      ('PgDown', self.pageDown),
+                      ('Ctrl+=', self.zoomIn)]
 
     def setZoom(self, factor=None):
         if factor:
