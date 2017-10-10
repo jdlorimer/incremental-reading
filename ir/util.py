@@ -1,6 +1,9 @@
+from urllib.parse import unquote
 import os
 import stat
 import time
+
+from bs4 import BeautifulSoup
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
@@ -123,3 +126,10 @@ def getInput(windowTitle, labelText):
     dialog.setLayout(layout)
     dialog.exec_()
     return editBox.text()
+
+
+def fixImages(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    for img in soup.find_all('img'):
+        img['src'] = os.path.basename(unquote(img['src']))
+    return str(soup)
