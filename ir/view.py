@@ -7,6 +7,7 @@ from .util import addMenuItem, viewingIrText
 class ViewManager:
     def __init__(self):
         self.previousState = None
+        self.zoomFactor = 1
         addHook('afterStateChange', self.resetZoom)
         addHook('reviewStateShortcuts', self.setShortcuts)
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
@@ -39,8 +40,8 @@ class ViewManager:
             self.settings['zoom'][cid] += self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
         elif mw.reviewer.card:
-            newFactor = mw.web.zoomFactor() + self.settings['zoomStep']
-            mw.web.setZoomFactor(newFactor)
+            self.zoomFactor += self.settings['zoomStep']
+            mw.web.setZoomFactor(self.zoomFactor)
 
     def zoomOut(self):
         if viewingIrText():
@@ -52,8 +53,8 @@ class ViewManager:
             self.settings['zoom'][cid] -= self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
         elif mw.reviewer.card:
-            newFactor = mw.web.zoomFactor() - self.settings['zoomStep']
-            mw.web.setZoomFactor(newFactor)
+            self.zoomFactor -= self.settings['zoomStep']
+            mw.web.setZoomFactor(self.zoomFactor)
 
     def saveScroll(self, event=None):
         if viewingIrText():
@@ -94,6 +95,6 @@ class ViewManager:
               mw.reviewer.card and
               (mw.reviewer.card.note().model()['name'] !=
                self.settings['modelName'])):
-            self.setZoom(1)
+            self.setZoom(self.zoomFactor)
 
         self.previousState = state
