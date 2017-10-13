@@ -3,23 +3,20 @@ import os
 
 from anki import notes
 from anki.hooks import addHook, wrap
-from anki.notes import Note
 from anki.sound import clearAudioQueue
 from aqt import addcards, editcurrent
 from aqt import mw
-from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
-from aqt.utils import showInfo, showWarning, tooltip
+from aqt.utils import showWarning, tooltip
 
 from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
+from .text import TextManager
 from .util import (addMenuItem,
-                   fixImages,
                    getField,
-                   getInput,
                    isIrCard,
                    setField,
                    viewingIrText)
@@ -29,7 +26,6 @@ from .view import ViewManager
 class ReadingManager:
     def __init__(self):
         self.controlsLoaded = False
-        self.textHistory = defaultdict(list)
         self.quickKeyActions = []
 
         addHook('profileLoaded', self.onProfileLoaded)
@@ -43,9 +39,10 @@ class ReadingManager:
     def onProfileLoaded(self):
         self.settingsManager = SettingsManager()
         self.settings = self.settingsManager.settings
-        self.viewManager = ViewManager(self.settings)
-        self.scheduler = Scheduler(self.settings)
         self.importer = Importer(self.settings)
+        self.scheduler = Scheduler(self.settings)
+        self.textManager = TextManager(self.settings)
+        self.viewManager = ViewManager(self.settings)
 
         self.addModel()
 
@@ -71,10 +68,10 @@ class ReadingManager:
         addMenuItem('Read', 'About...', showAbout)
 
     def setShortcuts(self, shortcuts):
-        shortcuts += [(self.settings['extractKey'], self.extract),
-                      (self.settings['highlightKey'], self.highlightText),
-                      (self.settings['removeKey'], self.removeText),
-                      (self.settings['undoKey'], self.undo),
+        shortcuts += [(self.settings['extractKey'], self.textManager.extract),
+                      (self.settings['highlightKey'], self.textManager.highlight),
+                      (self.settings['removeKey'], self.textManager.remove),
+                      (self.settings['undoKey'], self.textManager.undo),
                       ('Up', self.viewManager.lineUp),
                       ('Down', self.viewManager.lineDown),
                       ('PgUp', self.viewManager.pageUp),
@@ -110,51 +107,6 @@ class ReadingManager:
             source_ord, source_field = fmap[self.settings['sourceField']]
             source_field['sticky'] = True
 
-    def extract(self):
-        if not mw.web.selectedText():
-            showInfo(_('Please select some text to extract.'))
-            return
-
-        if self.settings['plainText']:
-            mw.web.evalWithCallback('getPlainText()', self.createExtractNote)
-        else:
-            mw.web.evalWithCallback('getHtmlText()', self.createExtractNote)
-
-    def createExtractNote(self, text):
-        self.highlightText(self.settings['extractBgColor'],
-                           self.settings['extractTextColor'])
-
-        currentCard = mw.reviewer.card
-        currentNote = currentCard.note()
-        model = mw.col.models.byName(self.settings['modelName'])
-        newNote = Note(mw.col, model)
-        newNote.tags = currentNote.tags
-
-        setField(newNote, self.settings['textField'], fixImages(text))
-        setField(newNote,
-                 self.settings['sourceField'],
-                 getField(currentNote, self.settings['sourceField']))
-
-        if self.settings['editSource']:
-            EditCurrent(mw)
-
-        if self.settings['extractDeck']:
-            did = mw.col.decks.byName(self.settings['extractDeck'])['id']
-        else:
-            did = currentCard.did
-
-        if self.settings['editExtract']:
-            addCards = AddCards(mw)
-            addCards.editor.setNote(newNote)
-            deckName = mw.col.decks.get(did)['name']
-            addCards.deckChooser.deck.setText(deckName)
-            addCards.modelChooser.models.setText(self.settings['modelName'])
-        else:
-            title = getInput('Extract Text', 'Title')
-            setField(newNote, self.settings['titleField'], title)
-            newNote.model()['did'] = did
-            mw.col.addNote(newNote)
-
     def restoreView(self, html, card, context):
         javaScript = ''
         limitWidthScript = '''
@@ -176,11 +128,11 @@ class ReadingManager:
             if cid not in self.settings['scroll']:
                 self.settings['scroll'][cid] = 0
 
-            mw.viewManager.setZoom()
+            self.viewManager.setZoom()
 
             def storePageInfo(pageInfo):
-                (mw.viewManager.viewportHeight,
-                 mw.viewManager.pageBottom) = pageInfo
+                (self.viewManager.viewportHeight,
+                 self.viewManager.pageBottom) = pageInfo
 
             mw.web.evalWithCallback(
                 '[window.innerHeight, document.body.scrollHeight];',
@@ -206,45 +158,6 @@ class ReadingManager:
             javaScript = limitWidthScript
 
         return html + javaScript
-
-    def highlightText(self, bgColor=None, textColor=None):
-        if not bgColor:
-            bgColor = self.settings['highlightBgColor']
-        if not textColor:
-            textColor = self.settings['highlightTextColor']
-
-        script = "highlight('%s', '%s');" % (bgColor, textColor)
-        mw.web.eval(script)
-        self.saveText()
-
-    def saveText(self):
-        def callback(text):
-            if text:
-                note = mw.reviewer.card.note()
-                self.textHistory[note.id].append(note['Text'])
-                note['Text'] = text
-                note.flush()
-
-        mw.web.evalWithCallback(
-            'document.getElementsByClassName("ir-text")[0].innerHTML;',
-            callback)
-
-    def removeText(self):
-        mw.web.eval('removeText()')
-        self.saveText()
-
-    def undo(self):
-        currentNote = mw.reviewer.card.note()
-
-        if (currentNote.id not in self.textHistory or
-                not self.textHistory[currentNote.id]):
-            showInfo('No undo history for this note.')
-            return
-
-        currentNote['Text'] = self.textHistory[currentNote.id].pop()
-        currentNote.flush()
-        mw.reset()
-        tooltip('Undone.')
 
     def quickAdd(self, quickKey):
         if not viewingIrText():
