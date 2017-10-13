@@ -7,15 +7,20 @@ from bs4 import BeautifulSoup
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import (QAction, QDialog, QDialogButtonBox, QHBoxLayout,
-                             QLabel, QLineEdit, QMenu)
+from PyQt5.QtWidgets import (QAction,
+                             QDialog,
+                             QDialogButtonBox,
+                             QHBoxLayout,
+                             QLabel,
+                             QLineEdit,
+                             QMenu)
 
 from aqt import mw
 
 
 def isIrCard(card):
     if (card and card.model()['name'] ==
-            mw.settingsManager.settings['modelName']):
+            mw.readingManager.settingsManager.settings['modelName']):
         return True
     else:
         return False
