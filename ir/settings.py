@@ -28,9 +28,6 @@ class SettingsManager:
 
         addHook('unloadProfile', self.saveSettings)
 
-    def addMenuItem(self):
-        addMenuItem('Read', 'Options...', self.showDialog, 'Alt+1')
-
     def saveSettings(self):
         with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
@@ -94,9 +91,17 @@ class SettingsManager:
                 self.settingsChanged = True
 
     def removeOutdatedQuickKeys(self):
-        required = ['alt', 'bgColor', 'ctrl', 'deckName', 'editExtract',
-                    'editSource', 'fieldName', 'modelName', 'regularKey',
-                    'shift', 'textColor']
+        required = ['alt',
+                    'bgColor',
+                    'ctrl',
+                    'deckName',
+                    'editExtract',
+                    'editSource',
+                    'fieldName',
+                    'modelName',
+                    'regularKey',
+                    'shift',
+                    'textColor']
 
         for keyCombo, quickKey in self.settings['quickKeys'].copy().items():
             for k in required:
@@ -197,7 +202,7 @@ class SettingsManager:
             self.settings['limitWidth'] = False
             self.settings['limitGlobalWidth'] = False
 
-        mw.viewManager.resetZoom(mw.state)
+        mw.readingManager.viewManager.resetZoom(mw.state)
 
     def createGeneralTab(self):
         extractKeyLabel = QLabel('Extract Key')

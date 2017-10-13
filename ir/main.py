@@ -16,8 +16,13 @@ from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
-from .util import (addMenuItem, fixImages, getField, getInput, isIrCard,
-                   setField, viewingIrText)
+from .util import (addMenuItem,
+                   fixImages,
+                   getField,
+                   getInput,
+                   isIrCard,
+                   setField,
+                   viewingIrText)
 from .view import ViewManager
 
 
@@ -36,14 +41,11 @@ class ReadingManager:
             self.mainJavaScript = jsFile.read()
 
     def onProfileLoaded(self):
-        mw.settingsManager = SettingsManager()
-        mw.viewManager = ViewManager()
-        self.scheduler = Scheduler()
-        self.importer = Importer(mw.settingsManager.settings)
-
-        self.settings = mw.settingsManager.settings
-        mw.viewManager.settings = mw.settingsManager.settings
-        self.scheduler.settings = mw.settingsManager.settings
+        self.settingsManager = SettingsManager()
+        self.settings = self.settingsManager.settings
+        self.viewManager = ViewManager(self.settings)
+        self.scheduler = Scheduler(self.settings)
+        self.importer = Importer(self.settings)
 
         self.addModel()
 
@@ -51,28 +53,33 @@ class ReadingManager:
             self.loadControls()
             self.controlsLoaded = True
 
-        mw.viewManager.resetZoom('deckBrowser')
         addHook('reviewStateShortcuts', self.setShortcuts)
 
     def loadControls(self):
-        mw.settingsManager.addMenuItem()
-        self.scheduler.addMenuItem()
+        addMenuItem('Read',
+                    'Options...',
+                    self.settingsManager.showDialog,
+                    'Alt+1')
+        addMenuItem('Read', 'Organizer...', self.scheduler.showDialog, 'Alt+2')
         addMenuItem('Read',
                     'Import Webpage',
                     self.importer.importWebpage,
                     'Alt+3')
-        addMenuItem('Read',
-                    'Import Feed',
-                    self.importer.importFeed,
-                    'Alt+4')
-        mw.viewManager.addMenuItems()
+        addMenuItem('Read', 'Import Feed', self.importer.importFeed, 'Alt+4')
+        addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
+        addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
 
     def setShortcuts(self, shortcuts):
         shortcuts += [(self.settings['extractKey'], self.extract),
                       (self.settings['highlightKey'], self.highlightText),
                       (self.settings['removeKey'], self.removeText),
-                      (self.settings['undoKey'], self.undo)]
+                      (self.settings['undoKey'], self.undo),
+                      ('Up', self.viewManager.lineUp),
+                      ('Down', self.viewManager.lineDown),
+                      ('PgUp', self.viewManager.pageUp),
+                      ('PgDown', self.viewManager.pageDown),
+                      ('Ctrl+=', self.viewManager.zoomIn)]
 
     def addModel(self):
         col = mw.col
