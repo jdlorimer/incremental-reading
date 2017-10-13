@@ -7,12 +7,10 @@ from aqt import mw
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
-from .util import addMenuItem
-
 
 class Scheduler:
-    def addMenuItem(self):
-        addMenuItem('Read', 'Organizer...', self.showDialog, 'Alt+2')
+    def __init__(self, settings):
+        self.settings = settings
 
     def showDialog(self, currentCard=None):
         # Handle for dialog open without a current card from IR model
