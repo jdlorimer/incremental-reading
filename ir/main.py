@@ -1,11 +1,10 @@
-from collections import defaultdict
 import os
 
 from anki import notes
 from anki.hooks import addHook, wrap
 from anki.sound import clearAudioQueue
-from aqt import addcards, editcurrent
 from aqt import mw
+from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
 from aqt.utils import showWarning, tooltip
@@ -44,7 +43,8 @@ class ReadingManager:
         self.textManager = TextManager(self.settings)
         self.viewManager = ViewManager(self.settings)
 
-        self.addModel()
+        if not mw.col.models.byName(self.settings['modelName']):
+            self.addModel()
 
         if not self.controlsLoaded:
             self.loadControls()
@@ -69,7 +69,8 @@ class ReadingManager:
 
     def setShortcuts(self, shortcuts):
         shortcuts += [(self.settings['extractKey'], self.textManager.extract),
-                      (self.settings['highlightKey'], self.textManager.highlight),
+                      (self.settings['highlightKey'],
+                       self.textManager.highlight),
                       (self.settings['removeKey'], self.textManager.remove),
                       (self.settings['undoKey'], self.textManager.undo),
                       ('Up', self.viewManager.lineUp),
@@ -79,33 +80,24 @@ class ReadingManager:
                       ('Ctrl+=', self.viewManager.zoomIn)]
 
     def addModel(self):
-        col = mw.col
-        mm = col.models
-        iread_model = mm.byName(self.settings['modelName'])
-        if not iread_model:
-            iread_model = mm.new(self.settings['modelName'])
-            model_field = mm.newField(self.settings['titleField'])
-            mm.addField(iread_model, model_field)
-            text_field = mm.newField(self.settings['textField'])
-            mm.addField(iread_model, text_field)
-            source_field = mm.newField(self.settings['sourceField'])
-            source_field['sticky'] = True
-            mm.addField(iread_model, source_field)
+        model = mw.col.models.new(self.settings['modelName'])
 
-            t = mm.newTemplate('IR Card')
-            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
-                self.settings['textField'])
-            t['afmt'] = 'When do you want to see this card again?'
+        titleField = mw.col.models.newField(self.settings['titleField'])
+        textField = mw.col.models.newField(self.settings['textField'])
+        sourceField = mw.col.models.newField(self.settings['sourceField'])
+        sourceField['sticky'] = True
 
-            mm.addTemplate(iread_model, t)
-            mm.add(iread_model)
-            return iread_model
-        else:
-            fmap = mm.fieldMap(iread_model)
-            title_ord, title_field = fmap[self.settings['titleField']]
-            text_ord, text_field = fmap[self.settings['textField']]
-            source_ord, source_field = fmap[self.settings['sourceField']]
-            source_field['sticky'] = True
+        mw.col.models.addField(model, titleField)
+        mw.col.models.addField(model, textField)
+        mw.col.models.addField(model, sourceField)
+
+        template = mw.col.models.newTemplate('IR Card')
+        template['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
+            self.settings['textField'])
+        template['afmt'] = 'When do you want to see this card again?'
+
+        mw.col.models.addTemplate(model, template)
+        mw.col.models.add(model)
 
     def restoreView(self, html, card, context):
         javaScript = ''
@@ -192,7 +184,7 @@ class ReadingManager:
                          getField(currentNote, self.settings['sourceField']))
 
         if self.currentQuickKey['editExtract']:
-            addCards = addcards.AddCards(mw)
+            addCards = AddCards(mw)
             addCards.editor.setNote(newNote)
             if newNote.stringTags():
                 addCards.editor.tags.setText(newNote.stringTags().strip())
@@ -221,7 +213,7 @@ class ReadingManager:
             tooltip(_('Added'))
 
         if self.currentQuickKey['editSource']:
-            self.editCurrent = editcurrent.EditCurrent(mw)
+            EditCurrent(mw)
 
 
 def answerButtonList(self, _old):
