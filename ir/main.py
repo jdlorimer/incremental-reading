@@ -6,8 +6,12 @@ import re
 import time
 
 from PyQt4.QtCore import QObject, pyqtSlot
-from PyQt4.QtGui import (QApplication, QDialog, QDialogButtonBox, QHBoxLayout,
-                         QLabel, QLineEdit)
+from PyQt4.QtGui import (QApplication,
+                         QDialog,
+                         QDialogButtonBox,
+                         QHBoxLayout,
+                         QLabel,
+                         QLineEdit)
 from PyQt4.QtWebKit import QWebPage
 
 from anki import notes
@@ -23,9 +27,15 @@ from aqt.utils import showInfo, showWarning, tooltip
 
 from BeautifulSoup import BeautifulSoup
 
+from ir.about import showAbout
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
-from ir.util import (addShortcut, disableOutdated, getField, isIrCard, setField,
+from ir.util import (addMenuItem,
+                     addShortcut,
+                     disableOutdated,
+                     getField,
+                     isIrCard,
+                     setField,
                      viewingIrText)
 from ir.view import ViewManager
 
@@ -64,6 +74,7 @@ class ReadingManager():
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             addShortcut(self.undo, self.settings['undoKey'])
+            addMenuItem('Read', 'About...', showAbout)
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')

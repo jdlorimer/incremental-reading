@@ -8,16 +8,29 @@ import json
 import os
 
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                         QDialogButtonBox, QGroupBox, QHBoxLayout, QLabel,
-                         QLineEdit, QPushButton, QRadioButton, QSpinBox,
-                         QTabWidget, QVBoxLayout, QWidget)
+from PyQt4.QtGui import (QButtonGroup,
+                         QCheckBox,
+                         QComboBox,
+                         QDialog,
+                         QDialogButtonBox,
+                         QGroupBox,
+                         QHBoxLayout,
+                         QLabel,
+                         QLineEdit,
+                         QPushButton,
+                         QRadioButton,
+                         QSpinBox,
+                         QTabWidget,
+                         QVBoxLayout,
+                         QWidget)
 
 from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo
 
-from ir.util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
+from ir.util import (addMenuItem,
+                     removeComboBoxItem,
+                     setComboBoxItem,
                      updateModificationTime)
 
 
@@ -90,9 +103,17 @@ class SettingsManager():
                 self.settingsChanged = True
 
     def removeOutdatedQuickKeys(self):
-        required = ['alt', 'bgColor', 'ctrl', 'deckName', 'editExtract',
-                    'editSource', 'fieldName', 'modelName', 'regularKey',
-                    'shift', 'textColor']
+        required = ['alt',
+                    'bgColor',
+                    'ctrl',
+                    'deckName',
+                    'editExtract',
+                    'editSource',
+                    'fieldName',
+                    'modelName',
+                    'regularKey',
+                    'shift',
+                    'textColor']
 
         for keyCombo, quickKey in self.settings['quickKeys'].copy().items():
             for k in required:
