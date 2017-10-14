@@ -1,5 +1,3 @@
-import os
-
 from anki import notes
 from anki.hooks import addHook, wrap
 from anki.sound import clearAudioQueue
@@ -28,12 +26,6 @@ class ReadingManager:
         self.quickKeyActions = []
 
         addHook('profileLoaded', self.onProfileLoaded)
-        addHook('prepareQA', self.restoreView)
-
-        moduleDir, _ = os.path.split(__file__)
-        jsFilePath = os.path.join(moduleDir, 'javascript.js')
-        with open(jsFilePath, encoding='utf-8') as jsFile:
-            self.mainJavaScript = jsFile.read()
 
     def onProfileLoaded(self):
         self.settingsManager = SettingsManager()
@@ -50,6 +42,7 @@ class ReadingManager:
             self.loadControls()
             self.controlsLoaded = True
 
+        addHook('prepareQA', self.setIrShortcuts)
         addHook('reviewStateShortcuts', self.setShortcuts)
 
     def loadControls(self):
@@ -67,17 +60,25 @@ class ReadingManager:
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
 
+    def setIrShortcuts(self, html, card, context):
+        if isIrCard(card):
+            shortcuts = [(self.settings['extractKey'],
+                          self.textManager.extract),
+                         (self.settings['highlightKey'],
+                         self.textManager.highlight),
+                         (self.settings['removeKey'], self.textManager.remove),
+                         (self.settings['undoKey'], self.textManager.undo),
+                         ('Up', self.viewManager.lineUp),
+                         ('Down', self.viewManager.lineDown),
+                         ('PgUp', self.viewManager.pageUp),
+                         ('PgDown', self.viewManager.pageDown)]
+
+            mw.stateShortcuts += mw.applyShortcuts(shortcuts)
+
+        return html
+
     def setShortcuts(self, shortcuts):
-        shortcuts += [(self.settings['extractKey'], self.textManager.extract),
-                      (self.settings['highlightKey'],
-                       self.textManager.highlight),
-                      (self.settings['removeKey'], self.textManager.remove),
-                      (self.settings['undoKey'], self.textManager.undo),
-                      ('Up', self.viewManager.lineUp),
-                      ('Down', self.viewManager.lineDown),
-                      ('PgUp', self.viewManager.pageUp),
-                      ('PgDown', self.viewManager.pageDown),
-                      ('Ctrl+=', self.viewManager.zoomIn)]
+        shortcuts += [('Ctrl+=', self.viewManager.zoomIn)]
 
     def addModel(self):
         model = mw.col.models.new(self.settings['modelName'])
@@ -98,58 +99,6 @@ class ReadingManager:
 
         mw.col.models.addTemplate(model, template)
         mw.col.models.add(model)
-
-    def restoreView(self, html, card, context):
-        javaScript = ''
-        limitWidthScript = '''
-            <script>
-            if (screen.width > {maxWidth} ) {{
-                var styleSheet = document.styleSheets[0];
-                styleSheet.insertRule(
-                    "div {{ width: {maxWidth}px; margin: 20px auto }}");
-            }}
-            </script>'''.format(maxWidth=self.settings['maxWidth'])
-
-        if (card.model()['name'] == self.settings['modelName'] and
-                context == 'reviewQuestion'):
-            cid = str(card.id)
-
-            if cid not in self.settings['zoom']:
-                self.settings['zoom'][cid] = 1
-
-            if cid not in self.settings['scroll']:
-                self.settings['scroll'][cid] = 0
-
-            self.viewManager.setZoom()
-
-            def storePageInfo(pageInfo):
-                (self.viewManager.viewportHeight,
-                 self.viewManager.pageBottom) = pageInfo
-
-            mw.web.evalWithCallback(
-                '[window.innerHeight, document.body.scrollHeight];',
-                storePageInfo)
-
-            savedPos = self.settings['scroll'][cid]
-
-            javaScript = '''
-                <script>
-                %s
-
-                function restoreScroll() {
-                    window.scrollTo(0, %s);
-                }
-
-                onUpdateHook.push(restoreScroll);
-                </script>''' % (self.mainJavaScript, savedPos)
-
-            if self.settings['limitWidth']:
-                javaScript = limitWidthScript + javaScript
-
-        elif self.settings['limitGlobalWidth']:
-            javaScript = limitWidthScript
-
-        return html + javaScript
 
     def quickAdd(self, quickKey):
         if not viewingIrText():

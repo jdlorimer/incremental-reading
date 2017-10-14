@@ -1,17 +1,56 @@
 from anki.hooks import addHook
 from aqt import mw
 
-from .util import viewingIrText
+from .util import isIrCard, loadJsFile, viewingIrText
 
 
 class ViewManager:
     def __init__(self, settings):
-        self.previousState = None
         self.settings = settings
+        self.scrollScript = loadJsFile('scroll')
+        self.textScript = loadJsFile('text')
+        self.widthScript = loadJsFile('width')
         self.zoomFactor = 1
-        addHook('afterStateChange', self.resetZoom)
-        mw.web.page().scrollPositionChanged.connect(self.saveScroll)
         self.resetZoom('deckBrowser')
+        addHook('afterStateChange', self.resetZoom)
+        addHook('prepareQA', self.prepareCard)
+        mw.web.page().scrollPositionChanged.connect(self.saveScroll)
+
+    def prepareCard(self, html, card, context):
+        if (isIrCard(card) and self.settings['limitWidth'] or
+                self.settings['limitGlobalWidth']):
+            js = self.widthScript.format(maxWidth=self.settings['maxWidth'])
+        else:
+            js = ''
+
+        if isIrCard(card):
+            mw.web.onBridgeCmd = self.storePageInfo
+            cid = str(card.id)
+
+            if cid not in self.settings['zoom']:
+                self.settings['zoom'][cid] = 1
+
+            if cid not in self.settings['scroll']:
+                self.settings['scroll'][cid] = 0
+
+            self.setZoom()
+            js += self.textScript
+            js += self.scrollScript.format(
+                savedPos=self.settings['scroll'][cid])
+
+        if js:
+            return html + '<script>' + js + '</script>'
+        else:
+            return html
+
+    def storePageInfo(self, cmd):
+        if cmd == 'store':
+            def callback(pageInfo):
+                self.viewportHeight, self.pageBottom = pageInfo
+
+            mw.web.evalWithCallback(
+                '[window.innerHeight, document.body.scrollHeight];',
+                callback)
 
     def setZoom(self, factor=None):
         if factor:
@@ -80,11 +119,5 @@ class ViewManager:
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
             mw.web.setZoomFactor(self.settings['generalZoom'])
-        elif (state == 'review' and
-              self.previousState != 'review' and
-              mw.reviewer.card and
-              (mw.reviewer.card.note().model()['name'] !=
-               self.settings['modelName'])):
+        elif state == 'review' and not isIrCard(mw.reviewer.card):
             self.setZoom(self.zoomFactor)
-
-        self.previousState = state
