@@ -27,14 +27,14 @@ The main things this add-on allows you to do:
 * Import single webpages (<kbd>Alt</kbd>+<kbd>3</kbd>)
 * Import web feeds (<kbd>Alt</kbd>+<kbd>4</kbd>)
 * Import Pocket articles (<kbd>Alt</kbd>+<kbd>5</kbd>)
-* Multi-level undo, for reverting text changes (<kbd>u</kbd>)
 * Choose maximum width of cards (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
 
 ### New to Version 3
 
 #### Features
 
-* Remove unwanted text from note with a single key-press
+* Remove unwanted text from note with a single key-press (<kbd>z</kbd>)
+* Multi-level undo, for reverting text changes (<kbd>u</kbd>)
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
     * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
@@ -83,7 +83,7 @@ I would also appreciate if you could try to replicate the problem with all other
 
 Multiple people have contributed to this add-on, and it's somewhat unclear who to credit for which changes, and which licenses to apply.
 
-Tiago Barroso appears to be the person who began the project, and he has [stated](https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ) that he releases all of his add-ons under the ISC license. Frank Kmiec was responsible for vastly expanding the add-on, but it's unclear which license his changes were released under. Presuming he didn't specify one, the [terms and conditions of AnkiWeb](https://ankiweb.net/account/terms) suggest they were automatically released under the AGPL v3. Aleksej's changes to Frank's version are [“multi-licensed under the same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+i”](https://github.com/aleksejrs/anki-2.0-vsa-and-ire).
+Tiago Barroso appears to be the person who began the project, and he has [stated](https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ) that he releases all of his add-ons under the ISC license. Frank Kmiec was responsible for vastly expanding the add-on, but it's unclear which license his changes were released under. Presuming he didn't specify one, the [terms and conditions of AnkiWeb](https://ankiweb.net/account/terms) suggest they were automatically released under the AGPL v3. Aleksej's changes to Frank's version are [“multi-licensed under the same ISC license, GNU LGPL v3+, GNU GPL v3+ and GNU AGPL v3+”](https://github.com/aleksejrs/anki-2.0-vsa-and-ire).
 
 For the sake of simplicity, I am also releasing my changes under the ISC license. For each author, I have placed a copyright line in the license with what I believe are correct dates. If I have made a mistake in this respect, please let me know. I have also removed the manual that is still available in Aleksej's fork, mainly because it is becoming less relevant, but also because it is a Google Groups conversation, which makes the licensing slightly murky.
 
