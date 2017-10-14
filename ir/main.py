@@ -56,6 +56,10 @@ class ReadingManager:
                     self.importer.importWebpage,
                     'Alt+3')
         addMenuItem('Read', 'Import Feed', self.importer.importFeed, 'Alt+4')
+        addMenuItem('Read',
+                    'Import Pocket',
+                    self.importer.importPocket,
+                    'Alt+5')
         addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
