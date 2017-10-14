@@ -1,8 +1,8 @@
-**Note: The version of the add-on in this branch is not compatible with Anki 2.1. It will receive basic maintenance updates, but major changes will not be backported.**
+**Note: The version of the add-on in this branch is not compatible with Anki 2.1. It will receive basic maintenance updates, but major changes will generally not be backported.**
 
 ## Introduction
 
-This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
+This is an updated version of the [Incremental Reading add-on](https://github.com/aleksejrs/anki-2.0-vsa-and-ire), which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation of the technique (see their [help article](https://www.supermemo.com/help/read.htm) for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
 
 I am not the original author of this add-on, but I've used the previous version long enough, and seriously enough, to have made substantial changes. Some of those changes might be of general interest, so I am gradually releasing them as version 3. All credit for the basic idea belongs to others.
 
@@ -10,20 +10,21 @@ I am not the original author of this add-on, but I've used the previous version 
 
 The main things this add-on allows you to do:
 
-* Maintain scroll position and zoom on a per-card basis
 * Extract selected text into a new card by pressing <kbd>x</kbd>
 * Highlight selected text by pressing <kbd>h</kbd>
 * Remove selected text by pressing <kbd>z</kbd>
+* Undo changes to the text by pressing <kbd>u</kbd>
 * Create custom shortcuts to quickly add cards
-* Control the scheduling of incremental reading cards
+* Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
+* Control the scheduling of incremental reading cards
 
 ### New to Version 3
 
 #### Features
 
-* All existing options have been consolidated into a single tabbed dialog, and several new ones added
 * Remove unwanted text from note with a single key-press
+* Multi-level undo, for reverting text changes (<kbd>u</kbd>)
 * New options to control how text is extracted:
     * Open the full note editor for each extraction (slow), or simply a title entry box (fast)
     * Extract selected text as HTML (retain color and formatting) or plain text (remove all formatting)
@@ -42,20 +43,11 @@ The main things this add-on allows you to do:
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
-
-#### Bugfixes
-
-* Highlighting now causes fewer issues; saves only relevant part of page to note
-* Zoom factor and scroll position are now saved, and restored, more reliably
-* Fixed serious issue where, under certain conditions, the add-on would alter the scheduling of regular Anki cards
-* Fixed a bug where switching between profiles resulted in duplicate menu items
-* Fixed a bug that prevented editing of the source note unless also editing the extracted note
+* All options have been consolidated into a single tabbed dialog, and several new ones added
 
 ## Installation
 
-You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net).
-
-Once Anki is installed, go to Tools → Add-ons → Browse & Install, then enter the code `1081195335`.
+You will first need to have Anki installed. Download the relevant installer [here](http://ankisrs.net). Once Anki is installed, go to Tools → Add-ons → Browse & Install, then enter the code `1081195335`.
 
 To install manually, copy the following files into your add-ons folder:
 
