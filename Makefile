@@ -4,9 +4,10 @@ all: prep pack clean
 
 prep:
 	rm -f incremental-reading-v*.zip
-	find . -name "*~" -type f -delete
 	find . -name .ropeproject -type d -exec rm -rf {} +
 	find . -name __pycache__ -type d -exec rm -rf {} +
+	find . -name "*.pyc" -type f -delete
+	find . -name "*~" -type f -delete
 	mv ir/meta.json .
 	cp LICENSE-ISC ir/LICENSE.txt
 
