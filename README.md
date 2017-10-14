@@ -8,7 +8,7 @@ This is an updated version of the [Incremental Reading add-on](https://github.co
 
 The main things this add-on allows you to do:
 
-* Import content from web feeds (RSS, atom, etc.) or webpages
+* Import content from web feeds (RSS, atom, etc.), webpages, or Pocket
 * Extract selected text into a new card by pressing <kbd>x</kbd>
 * Highlight selected text by pressing <kbd>h</kbd>
 * Remove selected text by pressing <kbd>z</kbd>
@@ -23,9 +23,10 @@ The main things this add-on allows you to do:
 #### Features
 
 * Compatible with Anki 2.1
-* Automatically import a single webpage into a new Anki card (<kbd>Alt</kbd>+<kbd>3</kbd>)
-* Automatically import a web feed into multiple new Anki cards (<kbd>Alt</kbd>+<kbd>4</kbd>)
-* Choose maximum width of cards, for ease of reading (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
+* Import single webpages (<kbd>Alt</kbd>+<kbd>3</kbd>)
+* Import web feeds (<kbd>Alt</kbd>+<kbd>4</kbd>)
+* Import Pocket articles (<kbd>Alt</kbd>+<kbd>5</kbd>)
+* Choose maximum width of cards (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
 
 ### New to Version 3
 
@@ -51,14 +52,6 @@ The main things this add-on allows you to do:
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
 * All options have been consolidated into a single tabbed dialog, and several new ones added
-
-#### Bugfixes
-
-* Highlighting now causes fewer issues; saves only relevant part of page to note
-* Zoom factor and scroll position are now saved, and restored, more reliably
-* Fixed serious issue where, under certain conditions, the add-on would alter the scheduling of regular Anki cards
-* Fixed a bug where switching between profiles resulted in duplicate menu items
-* Fixed a bug that prevented editing of the source note unless also editing the extracted note
 
 ## Installation
 
