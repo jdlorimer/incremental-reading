@@ -119,3 +119,10 @@ def fixImages(html):
     for img in soup.find_all('img'):
         img['src'] = os.path.basename(unquote(img['src']))
     return str(soup)
+
+
+def loadJsFile(name):
+    moduleDir, _ = os.path.split(__file__)
+    path = os.path.join(moduleDir, 'js', name + '.js')
+    with open(path, encoding='utf-8') as jsFile:
+        return jsFile.read()
