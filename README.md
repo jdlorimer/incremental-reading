@@ -12,6 +12,7 @@ The main things this add-on allows you to do:
 * Extract selected text into a new card by pressing <kbd>x</kbd>
 * Highlight selected text by pressing <kbd>h</kbd>
 * Remove selected text by pressing <kbd>z</kbd>
+* Undo changes to the text by pressing <kbd>u</kbd>
 * Create custom shortcuts to quickly add cards
 * Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
@@ -26,6 +27,7 @@ The main things this add-on allows you to do:
 * Import single webpages (<kbd>Alt</kbd>+<kbd>3</kbd>)
 * Import web feeds (<kbd>Alt</kbd>+<kbd>4</kbd>)
 * Import Pocket articles (<kbd>Alt</kbd>+<kbd>5</kbd>)
+* Multi-level undo, for reverting text changes (<kbd>u</kbd>)
 * Choose maximum width of cards (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
 
 ### New to Version 3
