@@ -3,7 +3,7 @@ from urllib.parse import urlencode, urlsplit
 from urllib.request import urlopen
 
 from anki.notes import Note
-from anki.utils import isMac
+from anki.utils import isMac, isWin
 from aqt import mw
 from aqt.utils import askUser, openLink
 
@@ -96,7 +96,13 @@ class Importer:
 
     def importPocket(self):
         redirectUri = 'https://github.com/luoliyan/incremental-reading-for-anki'
-        consumerKey = '71462-da4f02100e7e381cbc4a86df'
+
+        if isWin:
+            consumerKey = '71462-da4f02100e7e381cbc4a86df'
+        elif isMac:
+            consumerKey = '71462-ed224e5a561a545814023bf9'
+        else:
+            consumerKey = '71462-05fb63bf0314903c7e73c52f'
 
         response = post('https://getpocket.com/v3/oauth/request',
                         json={'consumer_key': consumerKey,
