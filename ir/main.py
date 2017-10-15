@@ -22,9 +22,7 @@ from .view import ViewManager
 
 class ReadingManager:
     def __init__(self):
-        self.controlsLoaded = False
         self.quickKeyActions = []
-
         addHook('profileLoaded', self.onProfileLoaded)
 
     def onProfileLoaded(self):
@@ -38,14 +36,15 @@ class ReadingManager:
         if not mw.col.models.byName(self.settings['modelName']):
             self.addModel()
 
-        if not self.controlsLoaded:
-            self.loadControls()
-            self.controlsLoaded = True
+        if hasattr(mw, 'customMenus') and 'Read' in mw.customMenus:
+            mw.customMenus['Read'].clear()
 
+        self.loadMenuItems()
+        self.settingsManager.loadMenuItems()
         addHook('prepareQA', self.setIrShortcuts)
         addHook('reviewStateShortcuts', self.setShortcuts)
 
-    def loadControls(self):
+    def loadMenuItems(self):
         addMenuItem('Read',
                     'Options...',
                     self.settingsManager.showDialog,
@@ -116,8 +115,8 @@ class ReadingManager:
             mw.web.evalWithCallback('getHtmlText()', self.createNote)
 
     def createNote(self, selectedText):
-        self.highlightText(self.currentQuickKey['bgColor'],
-                           self.currentQuickKey['textColor'])
+        self.textManager.highlight(self.currentQuickKey['bgColor'],
+                                   self.currentQuickKey['textColor'])
 
         newModel = mw.col.models.byName(self.currentQuickKey['modelName'])
         newNote = notes.Note(mw.col, newModel)
