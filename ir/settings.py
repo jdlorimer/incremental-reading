@@ -72,12 +72,12 @@ class SettingsManager():
                          'plainText': False,
                          'quickKeys': {},
                          'removeKey': 'Z',
-                         'schedLaterInt': 50,
+                         'schedLaterValue': 50,
                          'schedLaterRandom': True,
-                         'schedLaterType': 'pct',
-                         'schedSoonInt': 10,
+                         'schedLaterMethod': 'percent',
+                         'schedSoonValue': 10,
                          'schedSoonRandom': True,
-                         'schedSoonType': 'pct',
+                         'schedSoonMethod': 'percent',
                          'scroll': {},
                          'undoKey': 'U',
                          'zoom': {},
@@ -184,22 +184,22 @@ class SettingsManager():
             self.settings['extractDeck'] = self.extractDeckComboBox.currentText()
 
         try:
-            self.settings['schedSoonInt'] = int(
+            self.settings['schedSoonValue'] = int(
                 self.soonIntegerEditBox.text())
-            self.settings['schedLaterInt'] = int(
+            self.settings['schedLaterValue'] = int(
                 self.laterIntegerEditBox.text())
         except:
             pass
 
         if self.soonPercentButton.isChecked():
-            self.settings['schedSoonType'] = 'pct'
+            self.settings['schedSoonMethod'] = 'percent'
         else:
-            self.settings['schedSoonType'] = 'cnt'
+            self.settings['schedSoonMethod'] = 'count'
 
         if self.laterPercentButton.isChecked():
-            self.settings['schedLaterType'] = 'pct'
+            self.settings['schedLaterMethod'] = 'percent'
         else:
-            self.settings['schedLaterType'] = 'cnt'
+            self.settings['schedLaterMethod'] = 'count'
 
         mw.viewManager.resetZoom(mw.state)
 
@@ -480,12 +480,12 @@ class SettingsManager():
         self.laterIntegerEditBox = QLineEdit()
         self.laterIntegerEditBox.setFixedWidth(100)
 
-        if self.settings['schedSoonType'] == 'pct':
+        if self.settings['schedSoonMethod'] == 'percent':
             self.soonPercentButton.setChecked(True)
         else:
             soonPositionButton.setChecked(True)
 
-        if self.settings['schedLaterType'] == 'pct':
+        if self.settings['schedLaterMethod'] == 'percent':
             self.laterPercentButton.setChecked(True)
         else:
             laterPositionButton.setChecked(True)
@@ -496,8 +496,8 @@ class SettingsManager():
         if self.settings['schedLaterRandom']:
             self.laterRandomCheckBox.setChecked(True)
 
-        self.soonIntegerEditBox.setText(str(self.settings['schedSoonInt']))
-        self.laterIntegerEditBox.setText(str(self.settings['schedLaterInt']))
+        self.soonIntegerEditBox.setText(str(self.settings['schedSoonValue']))
+        self.laterIntegerEditBox.setText(str(self.settings['schedLaterValue']))
 
         soonLayout = QHBoxLayout()
         soonLayout.addWidget(soonLabel)

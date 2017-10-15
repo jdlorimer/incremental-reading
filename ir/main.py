@@ -58,19 +58,20 @@ class ReadingManager():
 
     def onProfileLoaded(self):
         mw.settingsManager = SettingsManager()
-        mw.viewManager = ViewManager()
-        self.scheduler = Scheduler()
-
         self.settings = mw.settingsManager.settings
+        self.scheduler = Scheduler(self.settings)
+        mw.viewManager = ViewManager()
         mw.viewManager.settings = mw.settingsManager.settings
-        self.scheduler.settings = mw.settingsManager.settings
 
         self.addModel()
         disableOutdated()
 
         if not self.controlsLoaded:
             mw.settingsManager.addMenuItem()
-            self.scheduler.addMenuItem()
+            addMenuItem('Read',
+                        'Organizer...',
+                        self.scheduler.showDialog,
+                        'Alt+2')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
             addShortcut(self.undo, self.settings['undoKey'])
@@ -434,7 +435,7 @@ def answerCard(self, ease, _old):
     card = self.card
     _old(self, ease)
     if isIrCard(card):
-        mw.readingManager.scheduler.scheduleCard(card, ease)
+        mw.readingManager.scheduler.answer(card, ease)
 
 
 def buttonTime(self, i, _old):
