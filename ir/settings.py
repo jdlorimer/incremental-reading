@@ -3,16 +3,29 @@ import json
 import os
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                             QDialogButtonBox, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QPushButton, QRadioButton,
-                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QButtonGroup,
+                             QCheckBox,
+                             QComboBox,
+                             QDialog,
+                             QDialogButtonBox,
+                             QGroupBox,
+                             QHBoxLayout,
+                             QLabel,
+                             QLineEdit,
+                             QPushButton,
+                             QRadioButton,
+                             QSpinBox,
+                             QTabWidget,
+                             QVBoxLayout,
+                             QWidget)
 
 from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo
 
-from .util import (addMenuItem, removeComboBoxItem, setComboBoxItem,
+from .util import (addMenuItem,
+                   removeComboBoxItem,
+                   setComboBoxItem,
                    updateModificationTime)
 
 
@@ -121,10 +134,9 @@ class SettingsManager:
                 addMenuItem('Read', menuText, function, keyCombo))
 
     def clearMenuItems(self):
-        if mw.readingManager.quickKeyActions:
-            for action in mw.readingManager.quickKeyActions:
-                mw.customMenus['Read'].removeAction(action)
-            mw.readingManager.quickKeyActions = []
+        for action in mw.readingManager.quickKeyActions:
+            mw.customMenus['Read'].removeAction(action)
+        mw.readingManager.quickKeyActions = []
 
     def showDialog(self):
         dialog = QDialog(mw)
