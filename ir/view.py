@@ -17,7 +17,7 @@ class ViewManager:
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def prepareCard(self, html, card, context):
-        if (isIrCard(card) and self.settings['limitWidth'] or
+        if ((isIrCard(card) and self.settings['limitWidth']) or
                 self.settings['limitGlobalWidth']):
             js = self.widthScript.format(maxWidth=self.settings['maxWidth'])
         else:
