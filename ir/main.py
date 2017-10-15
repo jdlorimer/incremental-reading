@@ -183,10 +183,10 @@ def answerButtonList(self, _old):
 
 
 def answerCard(self, ease, _old):
-    card = self.card  # Copy card reference, before scheduler changes it
+    card = self.card
     _old(self, ease)
     if isIrCard(card):
-        mw.readingManager.scheduler.scheduleCard(card, ease)
+        mw.readingManager.scheduler.answer(card, ease)
 
 
 def buttonTime(self, i, _old):
