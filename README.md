@@ -8,7 +8,7 @@ This is an updated version of the [Incremental Reading add-on](https://github.co
 
 The main things this add-on allows you to do:
 
-* Import content from web feeds (RSS, atom, etc.), webpages, or Pocket
+* Import content from web feeds (RSS/Atom), webpages, or Pocket
 * Extract selected text into a new card by pressing <kbd>x</kbd>
 * Highlight selected text by pressing <kbd>h</kbd>
 * Remove selected text by pressing <kbd>z</kbd>
