@@ -169,15 +169,8 @@ class ReadingManager:
 
 
 def answerButtonList(self, _old):
-    if isIrCard(mw.reviewer.card):
-        l = ((1, _("Soon")),)
-        cnt = mw.col.sched.answerButtons(self.card)
-        if cnt == 2:
-            return l + ((2, _("Later")),)
-        elif cnt == 3:
-            return l + ((2, _("Later")), (3, _("Custom")))
-        else:
-            return l + ((2, _("Later")), (3, _("MuchLater")), (4, _("Custom")))
+    if isIrCard(self.card):
+        return ((1, _('Soon')), (2, _('Later')), (3, _('Custom')))
     else:
         return _old(self)
 
