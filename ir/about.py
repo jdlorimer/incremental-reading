@@ -4,17 +4,20 @@ from aqt import mw
 
 from ._version import __version__
 
+IR_GITHUB_URL = 'https://github.com/luoliyan/incremental-reading-for-anki'
+
 
 def showAbout():
     dialog = QDialog(mw)
 
     label = QLabel()
+    label.setStyleSheet('QLabel { font-size: 14px; }')
     text = '''
-<div style="font-weight: bold; font-size: 16px">Incremental Reading v%s</div>
-<div style="font-size: 14px">Maintainer: Luo Li-Yan</div>
-<div style="font-size: 14px">
-Contributors: Tiago Barroso, Frank Kmiec, Aleksej
-</div>''' % __version__
+<div style="font-weight: bold">Incremental Reading v%s</div>
+<div>Maintainer: Luo Li-Yan</div>
+<div>Contributors: Tiago Barroso, Frank Kmiec, Aleksej</div>
+<div>Website: <a href="%s">%s</a></div>
+''' % (__version__, IR_GITHUB_URL, IR_GITHUB_URL)
     label.setText(text)
 
     buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
