@@ -61,6 +61,16 @@ You will first need to have Anki installed. Download the relevant installer [her
 
 To install through Anki, navigate to Tools → Add-ons → Get Add-ons..., and enter the code `1081195335`. To install manually, download the GitHub repository ([here](https://github.com/luoliyan/incremental-reading-for-anki/archive/master.zip)) and place the `ir` folder into your add-ons folder.
 
+## Usage
+
+Experimentation should lead to a pretty quick understanding of how the add-on works. If in doubt, start with the following:
+
+1. Create a new IR note with an article you want to study (the easiest way to do this is to import a webpage, with <kbd>Alt</kbd>+<kbd>3</kbd>)
+2. Set up a shortcut for creating regular Anki cards from IR cards (press <kbd>Alt</kbd>+<kbd>1</kbd>, or go to the menu, then go to the Quick Keys tab)
+3. Review the IR card that was created, and extract any text you find interesting (by selecting the text and pressing <kbd>x</kbd>)
+4. Choose _Soon_ or _Later_ when you want to move to the next card (which will be a portion of text you extracted)
+5. Whenever you want to create a regular Anki note, simply select the desired text and use the shortcut you created earlier
+
 ## Compatibility
 
 In general, the settings stored in `_ir.json` will be preserved when upgrading to newer versions of the add-on. The main exception to this rule is that v3 and v4 of the add-on are not backwards-compatible with v2. The newer versions store settings in a very different manner; as such, any v2 settings will be ignored.
