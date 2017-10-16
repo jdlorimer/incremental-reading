@@ -13,8 +13,8 @@ from aqt.utils import showInfo
 
 
 def isIrCard(card):
-    if (card and card.model()['name'] ==
-            mw.settingsManager.settings['modelName']):
+    if (card and (card.model()['name'] ==
+                  mw.readingManager.settings['modelName'])):
         return True
     else:
         return False
@@ -22,8 +22,8 @@ def isIrCard(card):
 
 def viewingIrText():
     if (isIrCard(mw.reviewer.card) and
-            mw.reviewer.state == 'question' and
-            mw.state == 'review'):
+            (mw.reviewer.state == 'question') and
+            (mw.state == 'review')):
         return True
     else:
         return False
