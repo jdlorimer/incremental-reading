@@ -57,14 +57,20 @@ class TextManager:
         else:
             did = currentCard.did
 
+        if self.settings['copyTitle']:
+            title = getField(currentNote, self.settings['titleField'])
+        else:
+            title = ''
+
         if self.settings['editExtract']:
+            setField(newNote, self.settings['titleField'], title)
             addCards = AddCards(mw)
             addCards.editor.setNote(newNote)
             deckName = mw.col.decks.get(did)['name']
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
-            title = getInput('Extract Text', 'Title')
+            title = getInput('Extract Text', 'Title', title)
             setField(newNote, self.settings['titleField'], title)
             newNote.model()['did'] = did
             mw.col.addNote(newNote)

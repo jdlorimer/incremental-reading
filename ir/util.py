@@ -97,12 +97,13 @@ def updateModificationTime(path):
     os.utime(path, (accessTime, modificationTime))
 
 
-def getInput(windowTitle, labelText):
+def getInput(windowTitle, labelText, editBoxText=''):
     dialog = QDialog(mw)
     dialog.setWindowTitle(windowTitle)
     label = QLabel(labelText)
     editBox = QLineEdit()
     editBox.setFixedWidth(300)
+    editBox.setText(editBoxText)
     buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
     buttonBox.accepted.connect(dialog.accept)
     layout = QHBoxLayout()
