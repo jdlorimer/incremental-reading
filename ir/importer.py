@@ -1,14 +1,23 @@
 from ssl import _create_unverified_context
+from urllib.error import HTTPError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import urlopen
 
 from anki.notes import Note
 from anki.utils import isMac, isWin
 from aqt import mw
-from aqt.utils import askUser, openLink
+from aqt.utils import askUser, openLink, showWarning
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QAbstractItemView,
+                             QDialog,
+                             QDialogButtonBox,
+                             QListWidget,
+                             QListWidgetItem,
+                             QVBoxLayout)
 
 from bs4 import BeautifulSoup
-from requests import post
+from requests import get, post
 
 from .lib.feedparser import parse
 
@@ -28,7 +37,8 @@ class Importer:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read().decode('utf-8')
         else:
-            html = urlopen(url).read().decode('utf-8')
+            headers = {'User-Agent': self.settings['userAgent']}
+            html = get(url, headers=headers).text
 
         webpage = BeautifulSoup(html, 'html.parser')
 
@@ -56,7 +66,15 @@ class Importer:
         if not url:
             return
 
-        webpage = self._fetchWebpage(url)
+        try:
+            webpage = self._fetchWebpage(url)
+        except HTTPError as error:
+            showWarning('The remote server has returned an error:'
+                        ' HTTP Error {} ({})'.format(
+                            error.code,
+                            error.reason))
+            return
+
         body = '\n'.join(map(str, webpage.find('body').children))
         self._createNote(webpage.title.string, body, url)
 
@@ -69,30 +87,34 @@ class Importer:
         if not urlsplit(url).scheme:
             url = 'http://' + url
 
-        if url in self.log and self.log[url]:
+        try:
             feed = parse(url,
                          etag=self.log[url]['etag'],
                          modified=self.log[url]['modified'])
-        else:
+        except KeyError:
             self.log[url] = {'downloaded': []}
             feed = parse(url)
 
-        mw.progress.start(label='Importing feed entries...',
-                          max=len(feed['entries']),
-                          immediate=True)
+        entries = [{'text': e['title'], 'data': e} for e in feed['entries']]
+        selected = self._select(entries)
 
-        for i, entry in enumerate(feed['entries'], start=1):
-            if not entry['link'] in self.log[url]['downloaded']:
-                self.importWebpage(entry['link'])
-                self.log[url]['downloaded'].append(entry['link'])
-            mw.progress.update(value=i)
+        if selected:
+            mw.progress.start(label='Importing feed entries...',
+                              max=len(selected),
+                              immediate=True)
 
-        self.log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
-        self.log[url]['modified'] = (feed.modified
-                                     if hasattr(feed, 'modified')
-                                     else '')
+            for i, entry in enumerate(selected, start=1):
+                if not entry['link'] in self.log[url]['downloaded']:
+                    self.importWebpage(entry['link'])
+                    self.log[url]['downloaded'].append(entry['link'])
+                mw.progress.update(value=i)
 
-        mw.progress.finish()
+            self.log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
+            self.log[url]['modified'] = (feed.modified
+                                         if hasattr(feed, 'modified')
+                                         else '')
+
+            mw.progress.finish()
 
     def importPocket(self):
         redirectUri = 'https://github.com/luoliyan/incremental-reading-for-anki'
@@ -130,17 +152,58 @@ class Importer:
                         json={'consumer_key': consumerKey,
                               'access_token': accessToken,
                               'contentType': 'article',
-                              'count': 10,
+                              'count': 30,
                               'detailType': 'complete',
                               'sort': 'newest'},
                         headers={'X-Accept': 'application/json'})
 
-        mw.progress.start(label='Importing Pocket articles...',
-                          max=len(response.json()['list']),
-                          immediate=True)
+        articles = [{'text': a['resolved_title'], 'data': a}
+                    for a in response.json()['list'].values()]
 
-        for i, article in enumerate(response.json()['list'].values(), start=1):
-            self.importWebpage(article['resolved_url'])
-            mw.progress.update(value=i)
+        selected = self._select(articles)
 
-        mw.progress.finish()
+        if selected:
+            mw.progress.start(label='Importing Pocket articles...',
+                              max=len(selected),
+                              immediate=True)
+
+            for i, article in enumerate(selected, start=1):
+                self.importWebpage(article['given_url'])
+                mw.progress.update(value=i)
+
+            mw.progress.finish()
+
+    def _select(self, choices):
+        if not choices:
+            return []
+
+        dialog = QDialog(mw)
+        layout = QVBoxLayout()
+        listWidget = QListWidget()
+        listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
+        for c in choices:
+            item = QListWidgetItem(c['text'])
+            item.setData(Qt.UserRole, c['data'])
+            listWidget.addItem(item)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
+                                     QDialogButtonBox.Save)
+        buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
+        buttonBox.setOrientation(Qt.Horizontal)
+
+        layout.addWidget(listWidget)
+        layout.addWidget(buttonBox)
+
+        dialog.setLayout(layout)
+        dialog.setWindowModality(Qt.WindowModal)
+        dialog.resize(500, 500)
+        choice = dialog.exec_()
+
+        if choice == 1:
+            return [listWidget.item(i).data(Qt.UserRole)
+                    for i in range(listWidget.count())
+                    if listWidget.item(i).isSelected()]
+        else:
+            return []
