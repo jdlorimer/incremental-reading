@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from random import gauss, shuffle
 
 from PyQt4.QtCore import Qt
@@ -27,8 +28,10 @@ class Scheduler:
     def showDialog(self, currentCard=None):
         if currentCard:
             did = currentCard.did
-        else:
+        elif mw._selectedDeck():
             did = mw._selectedDeck()['id']
+        else:
+            return
 
         cardInfo = self._getCardInfo(did)
         if not cardInfo:
