@@ -51,6 +51,7 @@ class SettingsManager:
 
     def loadSettings(self):
         self.defaults = {'badTags': ['iframe', 'script'],
+                         'copyTitle': False,
                          'editExtract': False,
                          'editSource': False,
                          'extractBgColor': 'Green',
@@ -72,8 +73,8 @@ class SettingsManager:
                          'plainText': False,
                          'quickKeys': {},
                          'removeKey': 'z',
-                         'schedLaterValue': 50,
                          'schedLaterRandom': True,
+                         'schedLaterValue': 50,
                          'schedLaterMethod': 'percent',
                          'schedSoonValue': 10,
                          'schedSoonRandom': True,
@@ -179,6 +180,7 @@ class SettingsManager:
         self.settings['editExtract'] = self.editExtractButton.isChecked()
         self.settings['editSource'] = self.editSourceCheckBox.isChecked()
         self.settings['plainText'] = self.plainTextCheckBox.isChecked()
+        self.settings['copyTitle'] = self.copyTitleCheckBox.isChecked()
         self.settings['schedSoonRandom'] = self.soonRandomCheckBox.isChecked()
         self.settings['schedLaterRandom'] = self.laterRandomCheckBox.isChecked()
 
@@ -373,6 +375,7 @@ class SettingsManager:
 
         self.editSourceCheckBox = QCheckBox('Edit Source Note')
         self.plainTextCheckBox = QCheckBox('Extract as Plain Text')
+        self.copyTitleCheckBox = QCheckBox('Copy Title')
 
         if self.settings['editSource']:
             self.editSourceCheckBox.setChecked(True)
@@ -380,11 +383,15 @@ class SettingsManager:
         if self.settings['plainText']:
             self.plainTextCheckBox.setChecked(True)
 
+        if self.settings['copyTitle']:
+            self.copyTitleCheckBox.setChecked(True)
+
         layout = QVBoxLayout()
         layout.addLayout(extractDeckLayout)
         layout.addLayout(radioButtonsLayout)
         layout.addWidget(self.editSourceCheckBox)
         layout.addWidget(self.plainTextCheckBox)
+        layout.addWidget(self.copyTitleCheckBox)
         layout.addStretch()
 
         tab = QWidget()
