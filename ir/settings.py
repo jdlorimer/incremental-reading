@@ -23,6 +23,8 @@ from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo
 
+from ._version import __version__
+from .about import IR_GITHUB_URL
 from .util import (addMenuItem,
                    removeComboBoxItem,
                    setComboBoxItem,
@@ -81,6 +83,8 @@ class SettingsManager:
                          'textField': 'Text',
                          'titleField': 'Title',
                          'undoKey': 'u',
+                         'userAgent': 'IR/{} (+{})'.format(
+                             __version__, IR_GITHUB_URL),
                          'zoom': {},
                          'zoomStep': 0.1}
 
