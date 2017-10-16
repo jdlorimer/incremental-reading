@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+from codecs import open
 from functools import partial
 from sys import getfilesystemencoding
-import codecs
 import json
 import os
 
@@ -46,11 +46,8 @@ class SettingsManager():
 
         addHook('unloadProfile', self.saveSettings)
 
-    def addMenuItem(self):
-        addMenuItem('Read', 'Options...', self.showDialog, 'Alt+1')
-
     def saveSettings(self):
-        with codecs.open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
 
         updateModificationTime(self.mediaDir)
@@ -60,26 +57,29 @@ class SettingsManager():
                          'editSource': False,
                          'extractBgColor': 'Green',
                          'extractDeck': None,
-                         'extractKey': 'X',
+                         'extractKey': 'x',
                          'extractTextColor': 'White',
                          'generalZoom': 1,
                          'highlightBgColor': 'Yellow',
-                         'highlightKey': 'H',
+                         'highlightKey': 'h',
                          'highlightTextColor': 'Black',
                          'lineScrollFactor': 0.05,
                          'modelName': 'IR3',
                          'pageScrollFactor': 0.5,
                          'plainText': False,
                          'quickKeys': {},
-                         'removeKey': 'Z',
-                         'schedLaterValue': 50,
-                         'schedLaterRandom': True,
+                         'removeKey': 'z',
                          'schedLaterMethod': 'percent',
-                         'schedSoonValue': 10,
-                         'schedSoonRandom': True,
+                         'schedLaterRandom': True,
+                         'schedLaterValue': 50,
                          'schedSoonMethod': 'percent',
+                         'schedSoonRandom': True,
+                         'schedSoonValue': 10,
                          'scroll': {},
-                         'undoKey': 'U',
+                         'sourceField': 'Source',
+                         'textField': 'Text',
+                         'titleField': 'Title',
+                         'undoKey': 'u',
                          'zoom': {},
                          'zoomStep': 0.1}
 
@@ -87,7 +87,7 @@ class SettingsManager():
         self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
         if os.path.isfile(self.jsonPath):
-            with codecs.open(self.jsonPath, encoding='utf-8') as jsonFile:
+            with open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
             self.addMissingSettings()
             self.removeOutdatedQuickKeys()
@@ -133,10 +133,9 @@ class SettingsManager():
                 addMenuItem('Read', menuText, function, keyCombo))
 
     def clearMenuItems(self):
-        if mw.readingManager.quickKeyActions:
-            for action in mw.readingManager.quickKeyActions:
-                mw.customMenus['Read'].removeAction(action)
-            mw.readingManager.quickKeyActions = []
+        for action in mw.readingManager.quickKeyActions:
+            mw.customMenus['Read'].removeAction(action)
+        mw.readingManager.quickKeyActions = []
 
     def showDialog(self):
         dialog = QDialog(mw)
@@ -181,7 +180,9 @@ class SettingsManager():
         if self.extractDeckComboBox.currentText() == '[Current Deck]':
             self.settings['extractDeck'] = None
         else:
-            self.settings['extractDeck'] = self.extractDeckComboBox.currentText()
+            self.settings['extractDeck'] = (self
+                                            .extractDeckComboBox
+                                            .currentText())
 
         try:
             self.settings['schedSoonValue'] = int(
@@ -273,9 +274,18 @@ class SettingsManager():
                      ' Please try again.')
             self.setDefaultKeys()
         else:
-            self.settings['extractKey'] = self.extractKeyComboBox.currentText()
-            self.settings['highlightKey'] = self.highlightKeyComboBox.currentText()
-            self.settings['removeKey'] = self.removeKeyComboBox.currentText()
+            self.settings['extractKey'] = (self
+                                           .extractKeyComboBox
+                                           .currentText()
+                                           .lower())
+            self.settings['highlightKey'] = (self
+                                             .highlightKeyComboBox
+                                             .currentText()
+                                             .lower())
+            self.settings['removeKey'] = (self
+                                          .removeKeyComboBox
+                                          .currentText()
+                                          .lower())
 
     def createExtractionTab(self):
         extractDeckLabel = QLabel('Extracts Deck')
@@ -437,7 +447,7 @@ class SettingsManager():
         moduleDir, _ = os.path.split(__file__)
         moduleDir = moduleDir.decode(getfilesystemencoding())
         colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
-        with codecs.open(colorsFilePath, encoding='utf-8') as colorsFile:
+        with open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
 
     def updateColorPreview(self):
