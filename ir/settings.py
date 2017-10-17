@@ -130,11 +130,11 @@ class SettingsManager():
                                                 quickKey['deckName'])
             function = partial(mw.readingManager.quickAdd, quickKey)
             mw.readingManager.quickKeyActions.append(
-                addMenuItem('Read', menuText, function, keyCombo))
+                addMenuItem('Read::Quick Keys', menuText, function, keyCombo))
 
     def clearMenuItems(self):
         for action in mw.readingManager.quickKeyActions:
-            mw.customMenus['Read'].removeAction(action)
+            mw.customMenus['Read::Quick Keys'].removeAction(action)
         mw.readingManager.quickKeyActions = []
 
     def showDialog(self):
