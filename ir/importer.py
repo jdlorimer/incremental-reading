@@ -6,7 +6,7 @@ from urllib.request import urlopen
 from anki.notes import Note
 from anki.utils import isMac, isWin
 from aqt import mw
-from aqt.utils import askUser, openLink, showWarning
+from aqt.utils import askUser, getText, openLink, showWarning
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QAbstractItemView,
@@ -21,7 +21,7 @@ from requests import get, post
 
 from .lib.feedparser import parse
 
-from .util import getInput, setField
+from .util import setField
 
 
 class Importer:
@@ -61,9 +61,11 @@ class Importer:
 
     def importWebpage(self, url=None):
         if not url:
-            url = getInput('Import Webpage', 'URL')
+            url, accepted = getText('Enter URL:', title='Import Webpage')
+        else:
+            accepted = True
 
-        if not url:
+        if not url or not accepted:
             return
 
         try:
@@ -79,9 +81,9 @@ class Importer:
         self._createNote(webpage.title.string, body, url)
 
     def importFeed(self):
-        url = getInput('Import Feed', 'URL')
+        url, accepted = getText('Enter URL:', title='Import Feed')
 
-        if not url:
+        if not url or not accepted:
             return
 
         if not urlsplit(url).scheme:

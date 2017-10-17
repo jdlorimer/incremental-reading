@@ -7,13 +7,7 @@ from bs4 import BeautifulSoup
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import (QAction,
-                             QDialog,
-                             QDialogButtonBox,
-                             QHBoxLayout,
-                             QLabel,
-                             QLineEdit,
-                             QMenu)
+from PyQt5.QtWidgets import QAction, QMenu
 
 from aqt import mw
 
@@ -95,24 +89,6 @@ def updateModificationTime(path):
     accessTime = os.stat(path)[stat.ST_ATIME]
     modificationTime = time.time()
     os.utime(path, (accessTime, modificationTime))
-
-
-def getInput(windowTitle, labelText, editBoxText=''):
-    dialog = QDialog(mw)
-    dialog.setWindowTitle(windowTitle)
-    label = QLabel(labelText)
-    editBox = QLineEdit()
-    editBox.setFixedWidth(300)
-    editBox.setText(editBoxText)
-    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-    buttonBox.accepted.connect(dialog.accept)
-    layout = QHBoxLayout()
-    layout.addWidget(label)
-    layout.addWidget(editBox)
-    layout.addWidget(buttonBox)
-    dialog.setLayout(layout)
-    dialog.exec_()
-    return editBox.text()
 
 
 def fixImages(html):

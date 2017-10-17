@@ -4,9 +4,9 @@ from anki.notes import Note
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
-from aqt.utils import showInfo, tooltip
+from aqt.utils import getText, showInfo, tooltip
 
-from .util import fixImages, getField, getInput, setField
+from .util import fixImages, getField, setField
 
 
 class TextManager:
@@ -70,10 +70,13 @@ class TextManager:
             addCards.deckChooser.deck.setText(deckName)
             addCards.modelChooser.models.setText(self.settings['modelName'])
         else:
-            title = getInput('Extract Text', 'Title', title)
-            setField(newNote, self.settings['titleField'], title)
-            newNote.model()['did'] = did
-            mw.col.addNote(newNote)
+            title, accepted = getText('Enter title',
+                                      title='Extract Text',
+                                      default=title)
+            if accepted:
+                setField(newNote, self.settings['titleField'], title)
+                newNote.model()['did'] = did
+                mw.col.addNote(newNote)
 
     def remove(self):
         mw.web.eval('removeText()')
