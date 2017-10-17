@@ -7,6 +7,8 @@ from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
 from aqt.utils import showWarning, tooltip
 
+import sip
+
 from .about import showAbout
 from .importer import Importer
 from .schedule import Scheduler
@@ -64,7 +66,7 @@ class ReadingManager:
         addMenuItem('Read', 'About...', showAbout)
 
     def setIrShortcuts(self, html, card, context):
-        if isIrCard(card):
+        if isIrCard(card) and context == 'reviewQuestion':
             shortcuts = [(self.settings['extractKey'],
                           self.textManager.extract),
                          (self.settings['highlightKey'],
@@ -76,12 +78,16 @@ class ReadingManager:
                          ('PgUp', self.viewManager.pageUp),
                          ('PgDown', self.viewManager.pageDown)]
 
+            easyShortcut = next(s for s in mw.stateShortcuts
+                                if s.key().toString() == '4')
+            mw.stateShortcuts.remove(easyShortcut)
+            sip.delete(easyShortcut)
             mw.stateShortcuts += mw.applyShortcuts(shortcuts)
 
         return html
 
     def setShortcuts(self, shortcuts):
-        shortcuts += [('Ctrl+=', self.viewManager.zoomIn)]
+        shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
 
     def addModel(self):
         model = mw.col.models.new(self.settings['modelName'])
