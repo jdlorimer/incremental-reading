@@ -29,15 +29,27 @@ def viewingIrText():
         return False
 
 
-def addMenu(name):
+def addMenu(fullName):
     if not hasattr(mw, 'customMenus'):
         mw.customMenus = {}
 
-    if name not in mw.customMenus:
-        menu = QMenu('&' + name, mw)
-        mw.customMenus[name] = menu
+    if len(fullName.split('::')) == 2:
+        menuName, subMenuName = fullName.split('::')
+        hasSubMenu = True
+    else:
+        menuName = fullName
+        hasSubMenu = False
+
+    if menuName not in mw.customMenus:
+        menu = QMenu('&' + menuName, mw)
+        mw.customMenus[menuName] = menu
         mw.form.menubar.insertMenu(mw.form.menuTools.menuAction(),
-                                   mw.customMenus[name])
+                                   mw.customMenus[menuName])
+
+    if hasSubMenu and (fullName not in mw.customMenus):
+        subMenu = QMenu('&' + subMenuName, mw)
+        mw.customMenus[fullName] = subMenu
+        mw.customMenus[menuName].addMenu(subMenu)
 
 
 def addMenuItem(menuName, text, function, keys=None):
