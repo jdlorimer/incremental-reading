@@ -24,7 +24,6 @@ from .view import ViewManager
 
 class ReadingManager:
     def __init__(self):
-        self.quickKeyActions = []
         addHook('profileLoaded', self.onProfileLoaded)
 
     def onProfileLoaded(self):

@@ -3,13 +3,13 @@ import os
 import stat
 import time
 
-from bs4 import BeautifulSoup
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAction, QMenu
 
 from aqt import mw
+
+from bs4 import BeautifulSoup
 
 
 def isIrCard(card):
@@ -29,15 +29,36 @@ def viewingIrText():
         return False
 
 
-def addMenu(name):
+def addMenu(fullName):
     if not hasattr(mw, 'customMenus'):
         mw.customMenus = {}
 
-    if name not in mw.customMenus:
-        menu = QMenu('&' + name, mw)
-        mw.customMenus[name] = menu
-        mw.form.menubar.insertMenu(mw.form.menuTools.menuAction(),
-                                   mw.customMenus[name])
+    if len(fullName.split('::')) == 2:
+        menuName, submenuName = fullName.split('::')
+        hasSubmenu = True
+    else:
+        menuName = fullName
+        hasSubmenu = False
+
+    if menuName not in mw.customMenus:
+        menu = QMenu('&' + menuName, mw)
+        mw.customMenus[menuName] = menu
+        mw.form.menubar.insertMenu(mw.form.menuTools.menuAction(), menu)
+
+    if hasSubmenu and (fullName not in mw.customMenus):
+        submenu = QMenu('&' + submenuName, mw)
+        mw.customMenus[fullName] = submenu
+        mw.customMenus[menuName].addMenu(submenu)
+
+
+def setMenuVisibility(menuName):
+    if menuName not in mw.customMenus:
+        return
+
+    if mw.customMenus[menuName].isEmpty():
+        mw.customMenus[menuName].menuAction().setVisible(False)
+    else:
+        mw.customMenus[menuName].menuAction().setVisible(True)
 
 
 def addMenuItem(menuName, text, function, keys=None):
@@ -59,8 +80,6 @@ def addMenuItem(menuName, text, function, keys=None):
     else:
         addMenu(menuName)
         mw.customMenus[menuName].addAction(action)
-
-    return action
 
 
 def getField(note, fieldName):

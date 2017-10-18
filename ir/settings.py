@@ -28,6 +28,7 @@ from .about import IR_GITHUB_URL
 from .util import (addMenuItem,
                    removeComboBoxItem,
                    setComboBoxItem,
+                   setMenuVisibility,
                    updateModificationTime)
 
 
@@ -100,8 +101,6 @@ class SettingsManager:
         else:
             self.settings = self.defaults
 
-        self.loadMenuItems()
-
     def addMissingSettings(self):
         for k, v in self.defaults.items():
             if k not in self.settings:
@@ -129,19 +128,17 @@ class SettingsManager:
                     break
 
     def loadMenuItems(self):
-        self.clearMenuItems()
+        menuName = 'Read::Quick Keys'
+        if menuName in mw.customMenus:
+            mw.customMenus[menuName].clear()
 
         for keyCombo, quickKey in self.settings['quickKeys'].items():
             menuText = 'Add Card [%s -> %s]' % (quickKey['modelName'],
                                                 quickKey['deckName'])
             function = partial(mw.readingManager.quickAdd, quickKey)
-            mw.readingManager.quickKeyActions.append(
-                addMenuItem('Read', menuText, function, keyCombo))
+            addMenuItem(menuName, menuText, function, keyCombo)
 
-    def clearMenuItems(self):
-        for action in mw.readingManager.quickKeyActions:
-            mw.customMenus['Read'].removeAction(action)
-        mw.readingManager.quickKeyActions = []
+        setMenuVisibility(menuName)
 
     def showDialog(self):
         dialog = QDialog(mw)
