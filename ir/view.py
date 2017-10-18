@@ -65,9 +65,12 @@ class ViewManager:
 
             self.settings['zoom'][cid] += self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
-        elif mw.reviewer.card:
+        elif mw.state == 'review':
             self.zoomFactor += self.settings['zoomStep']
             mw.web.setZoomFactor(self.zoomFactor)
+        else:
+            self.settings['generalZoom'] += self.settings['zoomStep']
+            mw.web.setZoomFactor(self.settings['generalZoom'])
 
     def zoomOut(self):
         if viewingIrText():
@@ -78,9 +81,12 @@ class ViewManager:
 
             self.settings['zoom'][cid] -= self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
-        elif mw.reviewer.card:
+        elif mw.state == 'review':
             self.zoomFactor -= self.settings['zoomStep']
             mw.web.setZoomFactor(self.zoomFactor)
+        else:
+            self.settings['generalZoom'] -= self.settings['zoomStep']
+            mw.web.setZoomFactor(self.settings['generalZoom'])
 
     def saveScroll(self, event=None):
         if viewingIrText():
