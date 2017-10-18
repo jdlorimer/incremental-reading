@@ -89,11 +89,16 @@ class Importer:
 
         try:
             feed = parse(url,
+                         agent=self.settings['userAgent'],
                          etag=log[url]['etag'],
                          modified=log[url]['modified'])
         except KeyError:
             log[url] = {'downloaded': []}
-            feed = parse(url)
+            feed = parse(url, agent=self.settings['userAgent'])
+
+        if feed['status'] not in [200, 301, 302]:
+            showWarning('The remote server has returned an unexpected status:'
+                        ' {}'.format(feed['status']))
 
         entries = [{'text': e['title'], 'data': e} for e in feed['entries']]
         selected = self._select(entries)
