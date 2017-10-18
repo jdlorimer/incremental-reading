@@ -10,9 +10,8 @@ from .util import fixImages, getField, setField
 
 
 class TextManager:
-    def __init__(self, settings):
+    def __init__(self):
         self.history = defaultdict(list)
-        self.settings = settings
 
     def highlight(self, bgColor=None, textColor=None):
         if not bgColor:
@@ -92,7 +91,7 @@ class TextManager:
         note['Text'] = self.history[note.id].pop()
         note.flush()
         mw.reset()
-        tooltip('Undone.')
+        tooltip('Undone')
 
     def save(self):
         def callback(text):

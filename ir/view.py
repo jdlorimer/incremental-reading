@@ -5,16 +5,13 @@ from .util import isIrCard, loadJsFile, viewingIrText
 
 
 class ViewManager:
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self):
         self.scrollScript = loadJsFile('scroll')
         self.textScript = loadJsFile('text')
         self.widthScript = loadJsFile('width')
         self.zoomFactor = 1
-        self.resetZoom('deckBrowser')
         addHook('afterStateChange', self.resetZoom)
         addHook('prepareQA', self.prepareCard)
-        mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def prepareCard(self, html, card, context):
         if ((isIrCard(card) and self.settings['limitWidth']) or
@@ -117,6 +114,9 @@ class ViewManager:
         mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def resetZoom(self, state, *args):
+        if not hasattr(self, 'settings'):
+            return
+
         if state in ['deckBrowser', 'overview']:
             mw.web.setZoomFactor(self.settings['generalZoom'])
         elif state == 'review' and not isIrCard(mw.reviewer.card):

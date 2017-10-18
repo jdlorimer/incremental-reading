@@ -34,23 +34,8 @@ from .util import (addMenuItem,
 
 class SettingsManager:
     def __init__(self):
-        self.settingsChanged = False
-        self.loadSettings()
-
-        if self.settingsChanged:
-            showInfo('Your Incremental Reading settings file has been modified'
-                     ' for compatibility reasons. Please take a moment to'
-                     ' reconfigure the add-on to your liking.')
-
         addHook('unloadProfile', self.saveSettings)
 
-    def saveSettings(self):
-        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
-            json.dump(self.settings, jsonFile)
-
-        updateModificationTime(self.mediaDir)
-
-    def loadSettings(self):
         self.defaults = {'badTags': ['iframe', 'script'],
                          'copyTitle': False,
                          'editExtract': False,
@@ -90,6 +75,8 @@ class SettingsManager:
                          'zoom': {},
                          'zoomStep': 0.1}
 
+    def loadSettings(self):
+        self.settingsChanged = False
         self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
         self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
@@ -100,6 +87,13 @@ class SettingsManager:
             self.removeOutdatedQuickKeys()
         else:
             self.settings = self.defaults
+
+        if self.settingsChanged:
+            showInfo('Your Incremental Reading settings file has been modified'
+                     ' for compatibility reasons. Please take a moment to'
+                     ' reconfigure the add-on to your liking.')
+
+        return self.settings
 
     def addMissingSettings(self):
         for k, v in self.defaults.items():
@@ -126,6 +120,12 @@ class SettingsManager:
                     self.settings['quickKeys'].pop(keyCombo)
                     self.settingsChanged = True
                     break
+
+    def saveSettings(self):
+        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+            json.dump(self.settings, jsonFile)
+
+        updateModificationTime(self.mediaDir)
 
     def loadMenuItems(self):
         menuName = 'Read::Quick Keys'

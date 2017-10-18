@@ -25,10 +25,6 @@ from .util import setField
 
 
 class Importer:
-    def __init__(self, settings):
-        self.settings = settings
-        self.log = self.settings['feedLog']
-
     def _fetchWebpage(self, url):
         if not urlsplit(url).scheme:
             url = 'http://' + url
@@ -89,12 +85,14 @@ class Importer:
         if not urlsplit(url).scheme:
             url = 'http://' + url
 
+        log = self.settings['feedLog']
+
         try:
             feed = parse(url,
-                         etag=self.log[url]['etag'],
-                         modified=self.log[url]['modified'])
+                         etag=log[url]['etag'],
+                         modified=log[url]['modified'])
         except KeyError:
-            self.log[url] = {'downloaded': []}
+            log[url] = {'downloaded': []}
             feed = parse(url)
 
         entries = [{'text': e['title'], 'data': e} for e in feed['entries']]
@@ -106,15 +104,15 @@ class Importer:
                               immediate=True)
 
             for i, entry in enumerate(selected, start=1):
-                if not entry['link'] in self.log[url]['downloaded']:
+                if not entry['link'] in log[url]['downloaded']:
                     self.importWebpage(entry['link'])
-                    self.log[url]['downloaded'].append(entry['link'])
+                    log[url]['downloaded'].append(entry['link'])
                 mw.progress.update(value=i)
 
-            self.log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
-            self.log[url]['modified'] = (feed.modified
-                                         if hasattr(feed, 'modified')
-                                         else '')
+            log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
+            log[url]['modified'] = (feed.modified
+                                    if hasattr(feed, 'modified')
+                                    else '')
 
             mw.progress.finish()
 
