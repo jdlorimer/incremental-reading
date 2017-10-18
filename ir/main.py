@@ -29,9 +29,11 @@ class ReadingManager:
         self.settingsManager = SettingsManager()
         self.textManager = TextManager()
         self.viewManager = ViewManager()
-        addHook('prepareQA', self.setIrShortcuts)
-        addHook('reviewStateShortcuts', self.setShortcuts)
         addHook('profileLoaded', self.onProfileLoaded)
+        addHook('reviewStateShortcuts', self.setShortcuts)
+        addHook('prepareQA', self.onPrepareQA)
+        addHook('showAnswer', self.onShowAnswer)
+        addHook('reviewCleanup', self.onReviewCleanup)
 
     def onProfileLoaded(self):
         self.settings = self.settingsManager.loadSettings()
@@ -42,6 +44,16 @@ class ReadingManager:
         self.viewManager.resetZoom('deckBrowser')
         self.addModel()
         self.loadMenuItems()
+        self.shortcuts = [(self.settings['extractKey'],
+                           self.textManager.extract),
+                          (self.settings['highlightKey'],
+                          self.textManager.highlight),
+                          (self.settings['removeKey'], self.textManager.remove),
+                          (self.settings['undoKey'], self.textManager.undo),
+                          ('Up', self.viewManager.lineUp),
+                          ('Down', self.viewManager.lineDown),
+                          ('PgUp', self.viewManager.pageUp),
+                          ('PgDown', self.viewManager.pageDown)]
 
     def loadMenuItems(self):
         if hasattr(mw, 'customMenus') and 'Read' in mw.customMenus:
@@ -67,26 +79,30 @@ class ReadingManager:
 
         self.settingsManager.loadMenuItems()
 
-    def setIrShortcuts(self, html, card, context):
-        if isIrCard(card) and context == 'reviewQuestion':
-            shortcuts = [(self.settings['extractKey'],
-                          self.textManager.extract),
-                         (self.settings['highlightKey'],
-                         self.textManager.highlight),
-                         (self.settings['removeKey'], self.textManager.remove),
-                         (self.settings['undoKey'], self.textManager.undo),
-                         ('Up', self.viewManager.lineUp),
-                         ('Down', self.viewManager.lineDown),
-                         ('PgUp', self.viewManager.pageUp),
-                         ('PgDown', self.viewManager.pageDown)]
+    def onPrepareQA(self, html, card, context):
+        easyShortcut = next(
+            (s for s in mw.stateShortcuts if s.key().toString() == '4'), None)
 
-            easyShortcut = next(s for s in mw.stateShortcuts
-                                if s.key().toString() == '4')
-            mw.stateShortcuts.remove(easyShortcut)
-            sip.delete(easyShortcut)
-            mw.stateShortcuts += mw.applyShortcuts(shortcuts)
+        if isIrCard(card):
+            if context == 'reviewQuestion':
+                self.qshortcuts = mw.applyShortcuts(self.shortcuts)
+                mw.stateShortcuts += self.qshortcuts
+            if easyShortcut:
+                mw.stateShortcuts.remove(easyShortcut)
+                sip.delete(easyShortcut)
+        elif not easyShortcut:
+            mw.stateShortcuts += mw.applyShortcuts(
+                [('4', lambda: mw.reviewer._answerCard(4))])
 
         return html
+
+    def onShowAnswer(self):
+        for qs in self.qshortcuts:
+            mw.stateShortcuts.remove(qs)
+            sip.delete(qs)
+
+    def onReviewCleanup(self):
+        self.qshortcuts = []
 
     def setShortcuts(self, shortcuts):
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
