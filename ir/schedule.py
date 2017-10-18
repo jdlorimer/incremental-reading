@@ -19,9 +19,6 @@ SCHEDULE_CUSTOM = 3
 
 
 class Scheduler:
-    def __init__(self, settings):
-        self.settings = settings
-
     def showDialog(self, currentCard=None):
         if currentCard:
             did = currentCard.did

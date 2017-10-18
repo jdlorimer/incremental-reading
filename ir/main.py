@@ -24,28 +24,29 @@ from .view import ViewManager
 
 class ReadingManager:
     def __init__(self):
+        self.importer = Importer()
+        self.scheduler = Scheduler()
+        self.settingsManager = SettingsManager()
+        self.textManager = TextManager()
+        self.viewManager = ViewManager()
+        addHook('prepareQA', self.setIrShortcuts)
+        addHook('reviewStateShortcuts', self.setShortcuts)
         addHook('profileLoaded', self.onProfileLoaded)
 
     def onProfileLoaded(self):
-        self.settingsManager = SettingsManager()
-        self.settings = self.settingsManager.settings
-        self.importer = Importer(self.settings)
-        self.scheduler = Scheduler(self.settings)
-        self.textManager = TextManager(self.settings)
-        self.viewManager = ViewManager(self.settings)
+        self.settings = self.settingsManager.loadSettings()
+        self.importer.settings = self.settings
+        self.scheduler.settings = self.settings
+        self.textManager.settings = self.settings
+        self.viewManager.settings = self.settings
+        self.viewManager.resetZoom('deckBrowser')
+        self.addModel()
+        self.loadMenuItems()
 
-        if not mw.col.models.byName(self.settings['modelName']):
-            self.addModel()
-
+    def loadMenuItems(self):
         if hasattr(mw, 'customMenus') and 'Read' in mw.customMenus:
             mw.customMenus['Read'].clear()
 
-        self.loadMenuItems()
-        self.settingsManager.loadMenuItems()
-        addHook('prepareQA', self.setIrShortcuts)
-        addHook('reviewStateShortcuts', self.setShortcuts)
-
-    def loadMenuItems(self):
         addMenuItem('Read',
                     'Options...',
                     self.settingsManager.showDialog,
@@ -63,6 +64,8 @@ class ReadingManager:
         addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
+
+        self.settingsManager.loadMenuItems()
 
     def setIrShortcuts(self, html, card, context):
         if isIrCard(card) and context == 'reviewQuestion':
@@ -89,6 +92,9 @@ class ReadingManager:
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
 
     def addModel(self):
+        if mw.col.models.byName(self.settings['modelName']):
+            return
+
         model = mw.col.models.new(self.settings['modelName'])
 
         titleField = mw.col.models.newField(self.settings['titleField'])
