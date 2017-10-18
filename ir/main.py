@@ -30,6 +30,7 @@ class ReadingManager:
         self.textManager = TextManager()
         self.viewManager = ViewManager()
         addHook('profileLoaded', self.onProfileLoaded)
+        addHook('overviewStateShortcuts', self.setShortcuts)
         addHook('reviewStateShortcuts', self.setShortcuts)
         addHook('prepareQA', self.onPrepareQA)
         addHook('showAnswer', self.onShowAnswer)
