@@ -7,12 +7,13 @@ from PyQt4.QtCore import QPoint, Qt
 from anki.hooks import wrap
 from aqt import mw
 
-from ir.util import addMenuItem, addShortcut, viewingIrText
+from ir.util import addMenuItem, addShortcut, isIrCard, viewingIrText
 
 
 class ViewManager():
     def __init__(self):
         self.previousState = None
+        self.zoomFactor = 1
         mw.moveToState = wrap(mw.moveToState, self.resetZoom, 'before')
         mw.web.wheelEvent = wrap(mw.web.wheelEvent, self.saveScroll)
         mw.web.mouseReleaseEvent = wrap(mw.web.mouseReleaseEvent,
@@ -46,9 +47,12 @@ class ViewManager():
 
             self.settings['zoom'][cid] += self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
-        elif mw.reviewer.card:
-            newFactor = mw.web.zoomFactor() + self.settings['zoomStep']
-            mw.web.setZoomFactor(newFactor)
+        elif mw.state == 'review':
+            self.zoomFactor += self.settings['zoomStep']
+            mw.web.setZoomFactor(self.zoomFactor)
+        else:
+            self.settings['generalZoom'] += self.settings['zoomStep']
+            mw.web.setZoomFactor(self.settings['generalZoom'])
 
     def zoomOut(self):
         if viewingIrText():
@@ -59,9 +63,12 @@ class ViewManager():
 
             self.settings['zoom'][cid] -= self.settings['zoomStep']
             mw.web.setZoomFactor(self.settings['zoom'][cid])
-        elif mw.reviewer.card:
-            newFactor = mw.web.zoomFactor() - self.settings['zoomStep']
-            mw.web.setZoomFactor(newFactor)
+        elif mw.state == 'review':
+            self.zoomFactor -= self.settings['zoomStep']
+            mw.web.setZoomFactor(self.zoomFactor)
+        else:
+            self.settings['generalZoom'] -= self.settings['zoomStep']
+            mw.web.setZoomFactor(self.settings['generalZoom'])
 
     def setScroll(self, pos=None):
         if pos is None:
@@ -109,11 +116,7 @@ class ViewManager():
     def resetZoom(self, state, *args):
         if state in ['deckBrowser', 'overview']:
             mw.web.setZoomFactor(self.settings['generalZoom'])
-        elif (state == 'review' and
-              self.previousState != 'review' and
-              mw.reviewer.card and
-              (mw.reviewer.card.note().model()['name'] !=
-               self.settings['modelName'])):
-            self.setZoom(1)
+        elif state == 'review' and not isIrCard(mw.reviewer.card):
+            self.setZoom(self.zoomFactor)
 
         self.previousState = state
