@@ -34,6 +34,7 @@ class ReadingManager:
         addHook('prepareQA', self.onPrepareQA)
         addHook('showAnswer', self.onShowAnswer)
         addHook('reviewCleanup', self.onReviewCleanup)
+        self.qshortcuts = []
 
     def onProfileLoaded(self):
         self.settings = self.settingsManager.loadSettings()
