@@ -1,35 +1,24 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-from collections import defaultdict
-import re
-import time
 
 from PyQt4.QtCore import QObject, pyqtSlot
-from PyQt4.QtGui import (QApplication,
-                         QDialog,
-                         QDialogButtonBox,
-                         QHBoxLayout,
-                         QLabel,
-                         QLineEdit)
+from PyQt4.QtGui import QApplication
 from PyQt4.QtWebKit import QWebPage
 
 from anki import notes
 from anki.hooks import addHook, wrap
-from anki.notes import Note
 from anki.sound import clearAudioQueue
-from aqt import addcards, editcurrent
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
 from aqt.reviewer import Reviewer
-from aqt.utils import showInfo, showWarning, tooltip
-
-from BeautifulSoup import BeautifulSoup
+from aqt.utils import showWarning, tooltip
 
 from ir.about import showAbout
 from ir.settings import SettingsManager
 from ir.schedule import Scheduler
+from ir.text import TextManager
 from ir.util import (addMenuItem,
                      addShortcut,
                      disableOutdated,
@@ -39,17 +28,10 @@ from ir.util import (addMenuItem,
                      viewingIrText)
 from ir.view import ViewManager
 
-TEXT_FIELD_NAME = 'Text'
-SOURCE_FIELD_NAME = 'Source'
-TITLE_FIELD_NAME = 'Title'
-
-AFMT = "When do you want to see this card again?"
-
 
 class ReadingManager():
     def __init__(self):
         self.controlsLoaded = False
-        self.textHistory = defaultdict(list)
         self.quickKeyActions = []
 
         addHook('profileLoaded', self.onProfileLoaded)
@@ -57,120 +39,54 @@ class ReadingManager():
         addHook('showQuestion', self.restoreView)
 
     def onProfileLoaded(self):
-        mw.settingsManager = SettingsManager()
-        self.settings = mw.settingsManager.settings
+        self.settingsManager = SettingsManager()
+        self.settings = self.settingsManager.settings
         self.scheduler = Scheduler(self.settings)
+        self.textManager = TextManager(self.settings)
         mw.viewManager = ViewManager()
-        mw.viewManager.settings = mw.settingsManager.settings
+        mw.viewManager.settings = self.settings
 
-        self.addModel()
+        if not mw.col.models.byName(self.settings['modelName']):
+            self.addModel()
+
         disableOutdated()
 
         if not self.controlsLoaded:
-            mw.settingsManager.addMenuItem()
+            addMenuItem('Read',
+                        'Options...',
+                        self.settingsManager.showDialog,
+                        'Alt+1')
             addMenuItem('Read',
                         'Organizer...',
                         self.scheduler.showDialog,
                         'Alt+2')
             mw.viewManager.addMenuItems()
             mw.viewManager.addShortcuts()
-            addShortcut(self.undo, self.settings['undoKey'])
+            addShortcut(self.textManager.undo, self.settings['undoKey'])
             addMenuItem('Read', 'About...', showAbout)
             self.controlsLoaded = True
 
         mw.viewManager.resetZoom('deckBrowser')
 
     def addModel(self):
-        "Only adds model if no model with the same name is present"
-        col = mw.col
-        mm = col.models
-        iread_model = mm.byName(self.settings['modelName'])
-        if not iread_model:
-            iread_model = mm.new(self.settings['modelName'])
-            model_field = mm.newField(TITLE_FIELD_NAME)
-            mm.addField(iread_model, model_field)
-            text_field = mm.newField(TEXT_FIELD_NAME)
-            mm.addField(iread_model, text_field)
-            source_field = mm.newField(SOURCE_FIELD_NAME)
-            source_field['sticky'] = True
-            mm.addField(iread_model, source_field)
+        model = mw.col.models.new(self.settings['modelName'])
 
-            t = mm.newTemplate('IR Card')
-            t['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (TEXT_FIELD_NAME)
-            t['afmt'] = AFMT
+        titleField = mw.col.models.newField(self.settings['titleField'])
+        textField = mw.col.models.newField(self.settings['textField'])
+        sourceField = mw.col.models.newField(self.settings['sourceField'])
+        sourceField['sticky'] = True
 
-            mm.addTemplate(iread_model, t)
-            mm.add(iread_model)
-            return iread_model
-        else:
-            fmap = mm.fieldMap(iread_model)
-            title_ord, title_field = fmap[TITLE_FIELD_NAME]
-            text_ord, text_field = fmap[TEXT_FIELD_NAME]
-            source_ord, source_field = fmap[SOURCE_FIELD_NAME]
-            source_field['sticky'] = True
+        mw.col.models.addField(model, titleField)
+        mw.col.models.addField(model, textField)
+        mw.col.models.addField(model, sourceField)
 
-    def extract(self):
-        if not mw.web.selectedText():
-            showInfo(_('Please select some text to extract.'))
-            return
+        template = mw.col.models.newTemplate('IR Card')
+        template['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
+            self.settings['textField'])
+        template['afmt'] = 'When do you want to see this card again?'
 
-        mw.web.triggerPageAction(QWebPage.Copy)
-
-        mimeData = QApplication.clipboard().mimeData()
-
-        if self.settings['plainText']:
-            text = mimeData.text()
-        else:
-            text = mimeData.html()
-
-        self.highlightText(self.settings['extractBgColor'],
-                           self.settings['extractTextColor'])
-
-        currentCard = mw.reviewer.card
-        currentNote = currentCard.note()
-        model = mw.col.models.byName(self.settings['modelName'])
-        newNote = Note(mw.col, model)
-        newNote.tags = currentNote.tags
-
-        setField(newNote, TEXT_FIELD_NAME, text)
-        setField(newNote,
-                 SOURCE_FIELD_NAME,
-                 getField(currentNote, SOURCE_FIELD_NAME))
-
-        if self.settings['editSource']:
-            EditCurrent(mw)
-
-        if self.settings['extractDeck']:
-            did = mw.col.decks.byName(self.settings['extractDeck'])['id']
-        else:
-            did = currentCard.did
-
-        if self.settings['editExtract']:
-            addCards = AddCards(mw)
-            addCards.editor.setNote(newNote)
-            deckName = mw.col.decks.get(did)['name']
-            addCards.deckChooser.deck.setText(deckName)
-            addCards.modelChooser.models.setText(self.settings['modelName'])
-        else:
-            setField(newNote, TITLE_FIELD_NAME, self.getNewTitle())
-            newNote.model()['did'] = did
-            mw.col.addNote(newNote)
-
-    def getNewTitle(self):
-        dialog = QDialog(mw)
-        dialog.setWindowTitle('Extract Text')
-        titleLabel = QLabel('Title')
-        titleEditBox = QLineEdit()
-        titleEditBox.setFixedWidth(300)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.accepted.connect(dialog.accept)
-        layout = QHBoxLayout()
-        layout.addWidget(titleLabel)
-        layout.addWidget(titleEditBox)
-        layout.addWidget(buttonBox)
-        dialog.setLayout(layout)
-        dialog.exec_()
-        return titleEditBox.text()
+        mw.col.models.addTemplate(model, template)
+        mw.col.models.add(model)
 
     def restoreView(self):
         if viewingIrText():
@@ -190,56 +106,6 @@ class ReadingManager():
             'pyCallback', IREJavaScriptCallback())
         initJavaScript()
         mw.web.eval('restoreHighlighting()')
-
-    def highlightText(self, bgColor=None, textColor=None):
-        if not bgColor:
-            bgColor = self.settings['highlightBgColor']
-        if not textColor:
-            textColor = self.settings['highlightTextColor']
-
-        identifier = str(int(time.time() * 10))
-        script = "markRange('%s', '%s', '%s');" % (identifier,
-                                                   bgColor,
-                                                   textColor)
-        script += "highlight('%s', '%s');" % (bgColor, textColor)
-        mw.web.eval(script)
-        self.saveText()
-
-    def saveText(self):
-        # No obvious/easy way to do this with BeautifulSoup
-        def removeOuterDiv(html):
-            withoutOpenDiv = re.sub('^<div[^>]+>', '', unicode(html))
-            withoutCloseDiv = re.sub('</div>$', '', withoutOpenDiv)
-            return withoutCloseDiv
-
-        page = mw.web.page().mainFrame().toHtml()
-        soup = BeautifulSoup(page)
-        irTextDiv = soup.find('div', {'class': re.compile(r'.*ir-text.*')})
-
-        if irTextDiv:
-            note = mw.reviewer.card.note()
-            self.textHistory[note.id].append(note['Text'])
-            withoutDiv = removeOuterDiv(irTextDiv)
-            note['Text'] = unicode(withoutDiv)
-            note.flush()
-            self.restoreView()
-
-    def removeText(self):
-        mw.web.eval('removeText()')
-        self.saveText()
-
-    def undo(self):
-        currentNote = mw.reviewer.card.note()
-
-        if (currentNote.id not in self.textHistory or
-                not self.textHistory[currentNote.id]):
-            showInfo('No undo history for this note.')
-            return
-
-        currentNote['Text'] = self.textHistory[currentNote.id].pop()
-        currentNote.flush()
-        mw.reset()
-        tooltip('Undone.')
 
     def htmlUpdated(self):
         curNote = mw.reviewer.card.note()
@@ -264,7 +130,8 @@ class ReadingManager():
                 selectedText = mimeData.text()
             else:
                 selectedText = mimeData.html()
-            self.highlightText(quickKey['bgColor'], quickKey['textColor'])
+            self.textManager.highlight(quickKey['bgColor'],
+                                       quickKey['textColor'])
 
         # Create new note with selected model and deck
         newModel = mw.col.models.byName(quickKey['modelName'])
@@ -279,13 +146,13 @@ class ReadingManager():
         newNote.setTagsFromStr(tags)
 
         for f in newModel['flds']:
-            if SOURCE_FIELD_NAME == f['name']:
+            if self.settings['sourceField'] == f['name']:
                 setField(newNote,
-                         SOURCE_FIELD_NAME,
-                         getField(currentNote, SOURCE_FIELD_NAME))
+                         self.settings['sourceField'],
+                         getField(currentNote, self.settings['sourceField']))
 
         if quickKey['editExtract']:
-            addCards = addcards.AddCards(mw)
+            addCards = AddCards(mw)
             addCards.editor.setNote(newNote)
             if newNote.stringTags():
                 addCards.editor.tags.setText(newNote.stringTags().strip())
@@ -312,7 +179,7 @@ class ReadingManager():
             tooltip(_('Added'))
 
         if quickKey['editSource']:
-            self.editCurrent = editcurrent.EditCurrent(mw)
+            EditCurrent(mw)
 
 
 class IREJavaScriptCallback(QObject):
@@ -450,14 +317,14 @@ def keyHandler(self, evt, _old):
     handled = False
 
     if viewingIrText():
-        if key == mw.settingsManager.settings['extractKey'].lower():
-            mw.readingManager.extract()
+        if key == mw.readingManager.settings['extractKey']:
+            mw.readingManager.textManager.extract()
             handled = True
-        elif key == mw.settingsManager.settings['highlightKey'].lower():
-            mw.readingManager.highlightText()
+        elif key == mw.readingManager.settings['highlightKey']:
+            mw.readingManager.textManager.highlight()
             handled = True
-        elif key == mw.settingsManager.settings['removeKey'].lower():
-            mw.readingManager.removeText()
+        elif key == mw.readingManager.settings['removeKey']:
+            mw.readingManager.textManager.remove()
             handled = True
 
     if handled:
