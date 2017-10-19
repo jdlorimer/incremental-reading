@@ -15,7 +15,7 @@ class ViewManager:
 
     def prepareCard(self, html, card, context):
         if ((isIrCard(card) and self.settings['limitWidth']) or
-                self.settings['limitGlobalWidth']):
+                self.settings['limitWidthAll']):
             js = self.widthScript.format(maxWidth=self.settings['maxWidth'])
         else:
             js = ''
