@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (QAbstractItemView,
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
+SCHEDULE_EXTRACT = 0
 SCHEDULE_SOON = 1
 SCHEDULE_LATER = 2
 SCHEDULE_CUSTOM = 3
@@ -110,14 +111,18 @@ class Scheduler:
             self.cardListWidget.addItem(item)
 
     def answer(self, card, ease):
-        if ease == SCHEDULE_SOON:
-            value = self.settings['schedSoonValue']
-            randomize = self.settings['schedSoonRandom']
-            method = self.settings['schedSoonMethod']
+        if ease == SCHEDULE_EXTRACT:
+            value = self.settings['extractValue']
+            randomize = self.settings['extractRandom']
+            method = self.settings['extractMethod']
+        elif ease == SCHEDULE_SOON:
+            value = self.settings['soonValue']
+            randomize = self.settings['soonRandom']
+            method = self.settings['soonMethod']
         elif ease == SCHEDULE_LATER:
-            value = self.settings['schedLaterValue']
-            randomize = self.settings['schedLaterRandom']
-            method = self.settings['schedLaterMethod']
+            value = self.settings['laterValue']
+            randomize = self.settings['laterRandom']
+            method = self.settings['laterMethod']
         elif ease == SCHEDULE_CUSTOM:
             self.reposition(card, 1)
             self.showDialog(card)
@@ -134,7 +139,9 @@ class Scheduler:
 
         newPos = max(1, round(newPos))
         self.reposition(card, newPos)
-        tooltip('Card moved to position {}'.format(newPos))
+
+        if ease != SCHEDULE_EXTRACT:
+            tooltip('Card moved to position {}'.format(newPos))
 
     def reposition(self, card, newPos):
         cids = [c['id'] for c in self._getCardInfo(card.did)]
