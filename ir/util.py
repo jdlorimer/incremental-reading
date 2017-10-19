@@ -5,7 +5,7 @@ import time
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QAction, QMenu
+from PyQt5.QtWidgets import QAction, QMenu, QSpinBox
 
 from aqt import mw
 
@@ -92,6 +92,14 @@ def setField(note, fieldName, content):
     model = note.model()
     index, _ = mw.col.models.fieldMap(model)[fieldName]
     note.fields[index] = content
+
+
+def createSpinBox(value, minimum, maximum, step):
+    spinBox = QSpinBox()
+    spinBox.setRange(minimum, maximum)
+    spinBox.setSingleStep(step)
+    spinBox.setValue(value)
+    return spinBox
 
 
 def setComboBoxItem(comboBox, text):

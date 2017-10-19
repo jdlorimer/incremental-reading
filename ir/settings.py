@@ -14,18 +14,18 @@ from PyQt5.QtWidgets import (QButtonGroup,
                              QLineEdit,
                              QPushButton,
                              QRadioButton,
-                             QSpinBox,
                              QTabWidget,
                              QVBoxLayout,
                              QWidget)
 
 from anki.hooks import addHook
 from aqt import mw
-from aqt.utils import showInfo, showWarning
+from aqt.utils import showInfo, showWarning, tooltip
 
 from ._version import __version__
 from .about import IR_GITHUB_URL
 from .util import (addMenuItem,
+                   createSpinBox,
                    removeComboBoxItem,
                    setComboBoxItem,
                    setMenuVisibility,
@@ -87,8 +87,8 @@ class SettingsManager:
         if os.path.isfile(self.jsonPath):
             with open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
-            self.addMissingSettings()
-            self.removeOutdatedQuickKeys()
+            self._addMissingSettings()
+            self._removeOutdatedQuickKeys()
         else:
             self.settings = self.defaults
 
@@ -99,13 +99,13 @@ class SettingsManager:
 
         return self.settings
 
-    def addMissingSettings(self):
+    def _addMissingSettings(self):
         for k, v in self.defaults.items():
             if k not in self.settings:
                 self.settings[k] = v
                 self.settingsChanged = True
 
-    def removeOutdatedQuickKeys(self):
+    def _removeOutdatedQuickKeys(self):
         required = ['alt',
                     'bgColor',
                     'ctrl',
@@ -148,19 +148,19 @@ class SettingsManager:
         dialog = QDialog(mw)
 
         zoomScrollLayout = QHBoxLayout()
-        zoomScrollLayout.addWidget(self.createZoomGroupBox())
-        zoomScrollLayout.addWidget(self.createScrollGroupBox())
+        zoomScrollLayout.addWidget(self._getZoomGroupBox())
+        zoomScrollLayout.addWidget(self._getScrollGroupBox())
 
         zoomScrollTab = QWidget()
         zoomScrollTab.setLayout(zoomScrollLayout)
 
         tabWidget = QTabWidget()
         tabWidget.setUsesScrollButtons(False)
-        tabWidget.addTab(self.createGeneralTab(), 'General')
-        tabWidget.addTab(self.createExtractionTab(), 'Extraction')
-        tabWidget.addTab(self.createHighlightingTab(), 'Highlighting')
-        tabWidget.addTab(self.createSchedulingTab(), 'Scheduling')
-        tabWidget.addTab(self.createQuickKeysTab(), 'Quick Keys')
+        tabWidget.addTab(self._getGeneralTab(), 'General')
+        tabWidget.addTab(self._getExtractionTab(), 'Extraction')
+        tabWidget.addTab(self._getHighlightTab(), 'Highlighting')
+        tabWidget.addTab(self._getSchedulingTab(), 'Scheduling')
+        tabWidget.addTab(self._getQuickKeysTab(), 'Quick Keys')
         tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
@@ -175,12 +175,17 @@ class SettingsManager:
 
         dialog.setLayout(mainLayout)
         dialog.setWindowTitle('Incremental Reading Options')
-        if dialog.exec_():
-            self.saveChanges()
 
-    def saveChanges(self):
-        self.saveKeys()
-        self.saveHighlightSettings()
+        done = False
+        while not done:
+            if dialog.exec_():
+                done = self._saveChanges()
+            else:
+                done = True
+
+    def _saveChanges(self):
+        self._saveHighlightSettings()
+        done = self._saveKeys()
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
@@ -211,6 +216,7 @@ class SettingsManager:
             self.settings['maxWidth'] = int(self.widthEditBox.text())
         except ValueError:
             showWarning('Integer value expected. Please try again.')
+            done = False
 
         if self.soonPercentButton.isChecked():
             self.settings['soonMethod'] = 'percent'
@@ -238,43 +244,53 @@ class SettingsManager:
             self.settings['limitWidthAll'] = False
 
         mw.readingManager.viewManager.resetZoom(mw.state)
+        return done
 
-    def createGeneralTab(self):
-        extractKeyLabel = QLabel('Extract Key')
+    def _getGeneralTab(self):
         highlightKeyLabel = QLabel('Highlight Key')
+        extractKeyLabel = QLabel('Extract Key')
         removeKeyLabel = QLabel('Remove Key')
+        undoKeyLabel = QLabel('Undo Key')
 
         self.extractKeyComboBox = QComboBox()
         self.highlightKeyComboBox = QComboBox()
         self.removeKeyComboBox = QComboBox()
+        self.undoKeyComboBox = QComboBox()
 
         keys = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789')
-        for comboBox in [self.extractKeyComboBox,
-                         self.highlightKeyComboBox,
-                         self.removeKeyComboBox]:
+        for comboBox in [self.highlightKeyComboBox,
+                         self.extractKeyComboBox,
+                         self.removeKeyComboBox,
+                         self.undoKeyComboBox]:
             comboBox.addItems(keys)
 
-        self.setDefaultKeys()
-
-        extractKeyLayout = QHBoxLayout()
-        extractKeyLayout.addWidget(extractKeyLabel)
-        extractKeyLayout.addStretch()
-        extractKeyLayout.addWidget(self.extractKeyComboBox)
+        self._setCurrentKeys()
 
         highlightKeyLayout = QHBoxLayout()
         highlightKeyLayout.addWidget(highlightKeyLabel)
         highlightKeyLayout.addStretch()
         highlightKeyLayout.addWidget(self.highlightKeyComboBox)
 
+        extractKeyLayout = QHBoxLayout()
+        extractKeyLayout.addWidget(extractKeyLabel)
+        extractKeyLayout.addStretch()
+        extractKeyLayout.addWidget(self.extractKeyComboBox)
+
         removeKeyLayout = QHBoxLayout()
         removeKeyLayout.addWidget(removeKeyLabel)
         removeKeyLayout.addStretch()
         removeKeyLayout.addWidget(self.removeKeyComboBox)
 
+        undoKeyLayout = QHBoxLayout()
+        undoKeyLayout.addWidget(undoKeyLabel)
+        undoKeyLayout.addStretch()
+        undoKeyLayout.addWidget(self.undoKeyComboBox)
+
         controlsLayout = QVBoxLayout()
-        controlsLayout.addLayout(extractKeyLayout)
         controlsLayout.addLayout(highlightKeyLayout)
+        controlsLayout.addLayout(extractKeyLayout)
         controlsLayout.addLayout(removeKeyLayout)
+        controlsLayout.addLayout(undoKeyLayout)
         controlsLayout.addStretch()
 
         controlsGroupBox = QGroupBox('Basic Controls')
@@ -326,36 +342,44 @@ class SettingsManager:
 
         return tab
 
-    def setDefaultKeys(self):
-        setComboBoxItem(self.extractKeyComboBox, self.settings['extractKey'])
+    def _setCurrentKeys(self):
         setComboBoxItem(self.highlightKeyComboBox,
                         self.settings['highlightKey'])
+        setComboBoxItem(self.extractKeyComboBox, self.settings['extractKey'])
         setComboBoxItem(self.removeKeyComboBox, self.settings['removeKey'])
+        setComboBoxItem(self.undoKeyComboBox, self.settings['undoKey'])
 
-    def saveKeys(self):
-        keys = [self.extractKeyComboBox.currentText(),
-                self.highlightKeyComboBox.currentText(),
-                self.removeKeyComboBox.currentText()]
+    def _saveKeys(self):
+        keys = [self.highlightKeyComboBox.currentText(),
+                self.extractKeyComboBox.currentText(),
+                self.removeKeyComboBox.currentText(),
+                self.undoKeyComboBox.currentText()]
 
-        if len(set(keys)) < 3:
+        if len(set(keys)) < len(keys):
             showInfo('There is a conflict with the keys you have chosen.'
                      ' Please try again.')
-            self.setDefaultKeys()
+            self._setCurrentKeys()
+            return False
         else:
-            self.settings['extractKey'] = (self
-                                           .extractKeyComboBox
-                                           .currentText()
-                                           .lower())
             self.settings['highlightKey'] = (self
                                              .highlightKeyComboBox
                                              .currentText()
                                              .lower())
+            self.settings['extractKey'] = (self
+                                           .extractKeyComboBox
+                                           .currentText()
+                                           .lower())
             self.settings['removeKey'] = (self
                                           .removeKeyComboBox
                                           .currentText()
                                           .lower())
+            self.settings['undoKey'] = (self
+                                        .undoKeyComboBox
+                                        .currentText()
+                                        .lower())
+            return True
 
-    def createExtractionTab(self):
+    def _getExtractionTab(self):
         extractDeckLabel = QLabel('Extracts Deck')
         self.extractDeckComboBox = QComboBox()
         deckNames = sorted([d['name'] for d in mw.col.decks.all()])
@@ -416,9 +440,9 @@ class SettingsManager:
 
         return tab
 
-    def createHighlightingTab(self):
-        colorsGroupBox = self.createColorsGroupBox()
-        colorPreviewGroupBox = self.createColorPreviewGroupBox()
+    def _getHighlightTab(self):
+        colorsGroupBox = self._getColorsGroupBox()
+        colorPreviewGroupBox = self._getColorPreviewGroupBox()
 
         horizontalLayout = QHBoxLayout()
         horizontalLayout.addWidget(colorsGroupBox)
@@ -434,28 +458,26 @@ class SettingsManager:
 
         return tab
 
-    def saveHighlightSettings(self):
+    def _saveHighlightSettings(self):
         target = self.targetComboBox.currentText()
         bgColor = self.bgColorComboBox.currentText()
         textColor = self.textColorComboBox.currentText()
 
-        if target == self.settings['highlightKey']:
+        if target == '[Highlight Key]':
             self.settings['highlightBgColor'] = bgColor
             self.settings['highlightTextColor'] = textColor
-        elif target == self.settings['extractKey']:
+        elif target == '[Extract Key]':
             self.settings['extractBgColor'] = bgColor
             self.settings['extractTextColor'] = textColor
         else:
             self.settings['quickKeys'][target]['bgColor'] = bgColor
             self.settings['quickKeys'][target]['textColor'] = textColor
 
-    def createColorsGroupBox(self):
+    def _getColorsGroupBox(self):
         self.targetComboBox = QComboBox()
-        self.targetComboBox.addItem(self.settings['highlightKey'])
-        self.targetComboBox.addItem(self.settings['extractKey'])
-        self.targetComboBox.addItems(self.settings['quickKeys'].keys())
+        self._populateTargetComboBox()
         self.targetComboBox.currentIndexChanged.connect(
-            self.updateHighlightingTab)
+            self._updateHighlightTab)
 
         targetLayout = QHBoxLayout()
         targetLayout.addWidget(self.targetComboBox)
@@ -468,14 +490,14 @@ class SettingsManager:
         setComboBoxItem(self.bgColorComboBox,
                         self.settings['highlightBgColor'])
         self.bgColorComboBox.currentIndexChanged.connect(
-            self.updateColorPreview)
+            self._updateColorPreview)
 
         self.textColorComboBox = QComboBox()
         self.textColorComboBox.addItems(colors)
         setComboBoxItem(self.textColorComboBox,
                         self.settings['highlightTextColor'])
         self.textColorComboBox.currentIndexChanged.connect(
-            self.updateColorPreview)
+            self._updateColorPreview)
 
         bgColorLabel = QLabel('Background')
         bgColorLayout = QHBoxLayout()
@@ -499,14 +521,24 @@ class SettingsManager:
 
         return groupBox
 
-    def updateHighlightingTab(self):
+    def _populateTargetComboBox(self):
+        self.targetComboBox.clear()
+        self.targetComboBox.addItem('[Highlight Key]')
+        self.targetComboBox.addItem('[Extract Key]')
+        self.targetComboBox.addItems(self.settings['quickKeys'].keys())
+
+    def _updateHighlightTab(self):
         target = self.targetComboBox.currentText()
-        if target == self.settings['highlightKey']:
+
+        if not target:
+            return
+
+        if target == '[Highlight Key]':
             setComboBoxItem(self.bgColorComboBox,
                             self.settings['highlightBgColor'])
             setComboBoxItem(self.textColorComboBox,
                             self.settings['highlightTextColor'])
-        elif target == self.settings['extractKey']:
+        elif target == '[Extract Key]':
             setComboBoxItem(self.bgColorComboBox,
                             self.settings['extractBgColor'])
             setComboBoxItem(self.textColorComboBox,
@@ -523,7 +555,7 @@ class SettingsManager:
         with open(colorsFilePath, encoding='utf-8') as colorsFile:
             return [line.strip() for line in colorsFile]
 
-    def updateColorPreview(self):
+    def _updateColorPreview(self):
         bgColor = self.bgColorComboBox.currentText()
         textColor = self.textColorComboBox.currentText()
         styleSheet = ('QLabel {'
@@ -536,9 +568,9 @@ class SettingsManager:
         self.colorPreviewLabel.setStyleSheet(styleSheet)
         self.colorPreviewLabel.setAlignment(Qt.AlignCenter)
 
-    def createColorPreviewGroupBox(self):
+    def _getColorPreviewGroupBox(self):
         self.colorPreviewLabel = QLabel('Example Text')
-        self.updateColorPreview()
+        self._updateColorPreview()
         colorPreviewLayout = QVBoxLayout()
         colorPreviewLayout.addWidget(self.colorPreviewLabel)
 
@@ -547,7 +579,7 @@ class SettingsManager:
 
         return groupBox
 
-    def createSchedulingTab(self):
+    def _getSchedulingTab(self):
         soonLabel = QLabel('Soon Button')
         laterLabel = QLabel('Later Button')
         extractLabel = QLabel('Extracts')
@@ -645,7 +677,7 @@ class SettingsManager:
 
         return tab
 
-    def createQuickKeysTab(self):
+    def _getQuickKeysTab(self):
         destDeckLabel = QLabel('Destination Deck')
         noteTypeLabel = QLabel('Note Type')
         textFieldLabel = QLabel('Paste Text to Field')
@@ -655,7 +687,7 @@ class SettingsManager:
         self.quickKeysComboBox.addItem('')
         self.quickKeysComboBox.addItems(self.settings['quickKeys'].keys())
         self.quickKeysComboBox.currentIndexChanged.connect(
-            self.updateQuickKeysTab)
+            self._updateQuickKeysTab)
 
         self.destDeckComboBox = QComboBox()
         self.noteTypeComboBox = QComboBox()
@@ -699,14 +731,14 @@ class SettingsManager:
         modelNames = sorted([m['name'] for m in mw.col.models.all()])
         self.noteTypeComboBox.addItem('')
         self.noteTypeComboBox.addItems(modelNames)
-        self.noteTypeComboBox.currentIndexChanged.connect(self.updateFieldList)
+        self.noteTypeComboBox.currentIndexChanged.connect(self._updateFieldList)
 
         newButton = QPushButton('New')
-        newButton.clicked.connect(self.clearQuickKeysTab)
+        newButton.clicked.connect(self._clearQuickKeysTab)
         setButton = QPushButton('Set')
-        setButton.clicked.connect(self.setQuickKey)
+        setButton.clicked.connect(self._setQuickKey)
         unsetButton = QPushButton('Unset')
-        unsetButton.clicked.connect(self.unsetQuickKey)
+        unsetButton.clicked.connect(self._unsetQuickKey)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch()
@@ -730,7 +762,7 @@ class SettingsManager:
 
         return tab
 
-    def updateQuickKeysTab(self):
+    def _updateQuickKeysTab(self):
         quickKey = self.quickKeysComboBox.currentText()
         if quickKey:
             model = self.settings['quickKeys'][quickKey]
@@ -745,9 +777,9 @@ class SettingsManager:
             self.quickKeyEditSourceCheckBox.setChecked(model['editSource'])
             self.quickKeyPlainTextCheckBox.setChecked(model['plainText'])
         else:
-            self.clearQuickKeysTab()
+            self._clearQuickKeysTab()
 
-    def updateFieldList(self):
+    def _updateFieldList(self):
         modelName = self.noteTypeComboBox.currentText()
         self.textFieldComboBox.clear()
         if modelName:
@@ -755,7 +787,7 @@ class SettingsManager:
             fieldNames = [f['name'] for f in model['flds']]
             self.textFieldComboBox.addItems(fieldNames)
 
-    def clearQuickKeysTab(self):
+    def _clearQuickKeysTab(self):
         self.quickKeysComboBox.setCurrentIndex(0)
         self.destDeckComboBox.setCurrentIndex(0)
         self.noteTypeComboBox.setCurrentIndex(0)
@@ -768,15 +800,16 @@ class SettingsManager:
         self.quickKeyEditSourceCheckBox.setChecked(False)
         self.quickKeyPlainTextCheckBox.setChecked(False)
 
-    def unsetQuickKey(self):
+    def _unsetQuickKey(self):
         quickKey = self.quickKeysComboBox.currentText()
         if quickKey:
             self.settings['quickKeys'].pop(quickKey)
             removeComboBoxItem(self.quickKeysComboBox, quickKey)
-            self.clearQuickKeysTab()
+            self._clearQuickKeysTab()
+            self._populateTargetComboBox()
             self.loadMenuItems()
 
-    def setQuickKey(self):
+    def _setQuickKey(self):
         quickKey = {'deckName': self.destDeckComboBox.currentText(),
                     'modelName': self.noteTypeComboBox.currentText(),
                     'fieldName': self.textFieldComboBox.currentText(),
@@ -806,30 +839,27 @@ class SettingsManager:
             keyCombo += 'Shift+'
         keyCombo += quickKey['regularKey']
 
+        if keyCombo in self.settings['quickKeys']:
+            tooltip('Shortcut updated')
+        else:
+            tooltip('New shortcut added: %s' % keyCombo)
+
         self.settings['quickKeys'][keyCombo] = quickKey
+        self.quickKeysComboBox.addItem(keyCombo)
+        setComboBoxItem(self.quickKeysComboBox, keyCombo)
+        self._populateTargetComboBox()
         self.loadMenuItems()
 
-        showInfo('New shortcut added: %s' % keyCombo)
-
-    def createZoomGroupBox(self):
+    def _getZoomGroupBox(self):
         zoomStepLabel = QLabel('Zoom Step')
         zoomStepPercentLabel = QLabel('%')
         generalZoomLabel = QLabel('General Zoom')
         generalZoomPercentLabel = QLabel('%')
 
-        self.zoomStepSpinBox = QSpinBox()
-        self.zoomStepSpinBox.setMinimum(5)
-        self.zoomStepSpinBox.setMaximum(100)
-        self.zoomStepSpinBox.setSingleStep(5)
         zoomStepPercent = round(self.settings['zoomStep'] * 100)
-        self.zoomStepSpinBox.setValue(zoomStepPercent)
-
-        self.generalZoomSpinBox = QSpinBox()
-        self.generalZoomSpinBox.setMinimum(10)
-        self.generalZoomSpinBox.setMaximum(200)
-        self.generalZoomSpinBox.setSingleStep(10)
         generalZoomPercent = round(self.settings['generalZoom'] * 100)
-        self.generalZoomSpinBox.setValue(generalZoomPercent)
+        self.zoomStepSpinBox = createSpinBox(zoomStepPercent, 5, 100, 5)
+        self.generalZoomSpinBox = createSpinBox(generalZoomPercent, 10, 200, 10)
 
         zoomStepLayout = QHBoxLayout()
         zoomStepLayout.addWidget(zoomStepLabel)
@@ -853,25 +883,16 @@ class SettingsManager:
 
         return groupBox
 
-    def createScrollGroupBox(self):
+    def _getScrollGroupBox(self):
         lineStepLabel = QLabel('Line Step')
         lineStepPercentLabel = QLabel('%')
         pageStepLabel = QLabel('Page Step')
         pageStepPercentLabel = QLabel('%')
 
-        self.lineStepSpinBox = QSpinBox()
-        self.lineStepSpinBox.setMinimum(5)
-        self.lineStepSpinBox.setMaximum(100)
-        self.lineStepSpinBox.setSingleStep(5)
-        self.lineStepSpinBox.setValue(
-            round(self.settings['lineScrollFactor'] * 100))
-
-        self.pageStepSpinBox = QSpinBox()
-        self.pageStepSpinBox.setMinimum(5)
-        self.pageStepSpinBox.setMaximum(100)
-        self.pageStepSpinBox.setSingleStep(5)
-        self.pageStepSpinBox.setValue(
-            round(self.settings['pageScrollFactor'] * 100))
+        lineStepPercent = round(self.settings['lineScrollFactor'] * 100)
+        pageStepPercent = round(self.settings['pageScrollFactor'] * 100)
+        self.lineStepSpinBox = createSpinBox(lineStepPercent, 5, 100, 5)
+        self.pageStepSpinBox = createSpinBox(pageStepPercent, 5, 100, 5)
 
         lineStepLayout = QHBoxLayout()
         lineStepLayout.addWidget(lineStepLabel)
