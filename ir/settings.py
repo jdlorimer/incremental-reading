@@ -163,8 +163,11 @@ class SettingsManager:
         tabWidget.addTab(self.createQuickKeysTab(), 'Quick Keys')
         tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
+                                     QDialogButtonBox.Save)
         buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
+        buttonBox.setOrientation(Qt.Horizontal)
 
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(tabWidget)
@@ -172,7 +175,12 @@ class SettingsManager:
 
         dialog.setLayout(mainLayout)
         dialog.setWindowTitle('Incremental Reading Options')
-        dialog.exec_()
+        if dialog.exec_():
+            self.saveChanges()
+
+    def saveChanges(self):
+        self.saveKeys()
+        self.saveHighlightSettings()
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
@@ -197,12 +205,9 @@ class SettingsManager:
                                             .currentText())
 
         try:
-            self.settings['soonValue'] = int(
-                self.soonValueEditBox.text())
-            self.settings['laterValue'] = int(
-                self.laterValueEditBox.text())
-            self.settings['extractValue'] = int(
-                self.extractValueEditBox.text())
+            self.settings['soonValue'] = int(self.soonValueEditBox.text())
+            self.settings['laterValue'] = int(self.laterValueEditBox.text())
+            self.settings['extractValue'] = int(self.extractValueEditBox.text())
             self.settings['maxWidth'] = int(self.widthEditBox.text())
         except ValueError:
             showWarning('Integer value expected. Please try again.')
@@ -253,28 +258,23 @@ class SettingsManager:
 
         extractKeyLayout = QHBoxLayout()
         extractKeyLayout.addWidget(extractKeyLabel)
+        extractKeyLayout.addStretch()
         extractKeyLayout.addWidget(self.extractKeyComboBox)
 
         highlightKeyLayout = QHBoxLayout()
         highlightKeyLayout.addWidget(highlightKeyLabel)
+        highlightKeyLayout.addStretch()
         highlightKeyLayout.addWidget(self.highlightKeyComboBox)
 
         removeKeyLayout = QHBoxLayout()
         removeKeyLayout.addWidget(removeKeyLabel)
+        removeKeyLayout.addStretch()
         removeKeyLayout.addWidget(self.removeKeyComboBox)
-
-        saveButton = QPushButton('Save')
-        saveButton.clicked.connect(self.saveKeys)
-
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addStretch()
-        buttonLayout.addWidget(saveButton)
 
         controlsLayout = QVBoxLayout()
         controlsLayout.addLayout(extractKeyLayout)
         controlsLayout.addLayout(highlightKeyLayout)
         controlsLayout.addLayout(removeKeyLayout)
-        controlsLayout.addLayout(buttonLayout)
         controlsLayout.addStretch()
 
         controlsGroupBox = QGroupBox('Basic Controls')
@@ -424,13 +424,9 @@ class SettingsManager:
         horizontalLayout.addWidget(colorsGroupBox)
         horizontalLayout.addWidget(colorPreviewGroupBox)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Save)
-        buttonBox.accepted.connect(self.saveHighlightSettings)
-
         layout = QVBoxLayout()
         layout.addWidget(self.targetComboBox)
         layout.addLayout(horizontalLayout)
-        layout.addWidget(buttonBox)
         layout.addStretch()
 
         tab = QWidget()
@@ -669,8 +665,8 @@ class SettingsManager:
         self.quickKeyPlainTextCheckBox = QCheckBox('Extract as Plain Text')
 
         self.ctrlKeyCheckBox = QCheckBox('Ctrl')
-        self.shiftKeyCheckBox = QCheckBox('Shift')
         self.altKeyCheckBox = QCheckBox('Alt')
+        self.shiftKeyCheckBox = QCheckBox('Shift')
         self.regularKeyComboBox = QComboBox()
         self.regularKeyComboBox.addItem('')
         self.regularKeyComboBox.addItems(
@@ -692,8 +688,8 @@ class SettingsManager:
         keyComboLayout.addWidget(keyComboLabel)
         keyComboLayout.addStretch()
         keyComboLayout.addWidget(self.ctrlKeyCheckBox)
-        keyComboLayout.addWidget(self.shiftKeyCheckBox)
         keyComboLayout.addWidget(self.altKeyCheckBox)
+        keyComboLayout.addWidget(self.shiftKeyCheckBox)
         keyComboLayout.addWidget(self.regularKeyComboBox)
 
         deckNames = sorted([d['name'] for d in mw.col.decks.all()])
@@ -707,16 +703,16 @@ class SettingsManager:
 
         newButton = QPushButton('New')
         newButton.clicked.connect(self.clearQuickKeysTab)
-        deleteButton = QPushButton('Delete')
-        deleteButton.clicked.connect(self.deleteQuickKey)
-        saveButton = QPushButton('Save')
-        saveButton.clicked.connect(self.setQuickKey)
+        setButton = QPushButton('Set')
+        setButton.clicked.connect(self.setQuickKey)
+        unsetButton = QPushButton('Unset')
+        unsetButton.clicked.connect(self.unsetQuickKey)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch()
         buttonLayout.addWidget(newButton)
-        buttonLayout.addWidget(deleteButton)
-        buttonLayout.addWidget(saveButton)
+        buttonLayout.addWidget(setButton)
+        buttonLayout.addWidget(unsetButton)
 
         layout = QVBoxLayout()
         layout.addWidget(self.quickKeysComboBox)
@@ -742,8 +738,8 @@ class SettingsManager:
             setComboBoxItem(self.noteTypeComboBox, model['modelName'])
             setComboBoxItem(self.textFieldComboBox, model['fieldName'])
             self.ctrlKeyCheckBox.setChecked(model['ctrl'])
-            self.shiftKeyCheckBox.setChecked(model['shift'])
             self.altKeyCheckBox.setChecked(model['alt'])
+            self.shiftKeyCheckBox.setChecked(model['shift'])
             setComboBoxItem(self.regularKeyComboBox, model['regularKey'])
             self.quickKeyEditExtractCheckBox.setChecked(model['editExtract'])
             self.quickKeyEditSourceCheckBox.setChecked(model['editSource'])
@@ -765,14 +761,14 @@ class SettingsManager:
         self.noteTypeComboBox.setCurrentIndex(0)
         self.textFieldComboBox.setCurrentIndex(0)
         self.ctrlKeyCheckBox.setChecked(False)
-        self.shiftKeyCheckBox.setChecked(False)
         self.altKeyCheckBox.setChecked(False)
+        self.shiftKeyCheckBox.setChecked(False)
         self.regularKeyComboBox.setCurrentIndex(0)
         self.quickKeyEditExtractCheckBox.setChecked(False)
         self.quickKeyEditSourceCheckBox.setChecked(False)
         self.quickKeyPlainTextCheckBox.setChecked(False)
 
-    def deleteQuickKey(self):
+    def unsetQuickKey(self):
         quickKey = self.quickKeysComboBox.currentText()
         if quickKey:
             self.settings['quickKeys'].pop(quickKey)
@@ -785,8 +781,8 @@ class SettingsManager:
                     'modelName': self.noteTypeComboBox.currentText(),
                     'fieldName': self.textFieldComboBox.currentText(),
                     'ctrl': self.ctrlKeyCheckBox.isChecked(),
-                    'shift': self.shiftKeyCheckBox.isChecked(),
                     'alt': self.altKeyCheckBox.isChecked(),
+                    'shift': self.shiftKeyCheckBox.isChecked(),
                     'regularKey': self.regularKeyComboBox.currentText(),
                     'bgColor': self.bgColorComboBox.currentText(),
                     'textColor': self.textColorComboBox.currentText(),
@@ -804,10 +800,10 @@ class SettingsManager:
         keyCombo = ''
         if quickKey['ctrl']:
             keyCombo += 'Ctrl+'
-        if quickKey['shift']:
-            keyCombo += 'Shift+'
         if quickKey['alt']:
             keyCombo += 'Alt+'
+        if quickKey['shift']:
+            keyCombo += 'Shift+'
         keyCombo += quickKey['regularKey']
 
         self.settings['quickKeys'][keyCombo] = quickKey
