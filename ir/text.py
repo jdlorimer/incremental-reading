@@ -8,6 +8,8 @@ from aqt.utils import getText, showInfo, tooltip
 
 from .util import fixImages, getField, setField
 
+SCHEDULE_EXTRACT = 0
+
 
 class TextManager:
     def __init__(self):
@@ -76,6 +78,10 @@ class TextManager:
                 setField(newNote, self.settings['titleField'], title)
                 newNote.model()['did'] = did
                 mw.col.addNote(newNote)
+
+        if self.settings['extractSchedule']:
+            mw.readingManager.scheduler.answer(
+                newNote.cards()[0], SCHEDULE_EXTRACT)
 
     def remove(self):
         mw.web.eval('removeText()')

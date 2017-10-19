@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (QButtonGroup,
 
 from anki.hooks import addHook
 from aqt import mw
-from aqt.utils import showInfo
+from aqt.utils import showInfo, showWarning
 
 from ._version import __version__
 from .about import IR_GITHUB_URL
@@ -43,15 +43,22 @@ class SettingsManager:
                          'extractBgColor': 'Green',
                          'extractDeck': None,
                          'extractKey': 'x',
+                         'extractMethod': 'percent',
+                         'extractRandom': True,
+                         'extractSchedule': True,
                          'extractTextColor': 'White',
+                         'extractValue': 30,
                          'feedLog': {},
                          'generalZoom': 1,
                          'highlightBgColor': 'Yellow',
                          'highlightKey': 'h',
                          'highlightTextColor': 'Black',
                          'importDeck': 'Default',
-                         'limitGlobalWidth': False,
+                         'laterMethod': 'percent',
+                         'laterRandom': True,
+                         'laterValue': 50,
                          'limitWidth': True,
+                         'limitWidthAll': False,
                          'lineScrollFactor': 0.05,
                          'maxWidth': 600,
                          'modelName': 'IR3',
@@ -59,13 +66,10 @@ class SettingsManager:
                          'plainText': False,
                          'quickKeys': {},
                          'removeKey': 'z',
-                         'schedLaterRandom': True,
-                         'schedLaterValue': 50,
-                         'schedLaterMethod': 'percent',
-                         'schedSoonValue': 10,
-                         'schedSoonRandom': True,
-                         'schedSoonMethod': 'percent',
                          'scroll': {},
+                         'soonMethod': 'percent',
+                         'soonRandom': True,
+                         'soonValue': 10,
                          'sourceField': 'Source',
                          'textField': 'Text',
                          'titleField': 'Title',
@@ -178,8 +182,12 @@ class SettingsManager:
         self.settings['editSource'] = self.editSourceCheckBox.isChecked()
         self.settings['plainText'] = self.plainTextCheckBox.isChecked()
         self.settings['copyTitle'] = self.copyTitleCheckBox.isChecked()
-        self.settings['schedSoonRandom'] = self.soonRandomCheckBox.isChecked()
-        self.settings['schedLaterRandom'] = self.laterRandomCheckBox.isChecked()
+        self.settings['extractSchedule'] = (self
+                                            .extractScheduleCheckBox
+                                            .isChecked())
+        self.settings['soonRandom'] = self.soonRandomCheckBox.isChecked()
+        self.settings['laterRandom'] = self.laterRandomCheckBox.isChecked()
+        self.settings['extractRandom'] = self.extractRandomCheckBox.isChecked()
 
         if self.extractDeckComboBox.currentText() == '[Current Deck]':
             self.settings['extractDeck'] = None
@@ -189,33 +197,40 @@ class SettingsManager:
                                             .currentText())
 
         try:
-            self.settings['schedSoonValue'] = int(
-                self.soonIntegerEditBox.text())
-            self.settings['schedLaterValue'] = int(
-                self.laterIntegerEditBox.text())
+            self.settings['soonValue'] = int(
+                self.soonValueEditBox.text())
+            self.settings['laterValue'] = int(
+                self.laterValueEditBox.text())
+            self.settings['extractValue'] = int(
+                self.extractValueEditBox.text())
             self.settings['maxWidth'] = int(self.widthEditBox.text())
-        except:
-            pass
+        except ValueError:
+            showWarning('Integer value expected. Please try again.')
 
         if self.soonPercentButton.isChecked():
-            self.settings['schedSoonMethod'] = 'percent'
+            self.settings['soonMethod'] = 'percent'
         else:
-            self.settings['schedSoonMethod'] = 'count'
+            self.settings['soonMethod'] = 'count'
 
         if self.laterPercentButton.isChecked():
-            self.settings['schedLaterMethod'] = 'percent'
+            self.settings['laterMethod'] = 'percent'
         else:
-            self.settings['schedLaterMethod'] = 'count'
+            self.settings['laterMethod'] = 'count'
+
+        if self.extractPercentButton.isChecked():
+            self.settings['extractMethod'] = 'percent'
+        else:
+            self.settings['extractMethod'] = 'count'
 
         if self.limitAllCardsButton.isChecked():
             self.settings['limitWidth'] = True
-            self.settings['limitGlobalWidth'] = True
+            self.settings['limitWidthAll'] = True
         elif self.limitIrCardsButton.isChecked():
             self.settings['limitWidth'] = True
-            self.settings['limitGlobalWidth'] = False
+            self.settings['limitWidthAll'] = False
         else:
             self.settings['limitWidth'] = False
-            self.settings['limitGlobalWidth'] = False
+            self.settings['limitWidthAll'] = False
 
         mw.readingManager.viewManager.resetZoom(mw.state)
 
@@ -281,7 +296,7 @@ class SettingsManager:
         self.limitIrCardsButton = QRadioButton('IR Cards')
         limitNoneButton = QRadioButton('None')
 
-        if self.settings['limitWidth'] and self.settings['limitGlobalWidth']:
+        if self.settings['limitWidth'] and self.settings['limitWidthAll']:
             self.limitAllCardsButton.setChecked(True)
         elif self.settings['limitWidth']:
             self.limitIrCardsButton.setChecked(True)
@@ -373,6 +388,7 @@ class SettingsManager:
         self.editSourceCheckBox = QCheckBox('Edit Source Note')
         self.plainTextCheckBox = QCheckBox('Extract as Plain Text')
         self.copyTitleCheckBox = QCheckBox('Copy Title')
+        self.extractScheduleCheckBox = QCheckBox('Schedule Extracts')
 
         if self.settings['editSource']:
             self.editSourceCheckBox.setChecked(True)
@@ -383,12 +399,16 @@ class SettingsManager:
         if self.settings['copyTitle']:
             self.copyTitleCheckBox.setChecked(True)
 
+        if self.settings['extractSchedule']:
+            self.extractScheduleCheckBox.setChecked(True)
+
         layout = QVBoxLayout()
         layout.addLayout(extractDeckLayout)
         layout.addLayout(radioButtonsLayout)
         layout.addWidget(self.editSourceCheckBox)
         layout.addWidget(self.plainTextCheckBox)
         layout.addWidget(self.copyTitleCheckBox)
+        layout.addWidget(self.extractScheduleCheckBox)
         layout.addStretch()
 
         tab = QWidget()
@@ -534,42 +554,58 @@ class SettingsManager:
     def createSchedulingTab(self):
         soonLabel = QLabel('Soon Button')
         laterLabel = QLabel('Later Button')
+        extractLabel = QLabel('Extracts')
 
         self.soonPercentButton = QRadioButton('Percent')
         soonPositionButton = QRadioButton('Position')
         self.laterPercentButton = QRadioButton('Percent')
         laterPositionButton = QRadioButton('Position')
+        self.extractPercentButton = QRadioButton('Percent')
+        extractPositionButton = QRadioButton('Position')
+
         self.soonRandomCheckBox = QCheckBox('Randomize')
         self.laterRandomCheckBox = QCheckBox('Randomize')
+        self.extractRandomCheckBox = QCheckBox('Randomize')
 
-        self.soonIntegerEditBox = QLineEdit()
-        self.soonIntegerEditBox.setFixedWidth(100)
-        self.laterIntegerEditBox = QLineEdit()
-        self.laterIntegerEditBox.setFixedWidth(100)
+        self.soonValueEditBox = QLineEdit()
+        self.soonValueEditBox.setFixedWidth(100)
+        self.laterValueEditBox = QLineEdit()
+        self.laterValueEditBox.setFixedWidth(100)
+        self.extractValueEditBox = QLineEdit()
+        self.extractValueEditBox.setFixedWidth(100)
 
-        if self.settings['schedSoonMethod'] == 'percent':
+        if self.settings['soonMethod'] == 'percent':
             self.soonPercentButton.setChecked(True)
         else:
             soonPositionButton.setChecked(True)
 
-        if self.settings['schedLaterMethod'] == 'percent':
+        if self.settings['laterMethod'] == 'percent':
             self.laterPercentButton.setChecked(True)
         else:
             laterPositionButton.setChecked(True)
 
-        if self.settings['schedSoonRandom']:
+        if self.settings['extractMethod'] == 'percent':
+            self.extractPercentButton.setChecked(True)
+        else:
+            extractPositionButton.setChecked(True)
+
+        if self.settings['soonRandom']:
             self.soonRandomCheckBox.setChecked(True)
 
-        if self.settings['schedLaterRandom']:
+        if self.settings['laterRandom']:
             self.laterRandomCheckBox.setChecked(True)
 
-        self.soonIntegerEditBox.setText(str(self.settings['schedSoonValue']))
-        self.laterIntegerEditBox.setText(str(self.settings['schedLaterValue']))
+        if self.settings['extractRandom']:
+            self.extractRandomCheckBox.setChecked(True)
+
+        self.soonValueEditBox.setText(str(self.settings['soonValue']))
+        self.laterValueEditBox.setText(str(self.settings['laterValue']))
+        self.extractValueEditBox.setText(str(self.settings['extractValue']))
 
         soonLayout = QHBoxLayout()
         soonLayout.addWidget(soonLabel)
         soonLayout.addStretch()
-        soonLayout.addWidget(self.soonIntegerEditBox)
+        soonLayout.addWidget(self.soonValueEditBox)
         soonLayout.addWidget(self.soonPercentButton)
         soonLayout.addWidget(soonPositionButton)
         soonLayout.addWidget(self.soonRandomCheckBox)
@@ -577,10 +613,18 @@ class SettingsManager:
         laterLayout = QHBoxLayout()
         laterLayout.addWidget(laterLabel)
         laterLayout.addStretch()
-        laterLayout.addWidget(self.laterIntegerEditBox)
+        laterLayout.addWidget(self.laterValueEditBox)
         laterLayout.addWidget(self.laterPercentButton)
         laterLayout.addWidget(laterPositionButton)
         laterLayout.addWidget(self.laterRandomCheckBox)
+
+        extractLayout = QHBoxLayout()
+        extractLayout.addWidget(extractLabel)
+        extractLayout.addStretch()
+        extractLayout.addWidget(self.extractValueEditBox)
+        extractLayout.addWidget(self.extractPercentButton)
+        extractLayout.addWidget(extractPositionButton)
+        extractLayout.addWidget(self.extractRandomCheckBox)
 
         soonButtonGroup = QButtonGroup(soonLayout)
         soonButtonGroup.addButton(self.soonPercentButton)
@@ -590,9 +634,14 @@ class SettingsManager:
         laterButtonGroup.addButton(self.laterPercentButton)
         laterButtonGroup.addButton(laterPositionButton)
 
+        extractButtonGroup = QButtonGroup(extractLayout)
+        extractButtonGroup.addButton(self.extractPercentButton)
+        extractButtonGroup.addButton(extractPositionButton)
+
         layout = QVBoxLayout()
         layout.addLayout(soonLayout)
         layout.addLayout(laterLayout)
+        layout.addLayout(extractLayout)
         layout.addStretch()
 
         tab = QWidget()
