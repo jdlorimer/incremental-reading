@@ -4,7 +4,7 @@ from aqt import mw
 
 from ._version import __version__
 
-IR_GITHUB_URL = 'https://github.com/luoliyan/incremental-reading-for-anki'
+IR_GITHUB_URL = 'https://github.com/luoliyan/incremental-reading'
 
 
 def showAbout():
