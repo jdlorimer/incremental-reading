@@ -20,7 +20,7 @@ class ViewManager:
         else:
             js = ''
 
-        if isIrCard(card):
+        if isIrCard(card) and context.startswith('review'):
             mw.web.onBridgeCmd = self.storePageInfo
             cid = str(card.id)
 
