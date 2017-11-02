@@ -12,6 +12,7 @@ class ViewManager:
         self.zoomFactor = 1
         addHook('afterStateChange', self.resetZoom)
         addHook('prepareQA', self.prepareCard)
+        mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def prepareCard(self, html, card, context):
         if ((isIrCard(card) and self.settings['limitWidth']) or
