@@ -3,6 +3,7 @@ import json
 import os
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QButtonGroup,
                              QCheckBox,
                              QComboBox,
@@ -71,6 +72,7 @@ class SettingsManager:
                          'soonRandom': True,
                          'soonValue': 10,
                          'sourceField': 'Source',
+                         'sourceFormat': '{url} ({date})',
                          'textField': 'Text',
                          'titleField': 'Title',
                          'undoKey': 'u',
@@ -160,6 +162,7 @@ class SettingsManager:
         tabWidget.addTab(self._getExtractionTab(), 'Extraction')
         tabWidget.addTab(self._getHighlightTab(), 'Highlighting')
         tabWidget.addTab(self._getSchedulingTab(), 'Scheduling')
+        tabWidget.addTab(self._getImportingTab(), 'Importing')
         tabWidget.addTab(self._getQuickKeysTab(), 'Quick Keys')
         tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
@@ -217,6 +220,8 @@ class SettingsManager:
         except ValueError:
             showWarning('Integer value expected. Please try again.')
             done = False
+
+        self.settings['sourceFormat'] = self.sourceFormatEditBox.text()
 
         if self.soonPercentButton.isChecked():
             self.settings['soonMethod'] = 'percent'
@@ -915,3 +920,27 @@ class SettingsManager:
         groupBox.setLayout(layout)
 
         return groupBox
+
+    def _getImportingTab(self):
+        sourceFormatLabel = QLabel('Source Format')
+
+        self.sourceFormatEditBox = QLineEdit()
+        self.sourceFormatEditBox.setFixedWidth(200)
+        self.sourceFormatEditBox.setText(str(self.settings['sourceFormat']))
+        font = QFont('Lucida Sans Typewriter')
+        font.setStyleHint(QFont.Monospace)
+        self.sourceFormatEditBox.setFont(font)
+
+        sourceFormatLayout = QHBoxLayout()
+        sourceFormatLayout.addWidget(sourceFormatLabel)
+        sourceFormatLayout.addWidget(self.sourceFormatEditBox)
+        sourceFormatLayout.addStretch()
+
+        layout = QVBoxLayout()
+        layout.addLayout(sourceFormatLayout)
+        layout.addStretch()
+
+        tab = QWidget()
+        tab.setLayout(layout)
+
+        return tab

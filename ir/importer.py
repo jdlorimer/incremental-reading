@@ -1,3 +1,4 @@
+from datetime import date
 from ssl import _create_unverified_context
 from urllib.error import HTTPError
 from urllib.parse import urlencode, urlsplit
@@ -74,7 +75,9 @@ class Importer:
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
-        self._createNote(webpage.title.string, body, url)
+        source = self.settings['sourceFormat'].format(date=date.today(),
+                                                      url=url)
+        self._createNote(webpage.title.string, body, source)
 
     def importFeed(self):
         url, accepted = getText('Enter URL:', title='Import Feed')
