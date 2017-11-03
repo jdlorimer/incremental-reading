@@ -80,8 +80,9 @@ class TextManager:
                 mw.col.addNote(newNote)
 
         if self.settings['extractSchedule']:
-            mw.readingManager.scheduler.answer(
-                newNote.cards()[0], SCHEDULE_EXTRACT)
+            cards = newNote.cards()
+            if cards:
+                mw.readingManager.scheduler.answer(cards[0], SCHEDULE_EXTRACT)
 
     def remove(self):
         mw.web.eval('removeText()')
