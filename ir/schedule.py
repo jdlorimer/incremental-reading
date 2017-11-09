@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QAbstractItemView,
                              QPushButton,
                              QVBoxLayout)
 
+from anki.utils import stripHTML
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
@@ -39,7 +40,8 @@ class Scheduler:
 
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
-            text = '❰ {} ❱\t{}'.format(str(i).zfill(posWidth), card['title'])
+            text = '❰ {} ❱\t{}'.format(
+                str(i).zfill(posWidth), stripHTML(card['title']))
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, card)
             self.cardListWidget.addItem(item)
