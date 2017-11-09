@@ -90,7 +90,7 @@ class Scheduler:
             row = self.cardListWidget.row(item)
             newRow = max(0, row - 1)
             self.cardListWidget.takeItem(row)
-            self.cardListWidget.insertItem(newRow, row)
+            self.cardListWidget.insertItem(newRow, item)
             item.setSelected(True)
 
     def _moveDown(self):
