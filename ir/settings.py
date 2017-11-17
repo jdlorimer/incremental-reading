@@ -57,6 +57,7 @@ class SettingsManager:
         mw.addonManager.setConfigAction(__name__, self.showDialog)
         addHook('unloadProfile', self.saveSettings)
 
+        self.metadata = {'name': 'Incremental Reading'} 
         self.defaults = {'badTags': ['iframe', 'script'],
                          'copyTitle': False,
                          'editExtract': False,
@@ -103,17 +104,37 @@ class SettingsManager:
 
     def loadSettings(self):
         self.settingsChanged = False
-        self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
-        self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
+        self.addonDir = os.path.dirname(os.path.realpath(__file__))
+        self.jsonCfgPath = os.path.join(self.addonDir, 'config.json')
+        self.jsonMetaPath = os.path.join(self.addonDir, 'meta.json') 
 
-        if os.path.isfile(self.jsonPath):
-            with open(self.jsonPath, encoding='utf-8') as jsonFile:
-                self.settings = json.load(jsonFile)
+        self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
+        self.old_jsonPath = os.path.join(self.mediaDir, '_ir.json')
+
+
+        if os.path.isfile(self.jsonCfgPath):
+            with open(self.jsonCfgPath, encoding='utf-8') as jsonFile:
+                try :
+                    self.settings = json.load(jsonFile)
+                except:
+                    showWarning("Error loading JSON-format: corrupt or empty. Will load defaults.")
+                    self.settings = self.defaults
             self._addMissingSettings()
             self._removeOutdatedQuickKeys()
-        else:
+        elif os.path.isfile(self.old_jsonPath):
+            with open(self.old_jsonPath, encoding='utf-8') as old_jsonFile:
+                self.settings = json.load(old_jsonFile)
+                old_jsonFile.close()
+                showInfo(str(old_jsonFile.name))
+                os.remove(str(old_jsonFile.name))
+            self._addMissingSettings() 
+            self._removeOutdatedQuickKeys()                
+            showInfo('Will create new config.json file with your settings.' 
+                     'Outdated _ir.json will be deleted from mediafolder.')
+        else: 
+            showWarning("Error opening JSON-file. Will load defaults.")
             self.settings = self.defaults
-
+ 
         if self.settingsChanged:
             showInfo('Your Incremental Reading settings file has been modified'
                      ' for compatibility reasons. Please take a moment to'
@@ -151,10 +172,10 @@ class SettingsManager:
                     break
 
     def saveSettings(self):
-        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+        with open(self.jsonCfgPath, 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
 
-        updateModificationTime(self.mediaDir)
+        updateModificationTime(self.addonDir)
 
     def loadMenuItems(self):
         menuName = 'Read::Quick Keys'
