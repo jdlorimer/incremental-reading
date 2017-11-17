@@ -1,4 +1,5 @@
 from functools import partial
+from unicodedata import normalize
 import json
 import os
 
@@ -21,6 +22,7 @@ from PyQt5.QtWidgets import (QButtonGroup,
 
 from anki.hooks import addHook
 from aqt import mw
+from aqt.tagedit import TagEdit
 from aqt.utils import showInfo, showWarning, tooltip
 
 from ._version import __version__
@@ -35,6 +37,7 @@ from .util import (addMenuItem,
 
 class SettingsManager:
     def __init__(self):
+        mw.addonManager.setConfigAction(__name__, self.showDialog)
         addHook('unloadProfile', self.saveSettings)
 
         self.defaults = {'badTags': ['iframe', 'script'],
@@ -46,7 +49,6 @@ class SettingsManager:
                          'extractKey': 'x',
                          'extractMethod': 'percent',
                          'extractRandom': True,
-                         'extractSchedule': True,
                          'extractTextColor': 'White',
                          'extractValue': 30,
                          'feedLog': {},
@@ -67,6 +69,7 @@ class SettingsManager:
                          'plainText': False,
                          'quickKeys': {},
                          'removeKey': 'z',
+                         'scheduleExtract': True,
                          'scroll': {},
                          'soonMethod': 'percent',
                          'soonRandom': True,
@@ -108,21 +111,24 @@ class SettingsManager:
                 self.settingsChanged = True
 
     def _removeOutdatedQuickKeys(self):
-        required = ['alt',
-                    'bgColor',
-                    'ctrl',
-                    'deckName',
-                    'editExtract',
-                    'editSource',
-                    'fieldName',
-                    'modelName',
-                    'regularKey',
-                    'shift',
-                    'textColor']
+        required = [
+            'alt',
+            'ctrl',
+            'editExtract',
+            'editSource',
+            'extractBgColor',
+            'extractDeck',
+            'extractTextColor',
+            'modelName',
+            'regularKey',
+            'shift',
+            'tags',
+            'textField',
+        ]
 
-        for keyCombo, quickKey in self.settings['quickKeys'].copy().items():
+        for keyCombo, settings in self.settings['quickKeys'].copy().items():
             for k in required:
-                if k not in quickKey:
+                if k not in settings:
                     self.settings['quickKeys'].pop(keyCombo)
                     self.settingsChanged = True
                     break
@@ -135,13 +141,14 @@ class SettingsManager:
 
     def loadMenuItems(self):
         menuName = 'Read::Quick Keys'
+
         if menuName in mw.customMenus:
             mw.customMenus[menuName].clear()
 
-        for keyCombo, quickKey in self.settings['quickKeys'].items():
-            menuText = 'Add Card [%s -> %s]' % (quickKey['modelName'],
-                                                quickKey['deckName'])
-            function = partial(mw.readingManager.quickAdd, quickKey)
+        for keyCombo, settings in self.settings['quickKeys'].items():
+            menuText = 'Add Card [%s -> %s]' % (settings['modelName'],
+                                                settings['extractDeck'])
+            function = partial(mw.readingManager.textManager.extract, settings)
             addMenuItem(menuName, menuText, function, keyCombo)
 
         setMenuVisibility(menuName)
@@ -198,8 +205,8 @@ class SettingsManager:
         self.settings['editSource'] = self.editSourceCheckBox.isChecked()
         self.settings['plainText'] = self.plainTextCheckBox.isChecked()
         self.settings['copyTitle'] = self.copyTitleCheckBox.isChecked()
-        self.settings['extractSchedule'] = (self
-                                            .extractScheduleCheckBox
+        self.settings['scheduleExtract'] = (self
+                                            .scheduleExtractCheckBox
                                             .isChecked())
         self.settings['soonRandom'] = self.soonRandomCheckBox.isChecked()
         self.settings['laterRandom'] = self.laterRandomCheckBox.isChecked()
@@ -417,7 +424,7 @@ class SettingsManager:
         self.editSourceCheckBox = QCheckBox('Edit Source Note')
         self.plainTextCheckBox = QCheckBox('Extract as Plain Text')
         self.copyTitleCheckBox = QCheckBox('Copy Title')
-        self.extractScheduleCheckBox = QCheckBox('Schedule Extracts')
+        self.scheduleExtractCheckBox = QCheckBox('Schedule Extracts')
 
         if self.settings['editSource']:
             self.editSourceCheckBox.setChecked(True)
@@ -428,8 +435,8 @@ class SettingsManager:
         if self.settings['copyTitle']:
             self.copyTitleCheckBox.setChecked(True)
 
-        if self.settings['extractSchedule']:
-            self.extractScheduleCheckBox.setChecked(True)
+        if self.settings['scheduleExtract']:
+            self.scheduleExtractCheckBox.setChecked(True)
 
         layout = QVBoxLayout()
         layout.addLayout(extractDeckLayout)
@@ -437,7 +444,7 @@ class SettingsManager:
         layout.addWidget(self.editSourceCheckBox)
         layout.addWidget(self.plainTextCheckBox)
         layout.addWidget(self.copyTitleCheckBox)
-        layout.addWidget(self.extractScheduleCheckBox)
+        layout.addWidget(self.scheduleExtractCheckBox)
         layout.addStretch()
 
         tab = QWidget()
@@ -745,6 +752,13 @@ class SettingsManager:
         unsetButton = QPushButton('Unset')
         unsetButton.clicked.connect(self._unsetQuickKey)
 
+        tagsLabel = QLabel('Tags')
+        self.tagsEditBox = TagEdit(mw)
+        self.tagsEditBox.setCol(mw.col)
+        tagsLayout = QHBoxLayout()
+        tagsLayout.addWidget(tagsLabel)
+        tagsLayout.addWidget(self.tagsEditBox)
+
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch()
         buttonLayout.addWidget(newButton)
@@ -760,6 +774,7 @@ class SettingsManager:
         layout.addWidget(self.quickKeyEditExtractCheckBox)
         layout.addWidget(self.quickKeyEditSourceCheckBox)
         layout.addWidget(self.quickKeyPlainTextCheckBox)
+        layout.addLayout(tagsLayout)
         layout.addLayout(buttonLayout)
 
         tab = QWidget()
@@ -768,19 +783,20 @@ class SettingsManager:
         return tab
 
     def _updateQuickKeysTab(self):
-        quickKey = self.quickKeysComboBox.currentText()
-        if quickKey:
-            model = self.settings['quickKeys'][quickKey]
-            setComboBoxItem(self.destDeckComboBox, model['deckName'])
-            setComboBoxItem(self.noteTypeComboBox, model['modelName'])
-            setComboBoxItem(self.textFieldComboBox, model['fieldName'])
-            self.ctrlKeyCheckBox.setChecked(model['ctrl'])
-            self.altKeyCheckBox.setChecked(model['alt'])
-            self.shiftKeyCheckBox.setChecked(model['shift'])
-            setComboBoxItem(self.regularKeyComboBox, model['regularKey'])
-            self.quickKeyEditExtractCheckBox.setChecked(model['editExtract'])
-            self.quickKeyEditSourceCheckBox.setChecked(model['editSource'])
-            self.quickKeyPlainTextCheckBox.setChecked(model['plainText'])
+        keyCombo = self.quickKeysComboBox.currentText()
+        if keyCombo:
+            settings = self.settings['quickKeys'][keyCombo]
+            setComboBoxItem(self.destDeckComboBox, settings['extractDeck'])
+            setComboBoxItem(self.noteTypeComboBox, settings['modelName'])
+            setComboBoxItem(self.textFieldComboBox, settings['textField'])
+            self.ctrlKeyCheckBox.setChecked(settings['ctrl'])
+            self.altKeyCheckBox.setChecked(settings['alt'])
+            self.shiftKeyCheckBox.setChecked(settings['shift'])
+            setComboBoxItem(self.regularKeyComboBox, settings['regularKey'])
+            self.quickKeyEditExtractCheckBox.setChecked(settings['editExtract'])
+            self.quickKeyEditSourceCheckBox.setChecked(settings['editSource'])
+            self.quickKeyPlainTextCheckBox.setChecked(settings['plainText'])
+            self.tagsEditBox.setText(mw.col.tags.join(settings['tags']))
         else:
             self._clearQuickKeysTab()
 
@@ -804,52 +820,59 @@ class SettingsManager:
         self.quickKeyEditExtractCheckBox.setChecked(False)
         self.quickKeyEditSourceCheckBox.setChecked(False)
         self.quickKeyPlainTextCheckBox.setChecked(False)
+        self.tagsEditBox.clear()
 
     def _unsetQuickKey(self):
-        quickKey = self.quickKeysComboBox.currentText()
-        if quickKey:
-            self.settings['quickKeys'].pop(quickKey)
-            removeComboBoxItem(self.quickKeysComboBox, quickKey)
+        keyCombo = self.quickKeysComboBox.currentText()
+        if keyCombo:
+            self.settings['quickKeys'].pop(keyCombo)
+            removeComboBoxItem(self.quickKeysComboBox, keyCombo)
             self._clearQuickKeysTab()
             self._populateTargetComboBox()
             self.loadMenuItems()
 
     def _setQuickKey(self):
-        quickKey = {'deckName': self.destDeckComboBox.currentText(),
-                    'modelName': self.noteTypeComboBox.currentText(),
-                    'fieldName': self.textFieldComboBox.currentText(),
-                    'ctrl': self.ctrlKeyCheckBox.isChecked(),
-                    'alt': self.altKeyCheckBox.isChecked(),
-                    'shift': self.shiftKeyCheckBox.isChecked(),
-                    'regularKey': self.regularKeyComboBox.currentText(),
-                    'bgColor': self.bgColorComboBox.currentText(),
-                    'textColor': self.textColorComboBox.currentText(),
-                    'editExtract': self.quickKeyEditExtractCheckBox.isChecked(),
-                    'editSource': self.quickKeyEditSourceCheckBox.isChecked(),
-                    'plainText': self.quickKeyPlainTextCheckBox.isChecked()}
+        tags = mw.col.tags.canonify(
+            mw.col.tags.split(normalize('NFC', self.tagsEditBox.text())))
 
-        for k in ['deckName', 'modelName', 'regularKey']:
-            if not quickKey[k]:
+        settings = {
+            'alt': self.altKeyCheckBox.isChecked(),
+            'ctrl': self.ctrlKeyCheckBox.isChecked(),
+            'editExtract': self.quickKeyEditExtractCheckBox.isChecked(),
+            'editSource': self.quickKeyEditSourceCheckBox.isChecked(),
+            'extractBgColor': self.bgColorComboBox.currentText(),
+            'extractDeck': self.destDeckComboBox.currentText(),
+            'extractTextColor': self.textColorComboBox.currentText(),
+            'modelName': self.noteTypeComboBox.currentText(),
+            'plainText': self.quickKeyPlainTextCheckBox.isChecked(),
+            'regularKey': self.regularKeyComboBox.currentText(),
+            'shift': self.shiftKeyCheckBox.isChecked(),
+            'tags': tags,
+            'textField': self.textFieldComboBox.currentText(),
+        }
+
+        for k in ['extractDeck', 'modelName', 'regularKey']:
+            if not settings[k]:
                 showInfo('Please complete all settings. Destination deck,'
                          ' note type, and a letter or number for the key'
                          ' combination are required.')
                 return
 
         keyCombo = ''
-        if quickKey['ctrl']:
+        if settings['ctrl']:
             keyCombo += 'Ctrl+'
-        if quickKey['alt']:
+        if settings['alt']:
             keyCombo += 'Alt+'
-        if quickKey['shift']:
+        if settings['shift']:
             keyCombo += 'Shift+'
-        keyCombo += quickKey['regularKey']
+        keyCombo += settings['regularKey']
 
         if keyCombo in self.settings['quickKeys']:
             tooltip('Shortcut updated')
         else:
             tooltip('New shortcut added: %s' % keyCombo)
 
-        self.settings['quickKeys'][keyCombo] = quickKey
+        self.settings['quickKeys'][keyCombo] = settings
         self.quickKeysComboBox.addItem(keyCombo)
         setComboBoxItem(self.quickKeysComboBox, keyCombo)
         self._populateTargetComboBox()
