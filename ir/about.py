@@ -15,7 +15,7 @@ def showAbout():
     text = '''
 <div style="font-weight: bold">Incremental Reading v%s</div>
 <div>Maintainer: Luo Li-Yan</div>
-<div>Contributors: Tiago Barroso, Frank Kmiec, Aleksej</div>
+<div>Contributors: Tiago Barroso, Frank Kmiec, Aleksej, Christian Weiß</div>
 <div>Website: <a href="%s">%s</a></div>
 ''' % (__version__, IR_GITHUB_URL, IR_GITHUB_URL)
     label.setText(text)
