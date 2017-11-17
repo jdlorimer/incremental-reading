@@ -25,64 +25,74 @@ class TextManager:
         mw.web.eval(script)
         self.save()
 
-    def extract(self):
+    def extract(self, settings=None):
         if not mw.web.selectedText():
             showInfo('Please select some text to extract.')
             return
 
-        if self.settings['plainText']:
-            mw.web.evalWithCallback('getPlainText()', self.create)
+        if not settings:
+            settings = self.settings
+
+        if settings['plainText']:
+            mw.web.evalWithCallback(
+                'getPlainText()',
+                lambda text: self.create(text, settings))
         else:
-            mw.web.evalWithCallback('getHtmlText()', self.create)
+            mw.web.evalWithCallback(
+                'getHtmlText()',
+                lambda text: self.create(text, settings))
 
-    def create(self, text):
-        self.highlight(self.settings['extractBgColor'],
-                       self.settings['extractTextColor'])
-
+    def create(self, text, settings):
+        self.highlight(settings['extractBgColor'], settings['extractTextColor'])
+        createIrNote = (settings['modelName'] == self.settings['modelName'])
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
-        model = mw.col.models.byName(self.settings['modelName'])
+        model = mw.col.models.byName(settings['modelName'])
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
+        setField(newNote, settings['textField'], fixImages(text))
 
-        setField(newNote, self.settings['textField'], fixImages(text))
-        setField(newNote,
-                 self.settings['sourceField'],
-                 getField(currentNote, self.settings['sourceField']))
-
-        if self.settings['editSource']:
-            EditCurrent(mw)
-
-        if self.settings['extractDeck']:
-            did = mw.col.decks.byName(self.settings['extractDeck'])['id']
+        if settings['extractDeck']:
+            did = mw.col.decks.byName(settings['extractDeck'])['id']
         else:
             did = currentCard.did
 
-        if self.settings['copyTitle']:
-            title = getField(currentNote, self.settings['titleField'])
-        else:
-            title = ''
+        if createIrNote:
+            if settings['copyTitle']:
+                title = getField(currentNote, settings['titleField'])
+            else:
+                title = ''
 
-        if self.settings['editExtract']:
-            setField(newNote, self.settings['titleField'], title)
-            addCards = AddCards(mw)
-            addCards.editor.setNote(newNote)
-            deckName = mw.col.decks.get(did)['name']
-            addCards.deckChooser.deck.setText(deckName)
-            addCards.modelChooser.models.setText(self.settings['modelName'])
-        else:
-            title, accepted = getText('Enter title',
-                                      title='Extract Text',
-                                      default=title)
-            if accepted:
-                setField(newNote, self.settings['titleField'], title)
-                newNote.model()['did'] = did
-                mw.col.addNote(newNote)
+            setField(newNote,
+                     settings['sourceField'],
+                     getField(currentNote, settings['sourceField']))
 
-        if self.settings['extractSchedule']:
-            cards = newNote.cards()
-            if cards:
-                mw.readingManager.scheduler.answer(cards[0], SCHEDULE_EXTRACT)
+            if settings['editExtract']:
+                setField(newNote, settings['titleField'], title)
+                addCards = AddCards(mw)
+                addCards.editor.setNote(newNote)
+                deckName = mw.col.decks.get(did)['name']
+                addCards.deckChooser.deck.setText(deckName)
+                addCards.modelChooser.models.setText(settings['modelName'])
+            else:
+                title, accepted = getText(
+                    'Enter title', title='Extract Text', default=title)
+                if accepted:
+                    setField(newNote, settings['titleField'], title)
+                    newNote.model()['did'] = did
+                    mw.col.addNote(newNote)
+
+            if settings['scheduleExtract']:
+                cards = newNote.cards()
+                if cards:
+                    mw.readingManager.scheduler.answer(
+                        cards[0], SCHEDULE_EXTRACT)
+        else:
+            newNote.tags += settings['tags']
+            mw.col.addNote(newNote)
+
+        if settings['editSource']:
+            EditCurrent(mw)
 
     def remove(self):
         mw.web.eval('removeText()')
