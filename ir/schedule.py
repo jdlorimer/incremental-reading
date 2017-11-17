@@ -52,11 +52,17 @@ class Scheduler:
         downButton.clicked.connect(self._moveDown)
         randomizeButton = QPushButton('Randomize')
         randomizeButton.clicked.connect(self._randomize)
+        firstButton = QPushButton('First Position')
+        firstButton.clicked.connect(self._firstPos)
+        lastButton = QPushButton('Last Position')
+        lastButton.clicked.connect(self._lastPos)
 
         controlsLayout = QHBoxLayout()
         controlsLayout.addStretch()
+        controlsLayout.addWidget(firstButton)
         controlsLayout.addWidget(upButton)
         controlsLayout.addWidget(downButton)
+        controlsLayout.addWidget(lastButton)
         controlsLayout.addWidget(randomizeButton)
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
@@ -82,6 +88,17 @@ class Scheduler:
 
             self.reorder(cids)
 
+    def _firstPos(self):
+        selected = [self.cardListWidget.item(i)
+                    for i in range(self.cardListWidget.count())
+                    if self.cardListWidget.item(i).isSelected()]
+        selected.reverse()
+        for item in selected:
+            row = self.cardListWidget.row(item)
+            newRow = 0
+            self.cardListWidget.takeItem(row)
+            self.cardListWidget.insertItem(newRow, item)
+            item.setSelected(True)
     def _moveUp(self):
         selected = [self.cardListWidget.item(i)
                     for i in range(self.cardListWidget.count())
@@ -104,6 +121,16 @@ class Scheduler:
             self.cardListWidget.takeItem(row)
             self.cardListWidget.insertItem(newRow, item)
             item.setSelected(True)
+    def _lastPos(self):
+        selected = [self.cardListWidget.item(i)
+                    for i in range(self.cardListWidget.count())
+                    if self.cardListWidget.item(i).isSelected()]
+        for item in selected:
+            row = self.cardListWidget.row(item)
+            newRow = self.cardListWidget.count()
+            self.cardListWidget.takeItem(row)
+            self.cardListWidget.insertItem(newRow, item)
+            item.setSelected(True)  
 
     def _randomize(self):
         allItems = [self.cardListWidget.takeItem(0)
