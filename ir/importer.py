@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (QAbstractItemView,
                              QListWidgetItem,
                              QVBoxLayout)
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from requests import get, post
 
 from .lib.feedparser import parse
@@ -56,6 +56,9 @@ class Importer:
         for tagName in self.settings['badTags']:
             for tag in webpage.find_all(tagName):
                 tag.decompose()
+
+        for c in webpage.find_all(text=lambda s: isinstance(s, Comment)):
+            c.extract()
 
         return webpage
 
