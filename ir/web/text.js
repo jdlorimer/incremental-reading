@@ -38,6 +38,32 @@ function highlight(bgColor, textColor) {
     }
 }
 
+
+function format(style) {
+    var selection = window.getSelection().getRangeAt(0);
+    var selectedText = selection.extractContents();
+    var span = document.createElement("span");
+
+    span.className = "ir-highlight " + style;
+    span.setAttribute("ir-overlay", "on");
+    span.appendChild(selectedText);
+
+    selection.insertNode(span);
+}
+
+
+function toggleOverlay() {
+    var elems = document.getElementsByClassName("ir-highlight");
+    for (var i = 0; i < elems.length; i++) {
+        if (elems[i].getAttribute("ir-overlay") == "off") {
+            elems[i].setAttribute("ir-overlay", "on")
+        } else {
+            elems[i].setAttribute("ir-overlay", "off")
+        }
+    }
+}
+
+
 function removeText() {
     var range, sel = window.getSelection();
     if (sel.rangeCount && sel.getRangeAt) {
@@ -54,9 +80,11 @@ function removeText() {
     }
 }
 
+
 function getPlainText() {
     return window.getSelection().toString();
 }
+
 
 function getHtmlText() {
     var selection = window.getSelection();
