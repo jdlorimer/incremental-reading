@@ -18,14 +18,14 @@
 from anki.hooks import addHook
 from aqt import mw
 
-from .util import isIrCard, loadJsFile, viewingIrText
+from .util import isIrCard, loadFile, viewingIrText
 
 
 class ViewManager:
     def __init__(self):
-        self.scrollScript = loadJsFile('scroll')
-        self.textScript = loadJsFile('text')
-        self.widthScript = loadJsFile('width')
+        self.scrollScript = loadFile('web', 'scroll.js')
+        self.textScript = loadFile('web', 'text.js')
+        self.widthScript = loadFile('web', 'width.js')
         self.zoomFactor = 1
         addHook('afterStateChange', self.resetZoom)
         addHook('prepareQA', self.prepareCard)

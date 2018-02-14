@@ -1,6 +1,7 @@
 # Copyright 2013 Tiago Barroso
 # Copyright 2013 Frank Kmiec
 # Copyright 2013-2016 Aleksej
+# Copyright 2017 Christian Weiß
 # Copyright 2017 Luo Li-Yan <joseph.lorimer13@gmail.com>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -29,6 +30,7 @@ from PyQt5.QtWidgets import (QButtonGroup,
                              QDialogButtonBox,
                              QGroupBox,
                              QHBoxLayout,
+                             QKeySequenceEdit,
                              QLabel,
                              QLineEdit,
                              QPushButton,
@@ -57,49 +59,55 @@ class SettingsManager:
         mw.addonManager.setConfigAction(__name__, self.showDialog)
         addHook('unloadProfile', self.saveSettings)
 
-        self.defaults = {'badTags': ['iframe', 'script'],
-                         'copyTitle': False,
-                         'editExtract': False,
-                         'editSource': False,
-                         'extractBgColor': 'Green',
-                         'extractDeck': None,
-                         'extractKey': 'x',
-                         'extractMethod': 'percent',
-                         'extractRandom': True,
-                         'extractTextColor': 'White',
-                         'extractValue': 30,
-                         'feedLog': {},
-                         'generalZoom': 1,
-                         'highlightBgColor': 'Yellow',
-                         'highlightKey': 'h',
-                         'highlightTextColor': 'Black',
-                         'importDeck': 'Default',
-                         'laterMethod': 'percent',
-                         'laterRandom': True,
-                         'laterValue': 50,
-                         'limitWidth': True,
-                         'limitWidthAll': False,
-                         'lineScrollFactor': 0.05,
-                         'maxWidth': 600,
-                         'modelName': 'IR3',
-                         'pageScrollFactor': 0.5,
-                         'plainText': False,
-                         'quickKeys': {},
-                         'removeKey': 'z',
-                         'scheduleExtract': True,
-                         'scroll': {},
-                         'soonMethod': 'percent',
-                         'soonRandom': True,
-                         'soonValue': 10,
-                         'sourceField': 'Source',
-                         'sourceFormat': '{url} ({date})',
-                         'textField': 'Text',
-                         'titleField': 'Title',
-                         'undoKey': 'u',
-                         'userAgent': 'IR/{} (+{})'.format(
-                             __version__, IR_GITHUB_URL),
-                         'zoom': {},
-                         'zoomStep': 0.1}
+        self.defaults = {
+            'badTags': ['iframe', 'script'],
+            'boldSeq': 'Ctrl+B',
+            'copyTitle': False,
+            'editExtract': False,
+            'editSource': False,
+            'extractBgColor': 'Green',
+            'extractDeck': None,
+            'extractKey': 'x',
+            'extractMethod': 'percent',
+            'extractRandom': True,
+            'extractTextColor': 'White',
+            'extractValue': 30,
+            'feedLog': {},
+            'generalZoom': 1,
+            'highlightBgColor': 'Yellow',
+            'highlightKey': 'h',
+            'highlightTextColor': 'Black',
+            'importDeck': 'Default',
+            'italicSeq': 'Ctrl+I',
+            'laterMethod': 'percent',
+            'laterRandom': True,
+            'laterValue': 50,
+            'limitWidth': True,
+            'limitWidthAll': False,
+            'lineScrollFactor': 0.05,
+            'maxWidth': 600,
+            'modelName': 'IR3',
+            'overlaySeq': 'Ctrl+Shift+O',
+            'pageScrollFactor': 0.5,
+            'plainText': False,
+            'quickKeys': {},
+            'removeKey': 'z',
+            'scheduleExtract': True,
+            'scroll': {},
+            'soonMethod': 'percent',
+            'soonRandom': True,
+            'soonValue': 10,
+            'sourceField': 'Source',
+            'sourceFormat': '{url} ({date})',
+            'strikeSeq': 'Ctrl+S',
+            'textField': 'Text',
+            'titleField': 'Title',
+            'underlineSeq': 'Ctrl+U',
+            'undoKey': 'u',
+            'userAgent': 'IR/{} (+{})'.format(__version__, IR_GITHUB_URL),
+            'zoom': {},
+            'zoomStep': 0.1,
+        }
 
     def loadSettings(self):
         self.settingsChanged = False
@@ -184,7 +192,7 @@ class SettingsManager:
         tabWidget.setUsesScrollButtons(False)
         tabWidget.addTab(self._getGeneralTab(), 'General')
         tabWidget.addTab(self._getExtractionTab(), 'Extraction')
-        tabWidget.addTab(self._getHighlightTab(), 'Highlighting')
+        tabWidget.addTab(self._getHighlightTab(), 'Formatting')
         tabWidget.addTab(self._getSchedulingTab(), 'Scheduling')
         tabWidget.addTab(self._getImportingTab(), 'Importing')
         tabWidget.addTab(self._getQuickKeysTab(), 'Quick Keys')
@@ -271,6 +279,15 @@ class SettingsManager:
         else:
             self.settings['limitWidth'] = False
             self.settings['limitWidthAll'] = False
+
+        self.settings['boldSeq'] = (
+            self.boldSeqEditBox.keySequence().toString())
+        self.settings['italicSeq'] = (
+            self.italicSeqEditBox.keySequence().toString())
+        self.settings['underlineSeq'] = (
+            self.underlineSeqEditBox.keySequence().toString())
+        self.settings['strikeSeq'] = (
+            self.strikeSeqEditBox.keySequence().toString())
 
         mw.readingManager.viewManager.resetZoom(mw.state)
         return done
@@ -470,15 +487,14 @@ class SettingsManager:
         return tab
 
     def _getHighlightTab(self):
-        colorsGroupBox = self._getColorsGroupBox()
-        colorPreviewGroupBox = self._getColorPreviewGroupBox()
+        highlightGroupBox = self._getHighlightGroupBox()
+        stylingGroupBox = self._getStylingGroupBox()
 
         horizontalLayout = QHBoxLayout()
-        horizontalLayout.addWidget(colorsGroupBox)
-        horizontalLayout.addWidget(colorPreviewGroupBox)
+        horizontalLayout.addWidget(highlightGroupBox)
+        horizontalLayout.addWidget(stylingGroupBox)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.targetComboBox)
         layout.addLayout(horizontalLayout)
         layout.addStretch()
 
@@ -502,14 +518,13 @@ class SettingsManager:
             self.settings['quickKeys'][target]['bgColor'] = bgColor
             self.settings['quickKeys'][target]['textColor'] = textColor
 
-    def _getColorsGroupBox(self):
+    def _getHighlightGroupBox(self):
         self.targetComboBox = QComboBox()
         self._populateTargetComboBox()
         self.targetComboBox.currentIndexChanged.connect(
             self._updateHighlightTab)
 
         targetLayout = QHBoxLayout()
-        targetLayout.addWidget(self.targetComboBox)
         targetLayout.addStretch()
 
         colors = self.getColorList()
@@ -528,6 +543,9 @@ class SettingsManager:
         self.textColorComboBox.currentIndexChanged.connect(
             self._updateColorPreview)
 
+        self.colorPreviewLabel = QLabel('Example Text')
+        self._updateColorPreview()
+
         bgColorLabel = QLabel('Background')
         bgColorLayout = QHBoxLayout()
         bgColorLayout.addWidget(bgColorLabel)
@@ -541,11 +559,13 @@ class SettingsManager:
         textColorLayout.addWidget(self.textColorComboBox)
 
         layout = QVBoxLayout()
+        layout.addWidget(self.targetComboBox)
+        layout.addWidget(self.colorPreviewLabel)
         layout.addLayout(bgColorLayout)
         layout.addLayout(textColorLayout)
         layout.addStretch()
 
-        groupBox = QGroupBox('Colors')
+        groupBox = QGroupBox('Highlighting')
         groupBox.setLayout(layout)
 
         return groupBox
@@ -597,14 +617,44 @@ class SettingsManager:
         self.colorPreviewLabel.setStyleSheet(styleSheet)
         self.colorPreviewLabel.setAlignment(Qt.AlignCenter)
 
-    def _getColorPreviewGroupBox(self):
-        self.colorPreviewLabel = QLabel('Example Text')
-        self._updateColorPreview()
-        colorPreviewLayout = QVBoxLayout()
-        colorPreviewLayout.addWidget(self.colorPreviewLabel)
+    def _getStylingGroupBox(self):
+        boldLabel = QLabel('Bold')
+        self.boldSeqEditBox = QKeySequenceEdit(self.settings['boldSeq'])
+        boldLayout = QHBoxLayout()
+        boldLayout.addWidget(boldLabel)
+        boldLayout.addStretch()
+        boldLayout.addWidget(self.boldSeqEditBox)
 
-        groupBox = QGroupBox('Preview')
-        groupBox.setLayout(colorPreviewLayout)
+        italicLabel = QLabel('Italic')
+        self.italicSeqEditBox = QKeySequenceEdit(self.settings['italicSeq'])
+        italicLayout = QHBoxLayout()
+        italicLayout.addWidget(italicLabel)
+        italicLayout.addStretch()
+        italicLayout.addWidget(self.italicSeqEditBox)
+
+        underlineLabel = QLabel('Underline')
+        self.underlineSeqEditBox = QKeySequenceEdit(self.settings['underlineSeq'])
+        underlineLayout = QHBoxLayout()
+        underlineLayout.addWidget(underlineLabel)
+        underlineLayout.addStretch()
+        underlineLayout.addWidget(self.underlineSeqEditBox)
+
+        strikeLabel = QLabel('Strikethrough')
+        self.strikeSeqEditBox = QKeySequenceEdit(self.settings['strikeSeq'])
+        strikeLayout = QHBoxLayout()
+        strikeLayout.addWidget(strikeLabel)
+        strikeLayout.addStretch()
+        strikeLayout.addWidget(self.strikeSeqEditBox)
+
+        layout = QVBoxLayout()
+        layout.addLayout(boldLayout)
+        layout.addLayout(italicLayout)
+        layout.addLayout(underlineLayout)
+        layout.addLayout(strikeLayout)
+        layout.addStretch()
+
+        groupBox = QGroupBox('Styling')
+        groupBox.setLayout(layout)
 
         return groupBox
 

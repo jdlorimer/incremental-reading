@@ -26,7 +26,7 @@ from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
 from .text import TextManager
-from .util import addMenuItem, isIrCard
+from .util import addMenuItem, isIrCard, loadFile
 from .view import ViewManager
 
 
@@ -63,6 +63,15 @@ class ReadingManager:
             (self.settings['highlightKey'], self.textManager.highlight),
             (self.settings['removeKey'], self.textManager.remove),
             (self.settings['undoKey'], self.textManager.undo),
+            (self.settings['overlaySeq'], self.textManager.toggleOverlay),
+            (self.settings['boldSeq'],
+             lambda: self.textManager.format('bold')),
+            (self.settings['italicSeq'],
+             lambda: self.textManager.format('italic')),
+            (self.settings['strikeSeq'],
+             lambda: self.textManager.format('strike')),
+            (self.settings['underlineSeq'],
+             lambda: self.textManager.format('underline')),
         ]
 
     def loadMenuItems(self):
@@ -122,6 +131,7 @@ class ReadingManager:
             return
 
         model = mw.col.models.new(self.settings['modelName'])
+        model['css'] = loadFile('web', 'model.css')
 
         titleField = mw.col.models.newField(self.settings['titleField'])
         textField = mw.col.models.newField(self.settings['textField'])

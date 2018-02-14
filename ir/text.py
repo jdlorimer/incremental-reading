@@ -1,6 +1,7 @@
 # Copyright 2013 Tiago Barroso
 # Copyright 2013 Frank Kmiec
 # Copyright 2013-2016 Aleksej
+# Copyright 2017 Christian Weiß
 # Copyright 2017 Luo Li-Yan <joseph.lorimer13@gmail.com>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -38,8 +39,16 @@ class TextManager:
         if not textColor:
             textColor = self.settings['highlightTextColor']
 
-        script = "highlight('%s', '%s');" % (bgColor, textColor)
+        script = "highlight('%s', '%s')" % (bgColor, textColor)
         mw.web.eval(script)
+        self.save()
+
+    def format(self, style):
+        mw.web.eval('format("%s")' % style)
+        self.save()
+
+    def toggleOverlay(self):
+        mw.web.eval('toggleOverlay()')
         self.save()
 
     def extract(self, settings=None):
@@ -60,7 +69,8 @@ class TextManager:
                 lambda text: self.create(text, settings))
 
     def create(self, text, settings):
-        self.highlight(settings['extractBgColor'], settings['extractTextColor'])
+        self.highlight(settings['extractBgColor'],
+                       settings['extractTextColor'])
         createIrNote = (settings['modelName'] == self.settings['modelName'])
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()

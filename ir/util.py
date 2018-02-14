@@ -139,8 +139,8 @@ def fixImages(html):
     return str(soup)
 
 
-def loadJsFile(name):
+def loadFile(fileDir, filename):
     moduleDir, _ = os.path.split(__file__)
-    path = os.path.join(moduleDir, 'js', name + '.js')
-    with open(path, encoding='utf-8') as jsFile:
-        return jsFile.read()
+    path = os.path.join(moduleDir, fileDir, filename)
+    with open(path, encoding='utf-8') as f:
+        return f.read()
