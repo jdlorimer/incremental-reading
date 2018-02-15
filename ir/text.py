@@ -98,13 +98,10 @@ class TextManager:
                      getField(currentNote, settings['sourceField']))
 
             if settings['editExtract']:
-                highlight = self._editExtract(newNote, did, title, settings)
+                setField(newNote, settings['titleField'], title)
+                highlight = self._editExtract(newNote, did, settings)
             else:
                 highlight = self._getTitle(newNote, did, title, settings)
-
-            if highlight:
-                self.highlight(settings['extractBgColor'],
-                               settings['extractTextColor'])
 
             if settings['scheduleExtract']:
                 cards = newNote.cards()
@@ -113,17 +110,25 @@ class TextManager:
                         cards[0], SCHEDULE_EXTRACT)
         else:
             newNote.tags += settings['tags']
-            mw.col.addNote(newNote)
+            if settings['editExtract']:
+                highlight = self._editExtract(newNote, did, settings)
+            else:
+                highlight = True
+                newNote.model()['did'] = did
+                mw.col.addNote(newNote)
+
+        if highlight:
+            self.highlight(settings['extractBgColor'],
+                           settings['extractTextColor'])
 
         if settings['editSource']:
             EditCurrent(mw)
 
-    def _editExtract(self, note, did, title, settings):
+    def _editExtract(self, note, did, settings):
         def onAdd():
             addCards.rejected.disconnect(self.undo)
             addCards.reject()
 
-        setField(note, settings['titleField'], title)
         addCards = AddCards(mw)
         addCards.rejected.connect(self.undo)
         addCards.addButton.clicked.connect(onAdd)
