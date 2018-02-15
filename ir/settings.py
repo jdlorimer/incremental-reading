@@ -2,7 +2,7 @@
 # Copyright 2013 Frank Kmiec
 # Copyright 2013-2016 Aleksej
 # Copyright 2017 Christian Weiß
-# Copyright 2017 Luo Li-Yan <joseph.lorimer13@gmail.com>
+# Copyright 2017-2018 Luo Li-Yan <joseph.lorimer13@gmail.com>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -78,6 +78,7 @@ class SettingsManager:
             'highlightKey': 'h',
             'highlightTextColor': 'Black',
             'importDeck': None,
+            'isQuickKey': False,
             'italicSeq': 'Ctrl+I',
             'laterMethod': 'percent',
             'laterRandom': True,
@@ -144,6 +145,7 @@ class SettingsManager:
             'extractBgColor',
             'extractDeck',
             'extractTextColor',
+            'isQuickKey',
             'modelName',
             'regularKey',
             'shift',
@@ -224,8 +226,10 @@ class SettingsManager:
 
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
-        self.settings['lineScrollFactor'] = self.lineStepSpinBox.value() / 100.0
-        self.settings['pageScrollFactor'] = self.pageStepSpinBox.value() / 100.0
+        self.settings['lineScrollFactor'] = (
+            self.lineStepSpinBox.value() / 100.0)
+        self.settings['pageScrollFactor'] = (
+            self.pageStepSpinBox.value() / 100.0)
         self.settings['editExtract'] = self.editExtractButton.isChecked()
         self.settings['editSource'] = self.editSourceCheckBox.isChecked()
         self.settings['plainText'] = self.plainTextCheckBox.isChecked()
@@ -247,7 +251,8 @@ class SettingsManager:
         try:
             self.settings['soonValue'] = int(self.soonValueEditBox.text())
             self.settings['laterValue'] = int(self.laterValueEditBox.text())
-            self.settings['extractValue'] = int(self.extractValueEditBox.text())
+            self.settings['extractValue'] = int(
+                self.extractValueEditBox.text())
             self.settings['maxWidth'] = int(self.widthEditBox.text())
         except ValueError:
             showWarning('Integer value expected. Please try again.')
@@ -641,7 +646,8 @@ class SettingsManager:
         italicLayout.addWidget(self.italicSeqEditBox)
 
         underlineLabel = QLabel('Underline')
-        self.underlineSeqEditBox = QKeySequenceEdit(self.settings['underlineSeq'])
+        self.underlineSeqEditBox = QKeySequenceEdit(
+            self.settings['underlineSeq'])
         underlineLayout = QHBoxLayout()
         underlineLayout.addWidget(underlineLabel)
         underlineLayout.addStretch()
@@ -818,7 +824,8 @@ class SettingsManager:
         modelNames = sorted([m['name'] for m in mw.col.models.all()])
         self.noteTypeComboBox.addItem('')
         self.noteTypeComboBox.addItems(modelNames)
-        self.noteTypeComboBox.currentIndexChanged.connect(self._updateFieldList)
+        self.noteTypeComboBox.currentIndexChanged.connect(
+            self._updateFieldList)
 
         newButton = QPushButton('New')
         newButton.clicked.connect(self._clearQuickKeysTab)
@@ -868,7 +875,8 @@ class SettingsManager:
             self.altKeyCheckBox.setChecked(settings['alt'])
             self.shiftKeyCheckBox.setChecked(settings['shift'])
             setComboBoxItem(self.regularKeyComboBox, settings['regularKey'])
-            self.quickKeyEditExtractCheckBox.setChecked(settings['editExtract'])
+            self.quickKeyEditExtractCheckBox.setChecked(
+                settings['editExtract'])
             self.quickKeyEditSourceCheckBox.setChecked(settings['editSource'])
             self.quickKeyPlainTextCheckBox.setChecked(settings['plainText'])
             self.tagsEditBox.setText(mw.col.tags.join(settings['tags']))
@@ -918,6 +926,7 @@ class SettingsManager:
             'extractBgColor': self.bgColorComboBox.currentText(),
             'extractDeck': self.destDeckComboBox.currentText(),
             'extractTextColor': self.textColorComboBox.currentText(),
+            'isQuickKey': True,
             'modelName': self.noteTypeComboBox.currentText(),
             'plainText': self.quickKeyPlainTextCheckBox.isChecked(),
             'regularKey': self.regularKeyComboBox.currentText(),
@@ -962,7 +971,8 @@ class SettingsManager:
         zoomStepPercent = round(self.settings['zoomStep'] * 100)
         generalZoomPercent = round(self.settings['generalZoom'] * 100)
         self.zoomStepSpinBox = createSpinBox(zoomStepPercent, 5, 100, 5)
-        self.generalZoomSpinBox = createSpinBox(generalZoomPercent, 10, 200, 10)
+        self.generalZoomSpinBox = createSpinBox(
+            generalZoomPercent, 10, 200, 10)
 
         zoomStepLayout = QHBoxLayout()
         zoomStepLayout.addWidget(zoomStepLabel)
