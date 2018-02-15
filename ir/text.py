@@ -22,7 +22,7 @@ from anki.notes import Note
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
-from aqt.utils import getText, showInfo, tooltip
+from aqt.utils import getText, showInfo, showWarning, tooltip
 
 from .util import fixImages, getField, setField
 
@@ -78,7 +78,12 @@ class TextManager:
         setField(newNote, settings['textField'], fixImages(text))
 
         if settings['extractDeck']:
-            did = mw.col.decks.byName(settings['extractDeck'])['id']
+            deck = mw.col.decks.byName(settings['extractDeck'])
+            if not deck:
+                showWarning('Destination deck no longer exists. '
+                            'Please update your settings.')
+                return
+            did = deck['id']
         else:
             did = currentCard.did
 
