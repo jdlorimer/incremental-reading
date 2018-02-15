@@ -63,7 +63,16 @@ class Importer:
         return webpage
 
     def _createNote(self, title, text, source):
-        did = mw.col.conf['curDeck']
+        if self.settings['importDeck']:
+            deck = mw.col.decks.byName(self.settings['importDeck'])
+            if not deck:
+                showWarning('Destination deck no longer exists. '
+                            'Please update your settings.')
+                return
+            did = deck['id']
+        else:
+            did = mw.col.conf['curDeck']
+
         model = mw.col.models.byName(self.settings['modelName'])
         note = Note(mw.col, model)
         setField(note, self.settings['titleField'], title)

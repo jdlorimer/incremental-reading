@@ -77,7 +77,7 @@ class SettingsManager:
             'highlightBgColor': 'Yellow',
             'highlightKey': 'h',
             'highlightTextColor': 'Black',
-            'importDeck': 'Default',
+            'importDeck': None,
             'italicSeq': 'Ctrl+I',
             'laterMethod': 'percent',
             'laterRandom': True,
@@ -252,6 +252,12 @@ class SettingsManager:
         except ValueError:
             showWarning('Integer value expected. Please try again.')
             done = False
+
+        if self.importDeckComboBox.currentText() == '[Current Deck]':
+            self.settings['importDeck'] = None
+        else:
+            self.settings['importDeck'] = (
+                self.importDeckComboBox.currentText())
 
         self.settings['sourceFormat'] = self.sourceFormatEditBox.text()
 
@@ -1012,8 +1018,24 @@ class SettingsManager:
         return groupBox
 
     def _getImportingTab(self):
-        sourceFormatLabel = QLabel('Source Format')
+        importDeckLabel = QLabel('Imports Deck')
+        self.importDeckComboBox = QComboBox()
+        deckNames = sorted([d['name'] for d in mw.col.decks.all()])
+        self.importDeckComboBox.addItem('[Current Deck]')
+        self.importDeckComboBox.addItems(deckNames)
 
+        if self.settings['importDeck']:
+            setComboBoxItem(self.importDeckComboBox,
+                            self.settings['importDeck'])
+        else:
+            setComboBoxItem(self.importDeckComboBox, '[Current Deck]')
+
+        importDeckLayout = QHBoxLayout()
+        importDeckLayout.addWidget(importDeckLabel)
+        importDeckLayout.addWidget(self.importDeckComboBox)
+        importDeckLayout.addStretch()
+
+        sourceFormatLabel = QLabel('Source Format')
         self.sourceFormatEditBox = QLineEdit()
         self.sourceFormatEditBox.setFixedWidth(200)
         self.sourceFormatEditBox.setText(str(self.settings['sourceFormat']))
@@ -1027,6 +1049,7 @@ class SettingsManager:
         sourceFormatLayout.addStretch()
 
         layout = QVBoxLayout()
+        layout.addLayout(importDeckLayout)
         layout.addLayout(sourceFormatLayout)
         layout.addStretch()
 
