@@ -69,8 +69,6 @@ class TextManager:
                 lambda text: self.create(text, settings))
 
     def create(self, text, settings):
-        self.highlight(settings['extractBgColor'],
-                       settings['extractTextColor'])
         createIrNote = (settings['modelName'] == self.settings['modelName'])
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
@@ -95,19 +93,13 @@ class TextManager:
                      getField(currentNote, settings['sourceField']))
 
             if settings['editExtract']:
-                setField(newNote, settings['titleField'], title)
-                addCards = AddCards(mw)
-                addCards.editor.setNote(newNote)
-                deckName = mw.col.decks.get(did)['name']
-                addCards.deckChooser.deck.setText(deckName)
-                addCards.modelChooser.models.setText(settings['modelName'])
+                highlight = self._editExtract(newNote, did, title, settings)
             else:
-                title, accepted = getText(
-                    'Enter title', title='Extract Text', default=title)
-                if accepted:
-                    setField(newNote, settings['titleField'], title)
-                    newNote.model()['did'] = did
-                    mw.col.addNote(newNote)
+                highlight = self._getTitle(newNote, did, title, settings)
+
+            if highlight:
+                self.highlight(settings['extractBgColor'],
+                               settings['extractTextColor'])
 
             if settings['scheduleExtract']:
                 cards = newNote.cards()
@@ -120,6 +112,32 @@ class TextManager:
 
         if settings['editSource']:
             EditCurrent(mw)
+
+    def _editExtract(self, note, did, title, settings):
+        def onAdd():
+            addCards.rejected.disconnect(self.undo)
+            addCards.reject()
+
+        setField(note, settings['titleField'], title)
+        addCards = AddCards(mw)
+        addCards.rejected.connect(self.undo)
+        addCards.addButton.clicked.connect(onAdd)
+        addCards.editor.setNote(note)
+        deckName = mw.col.decks.get(did)['name']
+        addCards.deckChooser.deck.setText(deckName)
+        addCards.modelChooser.models.setText(settings['modelName'])
+        return True
+
+    def _getTitle(self, note, did, title, settings):
+        title, accepted = getText(
+            'Enter title', title='Extract Text', default=title)
+
+        if accepted:
+            setField(note, settings['titleField'], title)
+            note.model()['did'] = did
+            mw.col.addNote(note)
+
+        return accepted
 
     def remove(self):
         mw.web.eval('removeText()')
