@@ -943,10 +943,10 @@ class SettingsManager:
         if keyCombo in self.settings['quickKeys']:
             tooltip('Shortcut updated')
         else:
+            self.quickKeysComboBox.addItem(keyCombo)
             tooltip('New shortcut added: %s' % keyCombo)
 
         self.settings['quickKeys'][keyCombo] = settings
-        self.quickKeysComboBox.addItem(keyCombo)
         setComboBoxItem(self.quickKeysComboBox, keyCombo)
         self._populateTargetComboBox()
         self.loadMenuItems()
