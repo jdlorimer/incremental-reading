@@ -521,8 +521,8 @@ class SettingsManager:
             self.settings['extractBgColor'] = bgColor
             self.settings['extractTextColor'] = textColor
         else:
-            self.settings['quickKeys'][target]['bgColor'] = bgColor
-            self.settings['quickKeys'][target]['textColor'] = textColor
+            self.settings['quickKeys'][target]['extractBgColor'] = bgColor
+            self.settings['quickKeys'][target]['extractTextColor'] = textColor
 
     def _getHighlightGroupBox(self):
         self.targetComboBox = QComboBox()
@@ -600,9 +600,11 @@ class SettingsManager:
                             self.settings['extractTextColor'])
         else:
             setComboBoxItem(self.bgColorComboBox,
-                            self.settings['quickKeys'][target]['bgColor'])
+                            self.settings['quickKeys']
+                            [target]['extractBgColor'])
             setComboBoxItem(self.textColorComboBox,
-                            self.settings['quickKeys'][target]['textColor'])
+                            self.settings['quickKeys']
+                            [target]['extractTextColor'])
 
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
@@ -943,10 +945,10 @@ class SettingsManager:
         if keyCombo in self.settings['quickKeys']:
             tooltip('Shortcut updated')
         else:
+            self.quickKeysComboBox.addItem(keyCombo)
             tooltip('New shortcut added: %s' % keyCombo)
 
         self.settings['quickKeys'][keyCombo] = settings
-        self.quickKeysComboBox.addItem(keyCombo)
         setComboBoxItem(self.quickKeysComboBox, keyCombo)
         self._populateTargetComboBox()
         self.loadMenuItems()
