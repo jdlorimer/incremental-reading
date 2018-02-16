@@ -132,7 +132,7 @@ class TextManager:
         addCards = AddCards(mw)
         addCards.rejected.connect(self.undo)
         addCards.addButton.clicked.connect(onAdd)
-        addCards.editor.setNote(note)
+        addCards.editor.setNote(note, focusTo=0)
         deckName = mw.col.decks.get(did)['name']
         addCards.deckChooser.setDeckName(deckName)
         addCards.modelChooser.models.setText(settings['modelName'])
