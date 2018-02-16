@@ -110,8 +110,11 @@ class Scheduler:
 
     def _moveToTop(self):
         selected = self._getSelected()
-        selected.reverse()
+        if not selected:
+            showInfo('Please select one or several items.')
+            return
 
+        selected.reverse()
         for item in selected:
             self.cardListWidget.takeItem(self.cardListWidget.row(item))
             self.cardListWidget.insertItem(0, item)
@@ -121,6 +124,9 @@ class Scheduler:
 
     def _moveUp(self):
         selected = self._getSelected()
+        if not selected:
+            showInfo('Please select one or several items.')
+            return
 
         if self.cardListWidget.row(selected[0]) == 0:
             return
@@ -134,6 +140,10 @@ class Scheduler:
 
     def _moveDown(self):
         selected = self._getSelected()
+        if not selected:
+            showInfo('Please select one or several items.')
+            return
+
         selected.reverse()
 
         if (self.cardListWidget.row(selected[0]) ==
@@ -148,7 +158,12 @@ class Scheduler:
             self.cardListWidget.scrollToItem(item)
 
     def _moveToBottom(self):
-        for item in self._getSelected():
+        selected = self._getSelected()
+        if not selected:
+            showInfo('Please select one or several items.')
+            return
+
+        for item in selected:
             self.cardListWidget.takeItem(self.cardListWidget.row(item))
             self.cardListWidget.insertItem(self.cardListWidget.count(), item)
             item.setSelected(True)
