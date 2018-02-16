@@ -13,6 +13,7 @@ from PyQt4.QtGui import (QAbstractItemView,
                          QPushButton,
                          QVBoxLayout)
 
+from anki.utils import stripHTML
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
@@ -41,12 +42,15 @@ class Scheduler:
         dialog = QDialog(mw)
         layout = QVBoxLayout()
         self.cardListWidget = QListWidget()
+        self.cardListWidget.setAlternatingRowColors(True)
         self.cardListWidget.setSelectionMode(
             QAbstractItemView.ExtendedSelection)
+        self.cardListWidget.setWordWrap(True)
 
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
-            text = '[ {} ]\t{}'.format(str(i).zfill(posWidth), card['title'])
+            text = '❰ {} ❱\t{}'.format(
+                str(i).zfill(posWidth), stripHTML(card['title']))
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, card)
             self.cardListWidget.addItem(item)
@@ -162,13 +166,9 @@ class Scheduler:
                 'select id, nid from cards where did = ?',
                 did):
             note = mw.col.getNote(nid)
-
             if note.model()['name'] == self.settings['modelName']:
-                title = note[self.settings['titleField']].encode(
-                    'ascii', errors='xmlcharrefreplace').encode('string_escape')
-
                 cardInfo.append({'id': cid,
                                  'nid': nid,
-                                 'title': title})
+                                 'title': note[self.settings['titleField']]})
 
         return cardInfo
