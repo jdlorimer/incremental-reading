@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import (QAbstractItemView,
                              QVBoxLayout)
 
 from anki.utils import stripHTML
-from aqt import mw
+from aqt import mw, dialogs
 from aqt.utils import showInfo, tooltip
 
 SCHEDULE_EXTRACT = 0
@@ -42,14 +42,13 @@ SCHEDULE_CUSTOM = 3
 class Scheduler:
     def showDialog(self, currentCard=None):
         if currentCard:
-            did = currentCard.did
+            self.did = currentCard.did
         elif mw._selectedDeck():
-            did = mw._selectedDeck()['id']
+            self.did = mw._selectedDeck()['id']
         else:
             return
 
-        cardInfo = self._getCardInfo(did)
-        if not cardInfo:
+        if not self._getCardInfo(self.did):
             showInfo('Please select an Incremental Reading deck.')
             return
 
@@ -60,14 +59,11 @@ class Scheduler:
         self.cardListWidget.setSelectionMode(
             QAbstractItemView.ExtendedSelection)
         self.cardListWidget.setWordWrap(True)
+        self.cardListWidget.itemDoubleClicked.connect(lambda:
+                        self.showBrowser(self.cardListWidget.currentItem().
+                                         data(Qt.UserRole)['nid']))
 
-        posWidth = len(str(len(cardInfo) + 1))
-        for i, card in enumerate(cardInfo, start=1):
-            text = '❰ {} ❱\t{}'.format(
-                str(i).zfill(posWidth), stripHTML(card['title']))
-            item = QListWidgetItem(text)
-            item.setData(Qt.UserRole, card)
-            self.cardListWidget.addItem(item)
+        self._updateListItems()
 
         upButton = QPushButton('Up')
         upButton.clicked.connect(self._moveUp)
@@ -110,6 +106,17 @@ class Scheduler:
                 cids.append(card['id'])
 
             self.reorder(cids)
+
+    def _updateListItems(self):
+        cardInfo = self._getCardInfo(self.did)
+        self.cardListWidget.clear()
+        posWidth = len(str(len(cardInfo) + 1))
+        for i, card in enumerate(cardInfo, start=1):
+            text = '❰ {} ❱\t{}'.format(
+                str(i).zfill(posWidth), stripHTML(card['title']))
+            item = QListWidgetItem(text)
+            item.setData(Qt.UserRole, card)
+            self.cardListWidget.addItem(item)
 
     def _moveToTop(self):
         selected = self._getSelected()
@@ -242,3 +249,8 @@ class Scheduler:
                                  'title': note[self.settings['titleField']]})
 
         return cardInfo
+
+    def showBrowser(self, nid):
+        browser = dialogs.open("Browser", mw)
+        browser.form.searchEdit.lineEdit().setText("nid:"+str(nid))
+        browser.onSearchActivated()
