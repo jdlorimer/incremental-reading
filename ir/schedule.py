@@ -42,8 +42,10 @@ class Scheduler:
     def showDialog(self, currentCard=None):
         if currentCard:
             did = currentCard.did
-        else:
+        elif mw._selectedDeck():
             did = mw._selectedDeck()['id']
+        else:
+            return
 
         cardInfo = self._getCardInfo(did)
         if not cardInfo:
