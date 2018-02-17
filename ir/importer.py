@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from anki.notes import Note
 from anki.utils import isMac, isWin
 from aqt import mw
-from aqt.utils import askUser, getText, openLink, showWarning
+from aqt.utils import askUser, getText, openLink, showWarning, tooltip
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QAbstractItemView,
@@ -81,6 +81,7 @@ class Importer:
         note.model()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
+        tooltip('Added to deck: ' + mw.col.decks.get(did)['name'])
 
     def importWebpage(self, url=None):
         if not url:
