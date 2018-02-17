@@ -59,9 +59,9 @@ class Scheduler:
         self.cardListWidget.setSelectionMode(
             QAbstractItemView.ExtendedSelection)
         self.cardListWidget.setWordWrap(True)
-        self.cardListWidget.itemDoubleClicked.connect(lambda:
-                        self.showBrowser(self.cardListWidget.currentItem().
-                                         data(Qt.UserRole)['nid']))
+        self.cardListWidget.itemDoubleClicked.connect(
+            lambda: self.showBrowser(
+                self.cardListWidget.currentItem().data(Qt.UserRole)['nid']))
 
         self._updateListItems()
 
@@ -251,6 +251,6 @@ class Scheduler:
         return cardInfo
 
     def showBrowser(self, nid):
-        browser = dialogs.open("Browser", mw)
-        browser.form.searchEdit.lineEdit().setText("nid:"+str(nid))
+        browser = dialogs.open('Browser', mw)
+        browser.form.searchEdit.lineEdit().setText('nid:' + str(nid))
         browser.onSearchActivated()
