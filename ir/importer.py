@@ -41,9 +41,6 @@ from .util import setField
 
 class Importer:
     def _fetchWebpage(self, url):
-        if not urlsplit(url).scheme:
-            url = 'http://' + url
-
         if isMac:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read().decode('utf-8')
@@ -92,6 +89,9 @@ class Importer:
         if not url or not accepted:
             return
 
+        if not urlsplit(url).scheme:
+            url = 'http://' + url
+
         try:
             webpage = self._fetchWebpage(url)
         except HTTPError as error:
@@ -102,8 +102,10 @@ class Importer:
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
-        source = self.settings['sourceFormat'].format(date=date.today(),
-                                                      url=url)
+        source = self.settings['sourceFormat'].format(
+            date=date.today(),
+            url='<a href="' + url + '">' + url + '</a>')
+
         self._createNote(webpage.title.string, body, source)
 
     def importFeed(self):
