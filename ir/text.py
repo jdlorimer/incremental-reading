@@ -89,6 +89,11 @@ class TextManager:
 
         if settings['isQuickKey']:
             newNote.tags += settings['tags']
+            if settings['sourceField'] != 'None':
+                setField(newNote, settings['sourceField'],
+                         '<div><br></div>(source: '+
+                         getField(currentNote, self.settings['sourceField'])
+                         + ')')
             if settings['editExtract']:
                 highlight = self._editExtract(newNote, did, settings)
             else:

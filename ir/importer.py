@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from anki.notes import Note
 from anki.utils import isMac, isWin
 from aqt import mw
-from aqt.utils import askUser, getText, openLink, showWarning
+from aqt.utils import askUser, getText, openLink, showWarning, tooltip
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QAbstractItemView,
@@ -41,9 +41,6 @@ from .util import setField
 
 class Importer:
     def _fetchWebpage(self, url):
-        if not urlsplit(url).scheme:
-            url = 'http://' + url
-
         if isMac:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read().decode('utf-8')
@@ -81,6 +78,7 @@ class Importer:
         note.model()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
+        tooltip('Added to deck: ' + mw.col.decks.get(did)['name'])
 
     def importWebpage(self, url=None):
         if not url:
@@ -90,6 +88,9 @@ class Importer:
 
         if not url or not accepted:
             return
+
+        if not urlsplit(url).scheme:
+            url = 'http://' + url
 
         try:
             webpage = self._fetchWebpage(url)
@@ -101,8 +102,10 @@ class Importer:
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
-        source = self.settings['sourceFormat'].format(date=date.today(),
-                                                      url=url)
+        source = self.settings['sourceFormat'].format(
+            date=date.today(),
+            url='<a href="%s">%s</a>' % (url, url))
+
         self._createNote(webpage.title.string, body, source)
 
     def importFeed(self):

@@ -103,9 +103,10 @@ def getField(note, fieldName):
 
 
 def setField(note, fieldName, content):
+    "Add content at the end of a field."
     model = note.model()
     index, _ = mw.col.models.fieldMap(model)[fieldName]
-    note.fields[index] = content
+    note.fields[index] += content
 
 
 def createSpinBox(value, minimum, maximum, step):
