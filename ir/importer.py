@@ -104,7 +104,7 @@ class Importer:
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self.settings['sourceFormat'].format(
             date=date.today(),
-            url='<a href="' + url + '">' + url + '</a>')
+            url='<a href="%s">%s</a></div>' % (url, url))
 
         self._createNote(webpage.title.string, body, source)
 
