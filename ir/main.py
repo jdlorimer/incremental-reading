@@ -17,6 +17,7 @@
 
 from anki.hooks import addHook, wrap
 from aqt import mw
+from aqt.browser import Browser
 from aqt.reviewer import Reviewer
 
 import sip
@@ -171,6 +172,11 @@ def buttonTime(self, i, _old):
     else:
         return _old(self, i)
 
+def onBrowserClosed(self):
+    try:
+        mw.readingManager.scheduler._updateListItems()
+    except:
+        return
 
 Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
                                   answerButtonList,
@@ -178,3 +184,4 @@ Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
 
 Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
+Browser._closeWindow = wrap(Browser._closeWindow, onBrowserClosed)
