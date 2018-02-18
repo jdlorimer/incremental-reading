@@ -13,6 +13,7 @@ The main things this add-on allows you to do:
 * Highlight selected text by pressing <kbd>h</kbd>
 * Remove selected text by pressing <kbd>z</kbd>
 * Undo changes to the text by pressing <kbd>u</kbd>
+* Apply rich text formatting while reading
 * Create custom shortcuts to quickly add cards
 * Maintain scroll position and zoom on a per-card basis
 * Rearrange cards in the built-in organiser
@@ -27,7 +28,10 @@ The main things this add-on allows you to do:
 * Import single webpages (<kbd>Alt</kbd>+<kbd>3</kbd>)
 * Import web feeds (<kbd>Alt</kbd>+<kbd>4</kbd>)
 * Import Pocket articles (<kbd>Alt</kbd>+<kbd>5</kbd>)
+* Apply bold, italics, underline or strikethrough (<kbd>Ctrl</kbd>+<kbd>B</kbd>, <kbd>I</kbd>, <kbd>U</kbd>, or <kbd>S</kbd>)
+* Toggle formatting on and off (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd>)
 * Choose maximum width of cards (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
+* Control initial scheduling of extracts (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
 
 ### New to Version 3
 
@@ -53,7 +57,7 @@ The main things this add-on allows you to do:
     * A list of all existing Quick Keys is now shown, to allow easy modification
     * Unwanted Quick Keys can be easily deleted
     * A plain text extraction option has also been added
-* All options have been consolidated into a single tabbed dialog, and several new ones added
+* All options have been consolidated into a single tabbed dialog
 
 ## Installation
 
