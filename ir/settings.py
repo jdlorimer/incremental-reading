@@ -549,6 +549,8 @@ class SettingsManager:
                         self.settings['highlightBgColor'])
         self.bgColorComboBox.currentIndexChanged.connect(
             self._updateColorPreview)
+        self.bgColorComboBox.activated.connect(
+            self._saveHighlightSettings)  # activated: by the user
 
         self.textColorComboBox = QComboBox()
         self.textColorComboBox.addItems(colors)
@@ -556,6 +558,8 @@ class SettingsManager:
                         self.settings['highlightTextColor'])
         self.textColorComboBox.currentIndexChanged.connect(
             self._updateColorPreview)
+        self.textColorComboBox.activated.connect(
+            self._saveHighlightSettings)
 
         self.colorPreviewLabel = QLabel('Example Text')
         self._updateColorPreview()
