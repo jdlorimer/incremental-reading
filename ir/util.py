@@ -109,6 +109,15 @@ def setField(note, fieldName, content):
     note.fields[index] = content
 
 
+def getFieldNames(modelName):
+    """Returns list of field names for given model name."""
+    if not modelName:
+        return []
+
+    model = mw.col.models.byName(modelName)
+    return [f['name'] for f in model['flds']]
+
+
 def createSpinBox(value, minimum, maximum, step):
     spinBox = QSpinBox()
     spinBox.setRange(minimum, maximum)
