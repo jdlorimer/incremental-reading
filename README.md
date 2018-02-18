@@ -22,8 +22,6 @@ The main things this add-on allows you to do:
 
 ### New to Version 4
 
-#### Features
-
 * Compatible with Anki 2.1
 * Import single webpages (<kbd>Alt</kbd>+<kbd>3</kbd>)
 * Import web feeds (<kbd>Alt</kbd>+<kbd>4</kbd>)
@@ -34,8 +32,6 @@ The main things this add-on allows you to do:
 * Control initial scheduling of extracts (see options: <kbd>Alt</kbd>+<kbd>1</kbd>)
 
 ### New to Version 3
-
-#### Features
 
 * Remove unwanted text from note with a single key-press (<kbd>z</kbd>)
 * Multi-level undo, for reverting text changes (<kbd>u</kbd>)
