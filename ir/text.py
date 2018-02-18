@@ -89,6 +89,12 @@ class TextManager:
 
         if settings['isQuickKey']:
             newNote.tags += settings['tags']
+
+            if settings['sourceField']:
+                setField(newNote,
+                         settings['sourceField'],
+                         getField(currentNote, self.settings['sourceField']))
+
             if settings['editExtract']:
                 highlight = self._editExtract(newNote, did, settings)
             else:
