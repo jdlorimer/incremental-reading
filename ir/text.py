@@ -53,12 +53,12 @@ class TextManager:
         self.save()
 
     def extract(self, settings=None):
-        if not mw.web.selectedText():
-            showInfo('Please select some text to extract.')
-            return
-
         if not settings:
             settings = self.settings
+
+        if not mw.web.selectedText() and not settings['editExtract']:
+            showInfo('Please select some text to extract.')
+            return
 
         if settings['plainText']:
             mw.web.evalWithCallback(
