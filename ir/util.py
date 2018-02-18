@@ -143,6 +143,8 @@ def updateModificationTime(path):
 
 
 def fixImages(html):
+    if not html:
+        return ''
     soup = BeautifulSoup(html, 'html.parser')
     for img in soup.find_all('img'):
         img['src'] = os.path.basename(unquote(img['src']))
