@@ -103,6 +103,7 @@ def getField(note, fieldName):
 
 
 def setField(note, fieldName, content):
+    """Sets the content of a note field. Overwrites any existing content."""
     model = note.model()
     index, _ = mw.col.models.fieldMap(model)[fieldName]
     note.fields[index] = content

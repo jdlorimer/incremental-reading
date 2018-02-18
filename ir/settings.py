@@ -149,6 +149,7 @@ class SettingsManager:
             'modelName',
             'regularKey',
             'shift',
+            'sourceField',
             'tags',
             'textField',
         ]
@@ -774,6 +775,7 @@ class SettingsManager:
         destDeckLabel = QLabel('Destination Deck')
         noteTypeLabel = QLabel('Note Type')
         textFieldLabel = QLabel('Paste Text to Field')
+        sourceFieldLabel = QLabel('Paste Source to Field')
         keyComboLabel = QLabel('Key Combination')
 
         self.quickKeysComboBox = QComboBox()
@@ -785,6 +787,9 @@ class SettingsManager:
         self.destDeckComboBox = QComboBox()
         self.noteTypeComboBox = QComboBox()
         self.textFieldComboBox = QComboBox()
+        self.textFieldComboBox.currentIndexChanged.connect(
+            self._updateSourceFieldComboBox)
+        self.sourceFieldComboBox = QComboBox()
         self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extracted Note')
         self.quickKeyEditSourceCheckBox = QCheckBox('Edit Source Note')
         self.quickKeyPlainTextCheckBox = QCheckBox('Extract as Plain Text')
@@ -809,6 +814,10 @@ class SettingsManager:
         textFieldLayout.addWidget(textFieldLabel)
         textFieldLayout.addWidget(self.textFieldComboBox)
 
+        sourceFieldLayout = QHBoxLayout()
+        sourceFieldLayout.addWidget(sourceFieldLabel)
+        sourceFieldLayout.addWidget(self.sourceFieldComboBox)
+
         keyComboLayout = QHBoxLayout()
         keyComboLayout.addWidget(keyComboLabel)
         keyComboLayout.addStretch()
@@ -825,7 +834,7 @@ class SettingsManager:
         self.noteTypeComboBox.addItem('')
         self.noteTypeComboBox.addItems(modelNames)
         self.noteTypeComboBox.currentIndexChanged.connect(
-            self._updateFieldList)
+            self._updateFieldLists)
 
         newButton = QPushButton('New')
         newButton.clicked.connect(self._clearQuickKeysTab)
@@ -852,6 +861,7 @@ class SettingsManager:
         layout.addLayout(destDeckLayout)
         layout.addLayout(noteTypeLayout)
         layout.addLayout(textFieldLayout)
+        layout.addLayout(sourceFieldLayout)
         layout.addLayout(keyComboLayout)
         layout.addWidget(self.quickKeyEditExtractCheckBox)
         layout.addWidget(self.quickKeyEditSourceCheckBox)
@@ -871,6 +881,7 @@ class SettingsManager:
             setComboBoxItem(self.destDeckComboBox, settings['extractDeck'])
             setComboBoxItem(self.noteTypeComboBox, settings['modelName'])
             setComboBoxItem(self.textFieldComboBox, settings['textField'])
+            setComboBoxItem(self.sourceFieldComboBox, settings['sourceField'])
             self.ctrlKeyCheckBox.setChecked(settings['ctrl'])
             self.altKeyCheckBox.setChecked(settings['alt'])
             self.shiftKeyCheckBox.setChecked(settings['shift'])
@@ -883,19 +894,32 @@ class SettingsManager:
         else:
             self._clearQuickKeysTab()
 
-    def _updateFieldList(self):
+    def _updateFieldLists(self):
         modelName = self.noteTypeComboBox.currentText()
         self.textFieldComboBox.clear()
+        self.sourceFieldComboBox.clear()
+
         if modelName:
             model = mw.col.models.byName(modelName)
             fieldNames = [f['name'] for f in model['flds']]
             self.textFieldComboBox.addItems(fieldNames)
+            self._updateSourceFieldComboBox()
+
+    def _updateSourceFieldComboBox(self):
+            modelName = self.noteTypeComboBox.currentText()
+            model = mw.col.models.byName(modelName)
+            fieldNames = [f['name'] for f in model['flds']
+                          if f['name'] != self.textFieldComboBox.currentText()]
+            self.sourceFieldComboBox.clear()
+            self.sourceFieldComboBox.addItem('')
+            self.sourceFieldComboBox.addItems(fieldNames)
 
     def _clearQuickKeysTab(self):
         self.quickKeysComboBox.setCurrentIndex(0)
         self.destDeckComboBox.setCurrentIndex(0)
         self.noteTypeComboBox.setCurrentIndex(0)
         self.textFieldComboBox.setCurrentIndex(0)
+        self.sourceFieldComboBox.setCurrentIndex(0)
         self.ctrlKeyCheckBox.setChecked(False)
         self.altKeyCheckBox.setChecked(False)
         self.shiftKeyCheckBox.setChecked(False)
@@ -931,6 +955,7 @@ class SettingsManager:
             'plainText': self.quickKeyPlainTextCheckBox.isChecked(),
             'regularKey': self.regularKeyComboBox.currentText(),
             'shift': self.shiftKeyCheckBox.isChecked(),
+            'sourceField': self.sourceFieldComboBox.currentText(),
             'tags': tags,
             'textField': self.textFieldComboBox.currentText(),
         }
