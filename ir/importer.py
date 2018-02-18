@@ -1,3 +1,4 @@
+# Copyright 2018 Timothée Chauvin
 # Copyright 2017-2018 Luo Li-Yan <joseph.lorimer13@gmail.com>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
@@ -104,7 +105,7 @@ class Importer:
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self.settings['sourceFormat'].format(
             date=date.today(),
-            url='<a href="' + url + '">' + url + '</a>')
+            url='<a href="%s">%s</a>' % (url, url))
 
         self._createNote(webpage.title.string, body, source)
 
