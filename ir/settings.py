@@ -48,6 +48,7 @@ from ._version import __version__
 from .about import IR_GITHUB_URL
 from .util import (addMenuItem,
                    createSpinBox,
+                   getFieldNames,
                    removeComboBoxItem,
                    setComboBoxItem,
                    setMenuVisibility,
@@ -895,25 +896,18 @@ class SettingsManager:
             self._clearQuickKeysTab()
 
     def _updateFieldLists(self):
-        modelName = self.noteTypeComboBox.currentText()
         self.textFieldComboBox.clear()
-
-        if modelName:
-            model = mw.col.models.byName(modelName)
-            fieldNames = [f['name'] for f in model['flds']]
-            self.textFieldComboBox.addItems(fieldNames)
-            self._updateSourceFieldComboBox()
+        modelName = self.noteTypeComboBox.currentText()
+        self.textFieldComboBox.addItems(getFieldNames(modelName))
+        self._updateSourceFieldComboBox()
 
     def _updateSourceFieldComboBox(self):
-            modelName = self.noteTypeComboBox.currentText()
             self.sourceFieldComboBox.clear()
-
-            if modelName:
-                model = mw.col.models.byName(modelName)
-                fieldNames = [f['name'] for f in model['flds']
-                        if f['name'] != self.textFieldComboBox.currentText()]
-                self.sourceFieldComboBox.addItem('')
-                self.sourceFieldComboBox.addItems(fieldNames)
+            modelName = self.noteTypeComboBox.currentText()
+            fieldNames = [f for f in getFieldNames(modelName)
+                          if f != self.textFieldComboBox.currentText()]
+            self.sourceFieldComboBox.addItem('')
+            self.sourceFieldComboBox.addItems(fieldNames)
 
     def _clearQuickKeysTab(self):
         self.quickKeysComboBox.setCurrentIndex(0)
