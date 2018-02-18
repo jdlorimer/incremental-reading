@@ -897,7 +897,6 @@ class SettingsManager:
     def _updateFieldLists(self):
         modelName = self.noteTypeComboBox.currentText()
         self.textFieldComboBox.clear()
-        self.sourceFieldComboBox.clear()
 
         if modelName:
             model = mw.col.models.byName(modelName)
@@ -907,12 +906,14 @@ class SettingsManager:
 
     def _updateSourceFieldComboBox(self):
             modelName = self.noteTypeComboBox.currentText()
-            model = mw.col.models.byName(modelName)
-            fieldNames = [f['name'] for f in model['flds']
-                          if f['name'] != self.textFieldComboBox.currentText()]
             self.sourceFieldComboBox.clear()
-            self.sourceFieldComboBox.addItem('')
-            self.sourceFieldComboBox.addItems(fieldNames)
+
+            if modelName:
+                model = mw.col.models.byName(modelName)
+                fieldNames = [f['name'] for f in model['flds']
+                        if f['name'] != self.textFieldComboBox.currentText()]
+                self.sourceFieldComboBox.addItem('')
+                self.sourceFieldComboBox.addItems(fieldNames)
 
     def _clearQuickKeysTab(self):
         self.quickKeysComboBox.setCurrentIndex(0)
