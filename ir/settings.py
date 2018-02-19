@@ -62,7 +62,6 @@ class SettingsManager:
         addHook('unloadProfile', self.saveSettings)
 
         self.defaults = {
-            'badTags': ['iframe', 'script'],
             'boldSeq': 'Ctrl+B',
             'copyTitle': False,
             'editExtract': False,
@@ -89,8 +88,6 @@ class SettingsManager:
             'limitWidthAll': False,
             'lineScrollFactor': 0.05,
             'maxWidth': 600,
-            'modelName': 'IR3',
-            'overlaySeq': 'Ctrl+Shift+O',
             'pageScrollFactor': 0.5,
             'plainText': False,
             'quickKeys': {},
@@ -100,16 +97,23 @@ class SettingsManager:
             'soonMethod': 'percent',
             'soonRandom': True,
             'soonValue': 10,
-            'sourceField': 'Source',
             'sourceFormat': '{url} ({date})',
             'strikeSeq': 'Ctrl+S',
-            'textField': 'Text',
-            'titleField': 'Title',
             'underlineSeq': 'Ctrl+U',
             'undoKey': 'u',
-            'userAgent': 'IR/{} (+{})'.format(__version__, IR_GITHUB_URL),
             'zoom': {},
             'zoomStep': 0.1,
+        }
+
+        # invariant defaults: won't be changed by the user
+        self.invDefaults = {
+            'badTags': ['iframe', 'script'],
+            'modelName': 'IR3',
+            'overlaySeq': 'Ctrl+Shift+O',
+            'sourceField': 'Source',
+            'textField': 'Text',
+            'titleField': 'Title',
+            'userAgent': 'IR/{} (+{})'.format(__version__, IR_GITHUB_URL),
         }
 
     def loadSettings(self):
@@ -120,10 +124,12 @@ class SettingsManager:
         if os.path.isfile(self.jsonPath):
             with open(self.jsonPath, encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
-            self._addMissingSettings()
+            self._updateSettings()
             self._removeOutdatedQuickKeys()
         else:
             self.settings = self.defaults
+
+        self.settings.update(self.invDefaults)
 
         if self.settingsChanged:
             showInfo('Your Incremental Reading settings file has been modified'
@@ -132,11 +138,17 @@ class SettingsManager:
 
         return self.settings
 
-    def _addMissingSettings(self):
+    def _updateSettings(self):
+        # add newly created settings
         for k, v in self.defaults.items():
             if k not in self.settings:
                 self.settings[k] = v
                 self.settingsChanged = True
+
+        # remove outdated settings
+        for k in self.settings:
+            if k not in self.defaults:
+                del self.settings[k]
 
     def _removeOutdatedQuickKeys(self):
         required = [
