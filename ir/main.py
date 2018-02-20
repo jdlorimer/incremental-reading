@@ -24,6 +24,7 @@ from aqt.reviewer import Reviewer
 import sip
 
 from .about import showAbout
+from .gui import SettingsDialog
 from .importer import Importer
 from .schedule import Scheduler
 from .settings import SettingsManager
@@ -36,7 +37,6 @@ class ReadingManager:
     def __init__(self):
         self.importer = Importer()
         self.scheduler = Scheduler()
-        self.settingsManager = SettingsManager()
         self.textManager = TextManager()
         self.viewManager = ViewManager()
         addHook('profileLoaded', self.onProfileLoaded)
@@ -48,7 +48,9 @@ class ReadingManager:
         self.qshortcuts = []
 
     def onProfileLoaded(self):
-        self.settings = self.settingsManager.loadSettings()
+        self.settings = SettingsManager()
+        mw.addonManager.setConfigAction(
+            __name__, lambda: SettingsDialog(self.settings))
         self.importer.settings = self.settings
         self.scheduler.settings = self.settings
         self.textManager.settings = self.settings
@@ -82,7 +84,7 @@ class ReadingManager:
 
         addMenuItem('Read',
                     'Options...',
-                    self.settingsManager.showDialog,
+                    lambda: SettingsDialog(self.settings),
                     'Alt+1')
         addMenuItem('Read', 'Organizer...', self.scheduler.showDialog, 'Alt+2')
         addMenuItem('Read',
@@ -98,7 +100,7 @@ class ReadingManager:
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
 
-        self.settingsManager.loadMenuItems()
+        self.settings.loadMenuItems()
 
     def onPrepareQA(self, html, card, context):
         easyShortcut = next(
