@@ -112,8 +112,12 @@ class Scheduler:
         self.cardListWidget.clear()
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
-            text = '❰ {} ❱\t{}'.format(
-                str(i).zfill(posWidth), stripHTML(card['title']))
+            if self.settings['prioEnabled']:
+                text = '          {} \t{}'.format(card['priority'],
+                                                  stripHTML(card['title']))
+            else:
+                text = '❰ {} ❱\t{}'.format(
+                    str(i).zfill(posWidth), stripHTML(card['title']))
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, card)
             self.cardListWidget.addItem(item)
@@ -187,12 +191,31 @@ class Scheduler:
 
     def _randomize(self):
         allItems = [self.cardListWidget.takeItem(0)
-                    for i in range(self.cardListWidget.count())]
-        shuffle(allItems)
+                    for _ in range(self.cardListWidget.count())]
+        if self.settings['prioEnabled']:
+            maxPrio = len(self.settings['priorities']) - 1
+            for item in allItems:
+                priority = item.data(Qt.UserRole)['priority']
+                if priority != '':
+                    item.contNewPos = gauss(maxPrio - int(priority),
+                                            maxPrio/20)
+                else:
+                    item.contNewPos = float('inf')
+            allItems.sort(key=lambda item: item.contNewPos)
+
+        else:
+            shuffle(allItems)
+
         for item in allItems:
             self.cardListWidget.addItem(item)
 
     def answer(self, card, ease):
+        if self.settings['prioEnabled']:
+            # reposition the card at the end of the organizer
+            cardCount = len(self._getCardInfo(card.did))
+            self.reposition(card, cardCount)
+            return
+
         if ease == SCHEDULE_EXTRACT:
             value = self.settings['extractValue']
             randomize = self.settings['extractRandom']
@@ -244,9 +267,15 @@ class Scheduler:
                 did):
             note = mw.col.getNote(nid)
             if note.model()['name'] == self.settings['modelName']:
+                if self.settings['prioEnabled']:
+                    prio = note[self.settings['priorityField']]
+                else:
+                    prio = None
+
                 cardInfo.append({'id': cid,
                                  'nid': nid,
-                                 'title': note[self.settings['titleField']]})
+                                 'title': note[self.settings['titleField']],
+                                 'priority': prio})
 
         return cardInfo
 

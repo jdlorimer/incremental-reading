@@ -110,6 +110,10 @@ class TextManager:
             setField(newNote,
                      settings['sourceField'],
                      getField(currentNote, settings['sourceField']))
+            if settings['prioEnabled']:
+                setField(newNote,
+                         settings['priorityField'],
+                         getField(currentNote, settings['priorityField']))
 
             if settings['editExtract']:
                 setField(newNote, settings['titleField'], title)
@@ -117,7 +121,7 @@ class TextManager:
             else:
                 highlight = self._getTitle(newNote, did, title, settings)
 
-            if settings['scheduleExtract']:
+            if settings['scheduleExtract'] and not settings['prioEnabled']:
                 cards = newNote.cards()
                 if cards:
                     mw.readingManager.scheduler.answer(
