@@ -22,7 +22,12 @@ from urllib.request import urlopen
 from anki.notes import Note
 from anki.utils import isMac, isWin
 from aqt import mw
-from aqt.utils import askUser, getText, openLink, showWarning, tooltip
+from aqt.utils import (askUser,
+                       chooseList,
+                       getText,
+                       openLink,
+                       showWarning,
+                       tooltip)
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QAbstractItemView,
@@ -60,7 +65,7 @@ class Importer:
 
         return webpage
 
-    def _createNote(self, title, text, source):
+    def _createNote(self, title, text, source, priority):
         if self.settings['importDeck']:
             deck = mw.col.decks.byName(self.settings['importDeck'])
             if not deck:
@@ -73,6 +78,9 @@ class Importer:
 
         model = mw.col.models.byName(self.settings['modelName'])
         note = Note(mw.col, model)
+        if self.settings['prioEnabled']:
+            setField(note, self.settings['priorityField'], priority)
+
         setField(note, self.settings['titleField'], title)
         setField(note, self.settings['textField'], text)
         setField(note, self.settings['sourceField'], source)
@@ -107,7 +115,15 @@ class Importer:
             date=date.today(),
             url='<a href="%s">%s</a>' % (url, url))
 
-        self._createNote(webpage.title.string, body, source)
+        if self.settings['prioEnabled']:
+            priority = self.settings['priorities'][chooseList(
+                'Enter priority for "' + webpage.title.string
+                + '".\nYou can change it later.',
+                self.settings['priorities'])]
+        else:
+            priority = None
+
+        self._createNote(webpage.title.string, body, source, priority)
 
     def importFeed(self):
         url, accepted = getText('Enter URL:', title='Import Feed')

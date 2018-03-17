@@ -38,14 +38,17 @@ from PyQt5.QtWidgets import (QButtonGroup,
                              QVBoxLayout,
                              QWidget)
 
+from anki.notes import Note
 from aqt import mw
 from aqt.tagedit import TagEdit
 from aqt.utils import showInfo, showWarning, tooltip
 
 from .util import (createSpinBox,
+                   getField,
                    getFieldNames,
                    removeComboBoxItem,
-                   setComboBoxItem)
+                   setComboBoxItem,
+                   setField)
 
 
 class SettingsDialog:
@@ -138,6 +141,14 @@ class SettingsDialog:
 
         self.settings['sourceFormat'] = self.sourceFormatEditBox.text()
 
+        if (self.prioButton.isChecked() and not self.settings['prioEnabled'])\
+                or (self.noPrioButton.isChecked() and self.settings['prioEnabled']):
+            self.settings['prioEnabled'] = bool(
+                1 - self.settings['prioEnabled'])
+            self.settings['modelName'], self.settings['modelNameBis'] = \
+                self.settings['modelNameBis'], self.settings['modelName']
+            self.modelTransition()
+
         if self.soonPercentButton.isChecked():
             self.settings['soonMethod'] = 'percent'
         else:
@@ -174,6 +185,38 @@ class SettingsDialog:
 
         mw.readingManager.viewManager.resetZoom(mw.state)
         return done
+
+    def modelTransition(self):
+        mw.readingManager.addModel()
+        newModel = mw.col.models.byName(self.settings['modelName'])
+        prevModelName = self.settings['modelNameBis']
+        for nid, did in mw.col.db.execute('select nid, did from cards'):
+            currentNote = mw.col.getNote(nid)
+            if currentNote.model()['name'] == prevModelName:
+                newNote = Note(mw.col, newModel)
+                setField(newNote,self.settings['titleField'],
+                         getField(currentNote, self.settings['titleField']))
+                setField(newNote, self.settings['textField'],
+                         getField(currentNote, self.settings['textField']))
+                setField(newNote, self.settings['sourceField'],
+                         getField(currentNote, self.settings['sourceField']))
+                if self.settings['prioEnabled']:
+                    setField(newNote, self.settings['priorityField'], "5")
+                newNote.tags = currentNote.tags
+                newNote.model()['did'] = did
+                mw.col.addNote(newNote)
+        # remove model and all its notes
+        mw.col.models.rem(mw.col.models.byName(prevModelName))
+
+        if self.settings['prioEnabled']:
+            showInfo('You have enabled priorities. A new "priority" field '
+                     'has been added to all your IR notes. It can contain '
+                     'any integer between 1 (lowest) and 10 (highest). '
+                     'Randomization now takes priorities into account. '
+                     'The default priority has been set to 5 for each note.')
+        else:
+            showInfo('You have disabled priorities. The "priority" field '
+                     'has been removed from all of your IR notes.')
 
     def _getGeneralTab(self):
         highlightKeyLabel = QLabel('Highlight Key')
@@ -540,6 +583,10 @@ class SettingsDialog:
         return groupBox
 
     def _getSchedulingTab(self):
+        schedModeLabel = QLabel('General scheduling mode')
+        self.noPrioButton = QRadioButton('Soon, Later, Custom')
+        self.prioButton = QRadioButton('Priorities')
+
         soonLabel = QLabel('Soon Button')
         laterLabel = QLabel('Later Button')
         extractLabel = QLabel('Extracts')
@@ -561,6 +608,11 @@ class SettingsDialog:
         self.laterValueEditBox.setFixedWidth(100)
         self.extractValueEditBox = QLineEdit()
         self.extractValueEditBox.setFixedWidth(100)
+
+        if self.settings['prioEnabled']:
+            self.prioButton.setChecked(True)
+        else:
+            self.noPrioButton.setChecked(True)
 
         if self.settings['soonMethod'] == 'percent':
             self.soonPercentButton.setChecked(True)
@@ -590,6 +642,13 @@ class SettingsDialog:
         self.laterValueEditBox.setText(str(self.settings['laterValue']))
         self.extractValueEditBox.setText(str(self.settings['extractValue']))
 
+
+        schedModeLayout = QHBoxLayout()
+        schedModeLayout.addWidget(schedModeLabel)
+        schedModeLayout.addStretch()
+        schedModeLayout.addWidget(self.noPrioButton)
+        schedModeLayout.addWidget(self.prioButton)
+
         soonLayout = QHBoxLayout()
         soonLayout.addWidget(soonLabel)
         soonLayout.addStretch()
@@ -614,6 +673,10 @@ class SettingsDialog:
         extractLayout.addWidget(extractPositionButton)
         extractLayout.addWidget(self.extractRandomCheckBox)
 
+        schedModeButtonGroup = QButtonGroup(schedModeLayout)
+        schedModeButtonGroup.addButton(self.noPrioButton)
+        schedModeButtonGroup.addButton(self.prioButton)
+
         soonButtonGroup = QButtonGroup(soonLayout)
         soonButtonGroup.addButton(self.soonPercentButton)
         soonButtonGroup.addButton(soonPositionButton)
@@ -627,6 +690,7 @@ class SettingsDialog:
         extractButtonGroup.addButton(extractPositionButton)
 
         layout = QVBoxLayout()
+        layout.addLayout(schedModeLayout)
         layout.addLayout(soonLayout)
         layout.addLayout(laterLayout)
         layout.addLayout(extractLayout)

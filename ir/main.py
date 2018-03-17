@@ -103,19 +103,29 @@ class ReadingManager:
         self.settings.loadMenuItems()
 
     def onPrepareQA(self, html, card, context):
-        easyShortcut = next(
-            (s for s in mw.stateShortcuts if s.key().toString() == '4'), None)
+        if self.settings['prioEnabled']:
+            answerShortcuts = ['1', '2', '3', '4']
+        else:
+            answerShortcuts = ['4']
+
+        activeAnswerShortcuts = [next(
+            (s for s in mw.stateShortcuts if s.key().toString() == i), None)
+                           for i in answerShortcuts]
 
         if isIrCard(card):
             if context == 'reviewQuestion':
                 self.qshortcuts = mw.applyShortcuts(self.shortcuts)
                 mw.stateShortcuts += self.qshortcuts
-            if easyShortcut:
-                mw.stateShortcuts.remove(easyShortcut)
-                sip.delete(easyShortcut)
-        elif not easyShortcut:
-            mw.stateShortcuts += mw.applyShortcuts(
-                [('4', lambda: mw.reviewer._answerCard(4))])
+            for shortcut in activeAnswerShortcuts:
+                if shortcut:
+                    mw.stateShortcuts.remove(shortcut)
+                    sip.delete(shortcut)
+        else:
+            for shortcut in answerShortcuts:
+                if not activeAnswerShortcuts[answerShortcuts.index(shortcut)]:
+                    mw.stateShortcuts += mw.applyShortcuts(
+                        [(shortcut,
+                          lambda: mw.reviewer._answerCard(int(shortcut)))])
 
         return html
 
@@ -143,13 +153,21 @@ class ReadingManager:
         sourceField['sticky'] = True
 
         mw.col.models.addField(model, titleField)
+        if self.settings['prioEnabled']:
+            prioField = mw.col.models.newField(self.settings['priorityField'])
+            mw.col.models.addField(model, prioField)
+
         mw.col.models.addField(model, textField)
         mw.col.models.addField(model, sourceField)
 
         template = mw.col.models.newTemplate('IR Card')
         template['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
             self.settings['textField'])
-        template['afmt'] = 'When do you want to see this card again?'
+
+        if self.settings['prioEnabled']:
+            template['afmt'] = 'Hit space to move to the next article'
+        else:
+            template['afmt'] = 'When do you want to see this card again?'
 
         mw.col.models.addTemplate(model, template)
         mw.col.models.add(model)
@@ -157,7 +175,10 @@ class ReadingManager:
 
 def answerButtonList(self, _old):
     if isIrCard(self.card):
-        return ((1, _('Soon')), (2, _('Later')), (3, _('Custom')))
+        if mw.readingManager.settings['prioEnabled']:
+            return ((1, _('Next')),)
+        else:
+            return ((1, _('Soon')), (2, _('Later')), (3, _('Custom')))
     else:
         return _old(self)
 
