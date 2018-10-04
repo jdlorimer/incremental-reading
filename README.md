@@ -1,4 +1,8 @@
-**Note: The version of the add-on in this branch has been modified to work with Anki 2.1. It is not backwards-compatible with previous versions of Anki. If you are using an older version of Anki 2, please download the legacy branch [here](https://github.com/luoliyan/incremental-reading-for-anki/archive/legacy.zip).**
+# Incremental Reading for Anki
+
+[![Build Status](https://travis-ci.org/luoliyan/incremental-reading.svg?branch=master)](https://travis-ci.org/luoliyan/incremental-reading)
+
+**Note:** If you are using a version of Anki 2 prior to 2.1, please download the legacy branch [here](https://github.com/luoliyan/incremental-reading-for-anki/archive/legacy.zip).
 
 ## Introduction
 
