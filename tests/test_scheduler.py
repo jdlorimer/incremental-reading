@@ -5,6 +5,9 @@ from unittest.mock import MagicMock, patch
 class SchedulerTests(TestCase):
     def setUp(self):
         modules = {
+            'PyQt5': MagicMock(),
+            'PyQt5.QtCore': MagicMock(),
+            'PyQt5.QtWidgets': MagicMock(),
             'anki': MagicMock(),
             'anki.hooks': MagicMock(),
             'anki.notes': MagicMock(),
@@ -16,6 +19,7 @@ class SchedulerTests(TestCase):
             'aqt.reviewer': MagicMock(),
             'aqt.tagedit': MagicMock(),
             'aqt.utils': MagicMock(),
+            'ir.main': MagicMock(),
         }
         self.patcher = patch.dict('sys.modules', modules)
         self.patcher.start()
