@@ -110,11 +110,9 @@ class SettingsManager:
 
     def load(self):
         self.updated = False
-        self.mediaDir = os.path.join(mw.pm.profileFolder(), 'collection.media')
-        self.jsonPath = os.path.join(self.mediaDir, '_ir.json')
 
-        if os.path.isfile(self.jsonPath):
-            with open(self.jsonPath, encoding='utf-8') as jsonFile:
+        if os.path.isfile(self.getSettingsPath()):
+            with open(self.getSettingsPath(), encoding='utf-8') as jsonFile:
                 self.settings = json.load(jsonFile)
 
             if ('version' not in self.settings or
@@ -125,6 +123,12 @@ class SettingsManager:
 
         if self.updated:
             showInfo('Your Incremental Reading settings have been updated.')
+
+    def getSettingsPath(self):
+        return os.path.join(self.getMediaDir(), '_ir.json')
+
+    def getMediaDir(self):
+        return os.path.join(mw.pm.profileFolder(), 'collection.media')
 
     def _update(self):
         self.settings['version'] = self.defaults['version']
@@ -178,10 +182,10 @@ class SettingsManager:
             self.updated = True
 
     def save(self):
-        with open(self.jsonPath, 'w', encoding='utf-8') as jsonFile:
+        with open(self.getSettingsPath(), 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
 
-        updateModificationTime(self.mediaDir)
+        updateModificationTime(self.getMediaDir())
 
     def loadMenuItems(self):
         menuName = 'Read::Quick Keys'

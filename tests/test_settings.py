@@ -12,20 +12,35 @@ class SettingsTests(TestCase):
             'ir.main': MagicMock(),
             'ir.util': MagicMock(),
         }
-        self.patcher = patch.dict('sys.modules', modules)
-        self.patcher.start()
-        from ir.settings import SettingsManager
-        self.sm = SettingsManager
-
-    def tearDown(self):
-        self.patcher.stop()
-
-    def test_settings(self):
+        patch.dict('sys.modules', modules).start()
         pf_mock = MagicMock(return_value=str())
         if_mock = MagicMock(return_value=True)
         patch('aqt.mw.pm.profileFolder', pf_mock).start()
         patch('os.path.isfile', if_mock).start()
         patch('ir.settings.open', mock_open()).start()
         patch('json.load', MagicMock()).start()
-        self.sm()
-        patch.stopall()
+        from ir.settings import SettingsManager
+        self.sm = SettingsManager()
+
+    def test_save(self):
+        open_mock = mock_open()
+        dump_mock = MagicMock()
+        open_patcher = patch('ir.settings.open', open_mock)
+        dump_patcher = patch('json.dump', dump_mock)
+        open_patcher.start()
+        dump_patcher.start()
+        self.sm.getSettingsPath = MagicMock(return_value='foo.json')
+        self.sm.settings = {'foo': 'bar'}
+        self.sm.save()
+        open_mock.assert_called_once_with('foo.json', 'w', encoding='utf-8')
+        dump_mock.assert_called_once_with({'foo': 'bar'}, open_mock())
+        open_patcher.stop()
+        dump_patcher.stop()
+
+    def test_getMediaDir(self):
+        with patch('aqt.mw.pm.profileFolder', MagicMock(return_value='foo')):
+            self.assertEqual(self.sm.getMediaDir(), 'foo/collection.media')
+
+    def test_getSettingsPath(self):
+        self.sm.getMediaDir = MagicMock(return_value='foo')
+        self.assertEqual(self.sm.getSettingsPath(), 'foo/_ir.json')
