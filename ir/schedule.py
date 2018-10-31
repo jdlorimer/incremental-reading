@@ -18,6 +18,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from random import gauss, shuffle
+from re import sub
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QAbstractItemView,
@@ -113,11 +114,12 @@ class Scheduler:
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
             if self.settings['prioEnabled']:
-                text = '          {} \t{}'.format(card['priority'],
-                                                  stripHTML(card['title']))
+                info = card['priority']
             else:
-                text = '❰ {} ❱\t{}'.format(
-                    str(i).zfill(posWidth), stripHTML(card['title']))
+                info = str(i).zfill(posWidth)
+            title = sub('\s+', ' ', stripHTML(card['title']))
+            text = self.settings['organizerFormat'].format(
+                info=info, title=title)
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, card)
             self.cardListWidget.addItem(item)

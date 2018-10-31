@@ -28,74 +28,76 @@ from .util import addMenuItem, setMenuVisibility, updateModificationTime
 
 
 class SettingsManager:
+    updated = False
+
+    defaults = {
+        'badTags': ['iframe', 'script'],
+        'boldSeq': 'Ctrl+B',
+        'copyTitle': False,
+        'doNotUpdate': [
+            'doNotUpdate',
+            'feedLog',
+            'modified',
+            'quickKeys',
+            'scroll',
+            'zoom',
+        ],
+        'editExtract': False,
+        'editSource': False,
+        'extractBgColor': 'Green',
+        'extractDeck': None,
+        'extractKey': 'x',
+        'extractMethod': 'percent',
+        'extractRandom': True,
+        'extractTextColor': 'White',
+        'extractValue': 30,
+        'feedLog': {},
+        'generalZoom': 1,
+        'highlightBgColor': 'Yellow',
+        'highlightKey': 'h',
+        'highlightTextColor': 'Black',
+        'importDeck': None,
+        'isQuickKey': False,
+        'italicSeq': 'Ctrl+I',
+        'laterMethod': 'percent',
+        'laterRandom': True,
+        'laterValue': 50,
+        'limitWidth': True,
+        'limitWidthAll': False,
+        'lineScrollFactor': 0.05,
+        'maxWidth': 600,
+        'modelName': 'IR3',
+        'modelNameBis': 'IR3+priorities',
+        'modified': [],
+        'organizerFormat': '❰ {info} ❱\t{title}',
+        'overlaySeq': 'Ctrl+Shift+O',
+        'pageScrollFactor': 0.5,
+        'plainText': False,
+        'prioEnabled': False,
+        'priorities': ('', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
+        'priorityField': 'Priority',
+        'quickKeys': {},
+        'removeKey': 'z',
+        'scheduleExtract': True,
+        'scroll': {},
+        'soonMethod': 'percent',
+        'soonRandom': True,
+        'soonValue': 10,
+        'sourceField': 'Source',
+        'sourceFormat': '{url} ({date})',
+        'strikeSeq': 'Ctrl+S',
+        'textField': 'Text',
+        'titleField': 'Title',
+        'underlineSeq': 'Ctrl+U',
+        'undoKey': 'u',
+        'userAgent': 'IR/{} (+{})'.format(__version__, IR_GITHUB_URL),
+        'version': __version__,
+        'zoom': {},
+        'zoomStep': 0.1,
+    }
+
     def __init__(self):
         addHook('unloadProfile', self.save)
-
-        self.defaults = {
-            'badTags': ['iframe', 'script'],
-            'boldSeq': 'Ctrl+B',
-            'copyTitle': False,
-            'doNotUpdate': [
-                'doNotUpdate',
-                'feedLog',
-                'modified',
-                'quickKeys',
-                'scroll',
-                'zoom',
-            ],
-            'editExtract': False,
-            'editSource': False,
-            'extractBgColor': 'Green',
-            'extractDeck': None,
-            'extractKey': 'x',
-            'extractMethod': 'percent',
-            'extractRandom': True,
-            'extractTextColor': 'White',
-            'extractValue': 30,
-            'feedLog': {},
-            'generalZoom': 1,
-            'highlightBgColor': 'Yellow',
-            'highlightKey': 'h',
-            'highlightTextColor': 'Black',
-            'importDeck': None,
-            'isQuickKey': False,
-            'italicSeq': 'Ctrl+I',
-            'laterMethod': 'percent',
-            'laterRandom': True,
-            'laterValue': 50,
-            'limitWidth': True,
-            'limitWidthAll': False,
-            'lineScrollFactor': 0.05,
-            'maxWidth': 600,
-            'modelName': 'IR3',
-            'modelNameBis': 'IR3+priority',
-            'modified': [],
-            'overlaySeq': 'Ctrl+Shift+O',
-            'pageScrollFactor': 0.5,
-            'plainText': False,
-            'prioEnabled': False,
-            'priorities': ('', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
-            'priorityField': 'Priority',
-            'quickKeys': {},
-            'removeKey': 'z',
-            'scheduleExtract': True,
-            'scroll': {},
-            'soonMethod': 'percent',
-            'soonRandom': True,
-            'soonValue': 10,
-            'sourceField': 'Source',
-            'sourceFormat': '{url} ({date})',
-            'strikeSeq': 'Ctrl+S',
-            'textField': 'Text',
-            'titleField': 'Title',
-            'underlineSeq': 'Ctrl+U',
-            'undoKey': 'u',
-            'userAgent': 'IR/{} (+{})'.format(__version__, IR_GITHUB_URL),
-            'version': __version__,
-            'zoom': {},
-            'zoomStep': 0.1,
-        }
-
         self.load()
 
     def __setitem__(self, key, value):
@@ -109,20 +111,23 @@ class SettingsManager:
         return self.settings[key]
 
     def load(self):
-        self.updated = False
-
         if os.path.isfile(self.getSettingsPath()):
-            with open(self.getSettingsPath(), encoding='utf-8') as jsonFile:
-                self.settings = json.load(jsonFile)
-
-            if ('version' not in self.settings or
-                    self.settings['version'] != __version__):
-                self._update()
+            self._loadExisting()
         else:
             self.settings = self.defaults
 
         if self.updated:
             showInfo('Your Incremental Reading settings have been updated.')
+
+    def _loadExisting(self):
+        with open(self.getSettingsPath(), encoding='utf-8') as jsonFile:
+            self.settings = json.load(jsonFile)
+
+        self._addMissing()
+
+        if ('version' not in self.settings or
+                self.settings['version'] != __version__):
+            self._update()
 
     def getSettingsPath(self):
         return os.path.join(self.getMediaDir(), '_ir.json')
@@ -132,7 +137,6 @@ class SettingsManager:
 
     def _update(self):
         self.settings['version'] = self.defaults['version']
-        self._addMissing()
         self._removeOutdated()
         self._updateUnmodified()
 

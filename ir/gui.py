@@ -141,12 +141,11 @@ class SettingsDialog:
 
         self.settings['sourceFormat'] = self.sourceFormatEditBox.text()
 
-        if (self.prioButton.isChecked() and not self.settings['prioEnabled'])\
-                or (self.noPrioButton.isChecked() and self.settings['prioEnabled']):
-            self.settings['prioEnabled'] = bool(
-                1 - self.settings['prioEnabled'])
-            self.settings['modelName'], self.settings['modelNameBis'] = \
+        if self.settings['prioEnabled'] != self.prioButton.isChecked():
+            self.settings['prioEnabled'] = self.prioButton.isChecked()
+            self.settings['modelName'], self.settings['modelNameBis'] = (
                 self.settings['modelNameBis'], self.settings['modelName']
+            )
             self.modelTransition()
 
         if self.soonPercentButton.isChecked():
@@ -163,6 +162,10 @@ class SettingsDialog:
             self.settings['extractMethod'] = 'percent'
         else:
             self.settings['extractMethod'] = 'count'
+
+        self.settings['organizerFormat'] = (
+            self.organizerFormatEditBox.text().replace(r'\t', '\t')
+        )
 
         if self.limitAllCardsButton.isChecked():
             self.settings['limitWidth'] = True
@@ -346,6 +349,7 @@ class SettingsDialog:
     def _getExtractionTab(self):
         extractDeckLabel = QLabel('Extracts Deck')
         self.extractDeckComboBox = QComboBox()
+        self.extractDeckComboBox.setFixedWidth(400)
         deckNames = sorted([d['name'] for d in mw.col.decks.all()])
         self.extractDeckComboBox.addItem('[Current Deck]')
         self.extractDeckComboBox.addItems(deckNames)
@@ -359,6 +363,7 @@ class SettingsDialog:
         extractDeckLayout = QHBoxLayout()
         extractDeckLayout.addWidget(extractDeckLabel)
         extractDeckLayout.addWidget(self.extractDeckComboBox)
+        extractDeckLayout.addStretch()
 
         self.editExtractButton = QRadioButton('Edit Extracted Note')
         enterTitleButton = QRadioButton('Enter Title Only')
@@ -583,8 +588,8 @@ class SettingsDialog:
         return groupBox
 
     def _getSchedulingTab(self):
-        schedModeLabel = QLabel('General scheduling mode')
-        self.noPrioButton = QRadioButton('Soon, Later, Custom')
+        modeLabel = QLabel('Scheduling Mode')
+        manualButton = QRadioButton('Manual')
         self.prioButton = QRadioButton('Priorities')
 
         soonLabel = QLabel('Soon Button')
@@ -612,7 +617,7 @@ class SettingsDialog:
         if self.settings['prioEnabled']:
             self.prioButton.setChecked(True)
         else:
-            self.noPrioButton.setChecked(True)
+            manualButton.setChecked(True)
 
         if self.settings['soonMethod'] == 'percent':
             self.soonPercentButton.setChecked(True)
@@ -642,12 +647,21 @@ class SettingsDialog:
         self.laterValueEditBox.setText(str(self.settings['laterValue']))
         self.extractValueEditBox.setText(str(self.settings['extractValue']))
 
+        formatLabel = QLabel('Organizer Format')
+        self.organizerFormatEditBox = QLineEdit()
+        self.organizerFormatEditBox.setFixedWidth(400)
+        self.organizerFormatEditBox.setText(
+            self.settings['organizerFormat'].replace('\t', r'\t')
+        )
+        font = QFont('Lucida Sans Typewriter')
+        font.setStyleHint(QFont.Monospace)
+        self.organizerFormatEditBox.setFont(font)
 
-        schedModeLayout = QHBoxLayout()
-        schedModeLayout.addWidget(schedModeLabel)
-        schedModeLayout.addStretch()
-        schedModeLayout.addWidget(self.noPrioButton)
-        schedModeLayout.addWidget(self.prioButton)
+        modeLayout = QHBoxLayout()
+        modeLayout.addWidget(modeLabel)
+        modeLayout.addStretch()
+        modeLayout.addWidget(manualButton)
+        modeLayout.addWidget(self.prioButton)
 
         soonLayout = QHBoxLayout()
         soonLayout.addWidget(soonLabel)
@@ -673,9 +687,9 @@ class SettingsDialog:
         extractLayout.addWidget(extractPositionButton)
         extractLayout.addWidget(self.extractRandomCheckBox)
 
-        schedModeButtonGroup = QButtonGroup(schedModeLayout)
-        schedModeButtonGroup.addButton(self.noPrioButton)
-        schedModeButtonGroup.addButton(self.prioButton)
+        modeButtonGroup = QButtonGroup(modeLayout)
+        modeButtonGroup.addButton(manualButton)
+        modeButtonGroup.addButton(self.prioButton)
 
         soonButtonGroup = QButtonGroup(soonLayout)
         soonButtonGroup.addButton(self.soonPercentButton)
@@ -689,11 +703,16 @@ class SettingsDialog:
         extractButtonGroup.addButton(self.extractPercentButton)
         extractButtonGroup.addButton(extractPositionButton)
 
+        formatLayout = QHBoxLayout()
+        formatLayout.addWidget(formatLabel)
+        formatLayout.addWidget(self.organizerFormatEditBox)
+
         layout = QVBoxLayout()
-        layout.addLayout(schedModeLayout)
+        layout.addLayout(modeLayout)
         layout.addLayout(soonLayout)
         layout.addLayout(laterLayout)
         layout.addLayout(extractLayout)
+        layout.addLayout(formatLayout)
         layout.addStretch()
 
         tab = QWidget()
@@ -715,6 +734,7 @@ class SettingsDialog:
             self._updateQuickKeysTab)
 
         self.destDeckComboBox = QComboBox()
+        self.destDeckComboBox.setFixedWidth(400)
         self.noteTypeComboBox = QComboBox()
         self.textFieldComboBox = QComboBox()
         self.textFieldComboBox.currentIndexChanged.connect(
@@ -981,6 +1001,7 @@ class SettingsDialog:
     def _getImportingTab(self):
         importDeckLabel = QLabel('Imports Deck')
         self.importDeckComboBox = QComboBox()
+        self.importDeckComboBox.setFixedWidth(400)
         deckNames = sorted([d['name'] for d in mw.col.decks.all()])
         self.importDeckComboBox.addItem('[Current Deck]')
         self.importDeckComboBox.addItems(deckNames)
@@ -993,12 +1014,12 @@ class SettingsDialog:
 
         importDeckLayout = QHBoxLayout()
         importDeckLayout.addWidget(importDeckLabel)
-        importDeckLayout.addWidget(self.importDeckComboBox)
         importDeckLayout.addStretch()
+        importDeckLayout.addWidget(self.importDeckComboBox)
 
         sourceFormatLabel = QLabel('Source Format')
         self.sourceFormatEditBox = QLineEdit()
-        self.sourceFormatEditBox.setFixedWidth(200)
+        self.sourceFormatEditBox.setFixedWidth(400)
         self.sourceFormatEditBox.setText(str(self.settings['sourceFormat']))
         font = QFont('Lucida Sans Typewriter')
         font.setStyleHint(QFont.Monospace)
@@ -1006,8 +1027,8 @@ class SettingsDialog:
 
         sourceFormatLayout = QHBoxLayout()
         sourceFormatLayout.addWidget(sourceFormatLabel)
-        sourceFormatLayout.addWidget(self.sourceFormatEditBox)
         sourceFormatLayout.addStretch()
+        sourceFormatLayout.addWidget(self.sourceFormatEditBox)
 
         layout = QVBoxLayout()
         layout.addLayout(importDeckLayout)
