@@ -102,21 +102,18 @@ def getField(note, fieldName):
     return note.fields[index]
 
 
-def setField(note, fieldName, content):
-    """Sets the content of a note field. Overwrites any existing content."""
+def setField(note, field, value):
+    """Set the value of a note field. Overwrite any existing value."""
     model = note.model()
-    index, _ = mw.col.models.fieldMap(model)[fieldName]
-    note.fields[index] = content
+    index, _ = mw.col.models.fieldMap(model)[field]
+    note.fields[index] = value
 
 
 def getFieldNames(modelName):
-    """Returns list of field names for given model name."""
+    """Return list of field names for given model name."""
     if not modelName:
         return []
-
-    model = mw.col.models.byName(modelName)
-    return [f['name'] for f in model['flds']]
-
+    return mw.col.models.fieldNames(mw.col.models.byName(modelName))
 
 def createSpinBox(value, minimum, maximum, step):
     spinBox = QSpinBox()

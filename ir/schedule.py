@@ -270,7 +270,7 @@ class Scheduler:
             note = mw.col.getNote(nid)
             if note.model()['name'] == self.settings['modelName']:
                 if self.settings['prioEnabled']:
-                    prio = note[self.settings['priorityField']]
+                    prio = note[self.settings['prioField']]
                 else:
                     prio = None
 

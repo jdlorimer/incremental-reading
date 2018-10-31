@@ -22,33 +22,37 @@ import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QButtonGroup,
-                             QCheckBox,
-                             QComboBox,
-                             QDialog,
-                             QDialogButtonBox,
-                             QGroupBox,
-                             QHBoxLayout,
-                             QKeySequenceEdit,
-                             QLabel,
-                             QLineEdit,
-                             QPushButton,
-                             QRadioButton,
-                             QTabWidget,
-                             QVBoxLayout,
-                             QWidget)
+from PyQt5.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QGroupBox,
+    QHBoxLayout,
+    QKeySequenceEdit,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QRadioButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget
+)
 
 from anki.notes import Note
 from aqt import mw
 from aqt.tagedit import TagEdit
 from aqt.utils import showInfo, showWarning, tooltip
 
-from .util import (createSpinBox,
-                   getField,
-                   getFieldNames,
-                   removeComboBoxItem,
-                   setComboBoxItem,
-                   setField)
+from .util import (
+    createSpinBox,
+    getField,
+    getFieldNames,
+    removeComboBoxItem,
+    setComboBoxItem,
+    setField
+)
 
 
 class SettingsDialog:
@@ -143,10 +147,7 @@ class SettingsDialog:
 
         if self.settings['prioEnabled'] != self.prioButton.isChecked():
             self.settings['prioEnabled'] = self.prioButton.isChecked()
-            self.settings['modelName'], self.settings['modelNameBis'] = (
-                self.settings['modelNameBis'], self.settings['modelName']
-            )
-            self.modelTransition()
+            self._addPrioFields()
 
         if self.soonPercentButton.isChecked():
             self.settings['soonMethod'] = 'percent'
@@ -189,37 +190,28 @@ class SettingsDialog:
         mw.readingManager.viewManager.resetZoom(mw.state)
         return done
 
-    def modelTransition(self):
-        mw.readingManager.addModel()
-        newModel = mw.col.models.byName(self.settings['modelName'])
-        prevModelName = self.settings['modelNameBis']
-        for nid, did in mw.col.db.execute('select nid, did from cards'):
-            currentNote = mw.col.getNote(nid)
-            if currentNote.model()['name'] == prevModelName:
-                newNote = Note(mw.col, newModel)
-                setField(newNote,self.settings['titleField'],
-                         getField(currentNote, self.settings['titleField']))
-                setField(newNote, self.settings['textField'],
-                         getField(currentNote, self.settings['textField']))
-                setField(newNote, self.settings['sourceField'],
-                         getField(currentNote, self.settings['sourceField']))
-                if self.settings['prioEnabled']:
-                    setField(newNote, self.settings['priorityField'], "5")
-                newNote.tags = currentNote.tags
-                newNote.model()['did'] = did
-                mw.col.addNote(newNote)
-        # remove model and all its notes
-        mw.col.models.rem(mw.col.models.byName(prevModelName))
-
-        if self.settings['prioEnabled']:
-            showInfo('You have enabled priorities. A new "priority" field '
-                     'has been added to all your IR notes. It can contain '
-                     'any integer between 1 (lowest) and 10 (highest). '
-                     'Randomization now takes priorities into account. '
-                     'The default priority has been set to 5 for each note.')
-        else:
-            showInfo('You have disabled priorities. The "priority" field '
-                     'has been removed from all of your IR notes.')
+    def _addPrioFields(self):
+        model = mw.col.models.byName(self.settings['modelName'])
+        if self.settings['prioField'] in getFieldNames(
+                self.settings['modelName']):
+            return
+        field = mw.col.models.newField(self.settings['prioField'])
+        mw.col.models.addField(model, field)
+        for (nid,) in mw.col.db.execute(
+                'SELECT id FROM notes WHERE mid = ?', model['id']):
+            note = mw.col.getNote(nid)
+            setField(
+                note,
+                self.settings['prioField'],
+                self.settings['prioDefault']
+            )
+            note.flush()
+        showInfo(
+            'A <b><i>Priority</i></b> field has been added to your IR notes. '
+            'Valid priority values are integers 1-10, where 10 represents '
+            'the higest priority. By default, the field is set to 5. '
+            'When randomizing cards, priorities are taken into account.'
+        )
 
     def _getGeneralTab(self):
         highlightKeyLabel = QLabel('Highlight Key')
