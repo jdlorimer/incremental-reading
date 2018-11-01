@@ -26,6 +26,7 @@ from aqt.utils import (
     chooseList,
     getText,
     showInfo,
+    showCritical,
     showWarning,
     tooltip
 )
@@ -42,6 +43,7 @@ from PyQt5.QtWidgets import (
 
 from bs4 import BeautifulSoup, Comment
 from requests import get
+from requests.exceptions import ConnectionError
 
 from .lib.feedparser import parse
 
@@ -107,6 +109,9 @@ class Importer:
 
         if not urlsplit(url).scheme:
             url = 'http://' + url
+        elif urlsplit(url).scheme not in ['http', 'https']:
+            showCritical('Only HTTP requests are supported.')
+            return
 
         try:
             webpage = self._fetchWebpage(url)
@@ -115,6 +120,9 @@ class Importer:
                 'The remote server has returned an error: '
                 'HTTP Error {} ({})'.format(error.code, error.reason)
             )
+            return
+        except ConnectionError as error:
+            showWarning('There was a problem connecting to the website.')
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
