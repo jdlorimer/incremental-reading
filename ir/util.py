@@ -43,39 +43,39 @@ def viewingIrText():
         return False
 
 
-def addMenu(fullName):
+def addMenu(fullPath):
     if not hasattr(mw, 'customMenus'):
         mw.customMenus = {}
 
-    if len(fullName.split('::')) == 2:
-        menuName, submenuName = fullName.split('::')
+    if len(fullPath.split('::')) == 2:
+        menuPath, submenuPath = fullPath.split('::')
         hasSubmenu = True
     else:
-        menuName = fullName
+        menuPath = fullPath
         hasSubmenu = False
 
-    if menuName not in mw.customMenus:
-        menu = QMenu('&' + menuName, mw)
-        mw.customMenus[menuName] = menu
+    if menuPath not in mw.customMenus:
+        menu = QMenu('&' + menuPath, mw)
+        mw.customMenus[menuPath] = menu
         mw.form.menubar.insertMenu(mw.form.menuTools.menuAction(), menu)
 
-    if hasSubmenu and (fullName not in mw.customMenus):
-        submenu = QMenu('&' + submenuName, mw)
-        mw.customMenus[fullName] = submenu
-        mw.customMenus[menuName].addMenu(submenu)
+    if hasSubmenu and (fullPath not in mw.customMenus):
+        submenu = QMenu('&' + submenuPath, mw)
+        mw.customMenus[fullPath] = submenu
+        mw.customMenus[menuPath].addMenu(submenu)
 
 
-def setMenuVisibility(menuName):
-    if menuName not in mw.customMenus:
+def setMenuVisibility(path):
+    if path not in mw.customMenus:
         return
 
-    if mw.customMenus[menuName].isEmpty():
-        mw.customMenus[menuName].menuAction().setVisible(False)
+    if mw.customMenus[path].isEmpty():
+        mw.customMenus[path].menuAction().setVisible(False)
     else:
-        mw.customMenus[menuName].menuAction().setVisible(True)
+        mw.customMenus[path].menuAction().setVisible(True)
 
 
-def addMenuItem(menuName, text, function, keys=None):
+def addMenuItem(path, text, function, keys=None):
     action = QAction(text, mw)
 
     if keys:
@@ -83,17 +83,17 @@ def addMenuItem(menuName, text, function, keys=None):
 
     action.triggered.connect(function)
 
-    if menuName == 'File':
+    if path == 'File':
         mw.form.menuCol.addAction(action)
-    elif menuName == 'Edit':
+    elif path == 'Edit':
         mw.form.menuEdit.addAction(action)
-    elif menuName == 'Tools':
+    elif path == 'Tools':
         mw.form.menuTools.addAction(action)
-    elif menuName == 'Help':
+    elif path == 'Help':
         mw.form.menuHelp.addAction(action)
     else:
-        addMenu(menuName)
-        mw.customMenus[menuName].addAction(action)
+        addMenu(path)
+        mw.customMenus[path].addAction(action)
 
 
 def getField(note, fieldName):

@@ -98,7 +98,7 @@ class SettingsManager:
     }
 
     def __init__(self):
-        addHook('unloadProfile', self.save)
+        addHook('unloadProfile', self._unload)
         self.load()
 
     def __setitem__(self, key, value):
@@ -186,6 +186,13 @@ class SettingsManager:
             self.settings[k] = self.defaults[k]
             self.updated = True
 
+    def _unload(self):
+        for menu in mw.customMenus.values():
+            mw.form.menubar.removeAction(menu.menuAction())
+
+        mw.customMenus.clear()
+        self.save()
+
     def save(self):
         with open(self.getSettingsPath(), 'w', encoding='utf-8') as jsonFile:
             json.dump(self.settings, jsonFile)
@@ -193,15 +200,17 @@ class SettingsManager:
         updateModificationTime(self.getMediaDir())
 
     def loadMenuItems(self):
-        menuName = 'Read::Quick Keys'
+        path = 'Read::Quick Keys'
 
-        if menuName in mw.customMenus:
-            mw.customMenus[menuName].clear()
+        if path in mw.customMenus:
+            mw.customMenus[path].clear()
 
         for keyCombo, settings in self.settings['quickKeys'].items():
-            menuText = 'Add Card [%s -> %s]' % (settings['modelName'],
-                                                settings['extractDeck'])
-            function = partial(mw.readingManager.textManager.extract, settings)
-            addMenuItem(menuName, menuText, function, keyCombo)
+            text = 'Add Card [%s -> %s]' % (
+                settings['modelName'],
+                settings['extractDeck']
+            )
+            func = partial(mw.readingManager.textManager.extract, settings)
+            addMenuItem(path, text, func, keyCombo)
 
-        setMenuVisibility(menuName)
+        setMenuVisibility(path)
