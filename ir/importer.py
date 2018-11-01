@@ -16,36 +16,42 @@
 from datetime import date
 from ssl import _create_unverified_context
 from urllib.error import HTTPError
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlsplit
 from urllib.request import urlopen
 
 from anki.notes import Note
-from anki.utils import isMac, isWin
+from anki.utils import isMac
 from aqt import mw
-from aqt.utils import (askUser,
-                       chooseList,
-                       getText,
-                       openLink,
-                       showWarning,
-                       tooltip)
+from aqt.utils import (
+    chooseList,
+    getText,
+    showInfo,
+    showWarning,
+    tooltip
+)
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QAbstractItemView,
-                             QDialog,
-                             QDialogButtonBox,
-                             QListWidget,
-                             QListWidgetItem,
-                             QVBoxLayout)
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
+    QDialogButtonBox,
+    QListWidget,
+    QListWidgetItem,
+    QVBoxLayout
+)
 
 from bs4 import BeautifulSoup, Comment
-from requests import get, post
+from requests import get
 
 from .lib.feedparser import parse
 
+from .pocket import Pocket
 from .util import setField
 
 
 class Importer:
+    pocket = None
+
     def _fetchWebpage(self, url):
         if isMac:
             context = _create_unverified_context()
@@ -65,12 +71,14 @@ class Importer:
 
         return webpage
 
-    def _createNote(self, title, text, source, priority):
+    def _createNote(self, title, text, source, priority=None):
         if self.settings['importDeck']:
             deck = mw.col.decks.byName(self.settings['importDeck'])
             if not deck:
-                showWarning('Destination deck no longer exists. '
-                            'Please update your settings.')
+                showWarning(
+                    'Destination deck no longer exists. '
+                    'Please update your settings.'
+                )
                 return
             did = deck['id']
         else:
@@ -78,18 +86,17 @@ class Importer:
 
         model = mw.col.models.byName(self.settings['modelName'])
         note = Note(mw.col, model)
-        if self.settings['prioEnabled']:
-            setField(note, self.settings['priorityField'], priority)
-
         setField(note, self.settings['titleField'], title)
         setField(note, self.settings['textField'], text)
         setField(note, self.settings['sourceField'], source)
+        if priority:
+            setField(note, self.settings['prioField'], priority)
         note.model()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
-        tooltip('Added to deck: ' + mw.col.decks.get(did)['name'])
+        return mw.col.decks.get(did)['name']
 
-    def importWebpage(self, url=None):
+    def importWebpage(self, url=None, priority=None, silent=False):
         if not url:
             url, accepted = getText('Enter URL:', title='Import Webpage')
         else:
@@ -104,26 +111,36 @@ class Importer:
         try:
             webpage = self._fetchWebpage(url)
         except HTTPError as error:
-            showWarning('The remote server has returned an error:'
-                        ' HTTP Error {} ({})'.format(
-                            error.code,
-                            error.reason))
+            showWarning(
+                'The remote server has returned an error: '
+                'HTTP Error {} ({})'.format(error.code, error.reason)
+            )
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self.settings['sourceFormat'].format(
             date=date.today(),
-            url='<a href="%s">%s</a>' % (url, url))
+            url='<a href="%s">%s</a>' % (url, url)
+        )
 
-        if self.settings['prioEnabled']:
-            priority = self.settings['priorities'][chooseList(
-                'Enter priority for "' + webpage.title.string
-                + '".\nYou can change it later.',
-                self.settings['priorities'])]
+        if self.settings['prioEnabled'] and not priority:
+            priority = self._getPriority(webpage.title.string)
+
+        deck = self._createNote(webpage.title.string, body, source, priority)
+
+        if not silent:
+            tooltip('Added to deck: {}'.format(deck))
+
+        return deck
+
+    def _getPriority(self, name=None):
+        if name:
+            prompt = 'Select priority for <b>{}</b>'.format(name)
         else:
-            priority = None
-
-        self._createNote(webpage.title.string, body, source, priority)
+            prompt = 'Select priority for import'
+        return self.settings['priorities'][
+            chooseList(prompt, self.settings['priorities'])
+        ]
 
     def importFeed(self):
         url, accepted = getText('Enter URL:', title='Import Feed')
@@ -137,95 +154,95 @@ class Importer:
         log = self.settings['feedLog']
 
         try:
-            feed = parse(url,
-                         agent=self.settings['userAgent'],
-                         etag=log[url]['etag'],
-                         modified=log[url]['modified'])
+            feed = parse(
+                url,
+                agent=self.settings['userAgent'],
+                etag=log[url]['etag'],
+                modified=log[url]['modified']
+            )
         except KeyError:
             log[url] = {'downloaded': []}
             feed = parse(url, agent=self.settings['userAgent'])
 
         if feed['status'] not in [200, 301, 302]:
-            showWarning('The remote server has returned an unexpected status:'
-                        ' {}'.format(feed['status']))
+            showWarning(
+                'The remote server has returned an unexpected status: '
+                '{}'.format(feed['status'])
+            )
 
-        entries = [{'text': e['title'], 'data': e} for e in feed['entries']]
-        selected = self._select(entries)
-
-        if selected:
-            mw.progress.start(label='Importing feed entries...',
-                              max=len(selected),
-                              immediate=True)
-
-            for i, entry in enumerate(selected, start=1):
-                if not entry['link'] in log[url]['downloaded']:
-                    self.importWebpage(entry['link'])
-                    log[url]['downloaded'].append(entry['link'])
-                mw.progress.update(value=i)
-
-            log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
-            log[url]['modified'] = (feed.modified
-                                    if hasattr(feed, 'modified')
-                                    else '')
-
-            mw.progress.finish()
-
-    def importPocket(self):
-        redirectUri = 'https://github.com/luoliyan/incremental-reading-for-anki'
-
-        if isWin:
-            consumerKey = '71462-da4f02100e7e381cbc4a86df'
-        elif isMac:
-            consumerKey = '71462-ed224e5a561a545814023bf9'
+        if self.settings['prioEnabled']:
+            priority = self._getPriority()
         else:
-            consumerKey = '71462-05fb63bf0314903c7e73c52f'
+            priority = None
 
-        response = post('https://getpocket.com/v3/oauth/request',
-                        json={'consumer_key': consumerKey,
-                              'redirect_uri': redirectUri},
-                        headers={'X-Accept': 'application/json'})
+        entries = [
+            {'text': e['title'], 'data': e}
+            for e in feed['entries']
+            if e['link'] not in log[url]['downloaded']
+        ]
 
-        requestToken = response.json()['code']
-
-        authUrl = 'https://getpocket.com/auth/authorize?'
-        authParams = {'request_token': requestToken,
-                      'redirect_uri': redirectUri}
-
-        openLink(authUrl + urlencode(authParams))
-        if not askUser('I have authenticated with Pocket.'):
+        if not entries:
+            showInfo('There are no new items in this feed.')
             return
 
-        response = post('https://getpocket.com/v3/oauth/authorize',
-                        json={'consumer_key': consumerKey,
-                              'code': requestToken},
-                        headers={'X-Accept': 'application/json'})
+        selected = self._select(entries)
 
-        accessToken = response.json()['access_token']
+        if not selected:
+            return
 
-        response = post('https://getpocket.com/v3/get',
-                        json={'consumer_key': consumerKey,
-                              'access_token': accessToken,
-                              'contentType': 'article',
-                              'count': 30,
-                              'detailType': 'complete',
-                              'sort': 'newest'},
-                        headers={'X-Accept': 'application/json'})
+        n = len(selected)
 
-        articles = [{'text': a['resolved_title'], 'data': a}
-                    for a in response.json()['list'].values()]
+        mw.progress.start(
+            label='Importing feed entries...',
+            max=n,
+            immediate=True
+        )
+
+        for i, entry in enumerate(selected, start=1):
+            deck = self.importWebpage(entry['link'], priority, True)
+            log[url]['downloaded'].append(entry['link'])
+            mw.progress.update(value=i)
+
+        log[url]['etag'] = feed.etag if hasattr(feed, 'etag') else ''
+        log[url]['modified'] = (
+            feed.modified if hasattr(feed, 'modified') else ''
+        )
+
+        mw.progress.finish()
+        tooltip('Added {} item(s) to deck: {}'.format(n, deck))
+
+    def importPocket(self):
+        if not self.pocket:
+            self.pocket = Pocket()
+
+        articles = self.pocket.getArticles()
+        if not articles:
+            return
 
         selected = self._select(articles)
 
+        if self.settings['prioEnabled']:
+            priority = self._getPriority()
+        else:
+            priority = None
+
         if selected:
-            mw.progress.start(label='Importing Pocket articles...',
-                              max=len(selected),
-                              immediate=True)
+            n = len(selected)
+
+            mw.progress.start(
+                label='Importing Pocket articles...',
+                max=n,
+                immediate=True
+            )
 
             for i, article in enumerate(selected, start=1):
-                self.importWebpage(article['given_url'])
+                deck = self.importWebpage(article['given_url'], priority, True)
+                if self.settings['pocketArchive']:
+                    self.pocket.archive(article)
                 mw.progress.update(value=i)
 
             mw.progress.finish()
+            tooltip('Added {} item(s) to deck: {}'.format(n, deck))
 
     def _select(self, choices):
         if not choices:
@@ -241,8 +258,9 @@ class Importer:
             item.setData(Qt.UserRole, c['data'])
             listWidget.addItem(item)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
-                                     QDialogButtonBox.Save)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.Close | QDialogButtonBox.Save
+        )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
         buttonBox.setOrientation(Qt.Horizontal)
@@ -256,8 +274,9 @@ class Importer:
         choice = dialog.exec_()
 
         if choice == 1:
-            return [listWidget.item(i).data(Qt.UserRole)
-                    for i in range(listWidget.count())
-                    if listWidget.item(i).isSelected()]
-        else:
-            return []
+            return [
+                listWidget.item(i).data(Qt.UserRole)
+                for i in range(listWidget.count())
+                if listWidget.item(i).isSelected()
+            ]
+        return []

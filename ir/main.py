@@ -154,7 +154,7 @@ class ReadingManager:
 
         mw.col.models.addField(model, titleField)
         if self.settings['prioEnabled']:
-            prioField = mw.col.models.newField(self.settings['priorityField'])
+            prioField = mw.col.models.newField(self.settings['prioField'])
             mw.col.models.addField(model, prioField)
 
         mw.col.models.addField(model, textField)

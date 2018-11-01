@@ -112,8 +112,8 @@ class TextManager:
                      getField(currentNote, settings['sourceField']))
             if settings['prioEnabled']:
                 setField(newNote,
-                         settings['priorityField'],
-                         getField(currentNote, settings['priorityField']))
+                         settings['prioField'],
+                         getField(currentNote, settings['prioField']))
 
             if settings['editExtract']:
                 setField(newNote, settings['titleField'], title)

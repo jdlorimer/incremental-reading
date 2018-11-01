@@ -72,6 +72,7 @@ class SettingsManager:
         'overlaySeq': 'Ctrl+Shift+O',
         'pageScrollFactor': 0.5,
         'plainText': False,
+        'pocketArchive': True,
         'prioDefault': '5',
         'prioEnabled': False,
         'prioField': 'Priority',
