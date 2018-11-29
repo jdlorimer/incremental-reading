@@ -161,8 +161,8 @@ class ReadingManager:
         mw.col.models.addField(model, sourceField)
 
         template = mw.col.models.newTemplate('IR Card')
-        template['qfmt'] = '<div class="ir-text">{{%s}}</div>' % (
-            self.settings['textField'])
+        template['qfmt'] = '<h3>{{%s}}</h3><div class="ir-text">{{%s}}</div>' % (
+            self.settings['titleField'], self.settings['textField'])
 
         if self.settings['prioEnabled']:
             template['afmt'] = 'Hit space to move to the next article'
