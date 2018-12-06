@@ -161,7 +161,7 @@ class ReadingManager:
         mw.col.models.addField(model, sourceField)
 
         template = mw.col.models.newTemplate('IR Card')
-        template['qfmt'] = '<h3>{{%s}}</h3><div class="ir-text">{{%s}}</div>' % (
+        template['qfmt'] = '<div class="ir-title">{{%s}}</div><div class="ir-text">{{%s}}</div>' % (
             self.settings['titleField'], self.settings['textField'])
 
         if self.settings['prioEnabled']:
