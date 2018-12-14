@@ -130,7 +130,7 @@ ACCEPTABLE_URI_SCHEMES = (
 #ACCEPTABLE_URI_SCHEMES = ()
 
 # ---------- required modules (should come with any Python distribution) ----------
-from .cgi import parse_header
+from . import cgi
 import codecs
 import copy
 import datetime
