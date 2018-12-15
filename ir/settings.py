@@ -29,19 +29,22 @@ from .util import addMenuItem, setMenuVisibility, updateModificationTime
 
 class SettingsManager:
     updated = False
+    requiredFormatKeys = {
+        'organizerFormat': ['info', 'title'],
+        'sourceFormat': ['url', 'date'],
+    }
+    doNotUpdate = [
+        'feedLog',
+        'modified',
+        'quickKeys',
+        'scroll',
+        'zoom',
+    ]
 
     defaults = {
         'badTags': ['iframe', 'script'],
         'boldSeq': 'Ctrl+B',
         'copyTitle': False,
-        'doNotUpdate': [
-            'doNotUpdate',
-            'feedLog',
-            'modified',
-            'quickKeys',
-            'scroll',
-            'zoom',
-        ],
         'editExtract': False,
         'editSource': False,
         'extractBgColor': 'Green',
@@ -174,7 +177,7 @@ class SettingsManager:
 
     def _updateUnmodified(self):
         for k in self.settings:
-            if k in self.settings['doNotUpdate']:
+            if k in self.doNotUpdate:
                 continue
 
             if k in self.settings['modified']:
@@ -185,6 +188,12 @@ class SettingsManager:
 
             self.settings[k] = self.defaults[k]
             self.updated = True
+
+    def validFormat(self, name, fmt):
+        for k in self.requiredFormatKeys[name]:
+            if fmt.find('{%s}' % k) == -1:
+                return False
+        return True
 
     def _unload(self):
         for menu in mw.customMenus.values():

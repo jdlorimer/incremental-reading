@@ -80,8 +80,9 @@ class SettingsDialog:
         tabWidget.addTab(self._getQuickKeysTab(), 'Quick Keys')
         tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
-                                     QDialogButtonBox.Save)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.Close | QDialogButtonBox.Save
+        )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
         buttonBox.setOrientation(Qt.Horizontal)
@@ -107,15 +108,18 @@ class SettingsDialog:
         self.settings['zoomStep'] = self.zoomStepSpinBox.value() / 100.0
         self.settings['generalZoom'] = self.generalZoomSpinBox.value() / 100.0
         self.settings['lineScrollFactor'] = (
-            self.lineStepSpinBox.value() / 100.0)
+            self.lineStepSpinBox.value() / 100.0
+        )
         self.settings['pageScrollFactor'] = (
-            self.pageStepSpinBox.value() / 100.0)
+            self.pageStepSpinBox.value() / 100.0
+        )
         self.settings['editExtract'] = self.editExtractButton.isChecked()
         self.settings['editSource'] = self.editSourceCheckBox.isChecked()
         self.settings['plainText'] = self.plainTextCheckBox.isChecked()
         self.settings['copyTitle'] = self.copyTitleCheckBox.isChecked()
         self.settings['scheduleExtract'] = (
-            self.scheduleExtractCheckBox.isChecked())
+            self.scheduleExtractCheckBox.isChecked()
+        )
         self.settings['soonRandom'] = self.soonRandomCheckBox.isChecked()
         self.settings['laterRandom'] = self.laterRandomCheckBox.isChecked()
         self.settings['extractRandom'] = self.extractRandomCheckBox.isChecked()
@@ -123,15 +127,16 @@ class SettingsDialog:
         if self.extractDeckComboBox.currentText() == '[Current Deck]':
             self.settings['extractDeck'] = None
         else:
-            self.settings['extractDeck'] = (self
-                                            .extractDeckComboBox
-                                            .currentText())
+            self.settings['extractDeck'] = (
+                self.extractDeckComboBox.currentText()
+            )
 
         try:
             self.settings['soonValue'] = int(self.soonValueEditBox.text())
             self.settings['laterValue'] = int(self.laterValueEditBox.text())
             self.settings['extractValue'] = int(
-                self.extractValueEditBox.text())
+                self.extractValueEditBox.text()
+            )
             self.settings['maxWidth'] = int(self.widthEditBox.text())
         except ValueError:
             showWarning('Integer value expected. Please try again.')
@@ -141,9 +146,8 @@ class SettingsDialog:
             self.settings['importDeck'] = None
         else:
             self.settings['importDeck'] = (
-                self.importDeckComboBox.currentText())
-
-        self.settings['sourceFormat'] = self.sourceFormatEditBox.text()
+                self.importDeckComboBox.currentText()
+            )
 
         if self.settings['prioEnabled'] != self.prioButton.isChecked():
             self.settings['prioEnabled'] = self.prioButton.isChecked()
@@ -164,9 +168,18 @@ class SettingsDialog:
         else:
             self.settings['extractMethod'] = 'count'
 
-        self.settings['organizerFormat'] = (
-            self.organizerFormatEditBox.text().replace(r'\t', '\t')
-        )
+        d = {
+            'organizerFormat': self.organizerFormatEditBox,
+            'sourceFormat': self.sourceFormatEditBox
+        }
+        for name, editBox in d.items():
+            fmt = editBox.text().replace(r'\t', '\t')
+            if self.settings.validFormat(name, fmt):
+                self.settings[name] = fmt
+            else:
+                showWarning('Missing required keys for format string.')
+                done = False
+                break
 
         if self.limitAllCardsButton.isChecked():
             self.settings['limitWidth'] = True
@@ -179,13 +192,17 @@ class SettingsDialog:
             self.settings['limitWidthAll'] = False
 
         self.settings['boldSeq'] = (
-            self.boldSeqEditBox.keySequence().toString())
+            self.boldSeqEditBox.keySequence().toString()
+        )
         self.settings['italicSeq'] = (
-            self.italicSeqEditBox.keySequence().toString())
+            self.italicSeqEditBox.keySequence().toString()
+        )
         self.settings['underlineSeq'] = (
-            self.underlineSeqEditBox.keySequence().toString())
+            self.underlineSeqEditBox.keySequence().toString()
+        )
         self.settings['strikeSeq'] = (
-            self.strikeSeqEditBox.keySequence().toString())
+            self.strikeSeqEditBox.keySequence().toString()
+        )
 
         mw.readingManager.viewManager.resetZoom(mw.state)
         return done
@@ -323,19 +340,25 @@ class SettingsDialog:
                 self.undoKeyComboBox.currentText()]
 
         if len(set(keys)) < len(keys):
-            showInfo('There is a conflict with the keys you have chosen.'
-                     ' Please try again.')
+            showInfo(
+                'There is a conflict with the keys you have chosen. '
+                'Please try again.'
+            )
             self._setCurrentKeys()
             return False
         else:
             self.settings['highlightKey'] = (
-                self.highlightKeyComboBox.currentText().lower())
+                self.highlightKeyComboBox.currentText().lower()
+            )
             self.settings['extractKey'] = (
-                self.extractKeyComboBox.currentText().lower())
+                self.extractKeyComboBox.currentText().lower()
+            )
             self.settings['removeKey'] = (
-                self.removeKeyComboBox.currentText().lower())
+                self.removeKeyComboBox.currentText().lower()
+            )
             self.settings['undoKey'] = (
-                self.undoKeyComboBox.currentText().lower())
+                self.undoKeyComboBox.currentText().lower()
+            )
             return True
 
     def _getExtractionTab(self):
@@ -347,8 +370,10 @@ class SettingsDialog:
         self.extractDeckComboBox.addItems(deckNames)
 
         if self.settings['extractDeck']:
-            setComboBoxItem(self.extractDeckComboBox,
-                            self.settings['extractDeck'])
+            setComboBoxItem(
+                self.extractDeckComboBox,
+                self.settings['extractDeck']
+            )
         else:
             setComboBoxItem(self.extractDeckComboBox, '[Current Deck]')
 
@@ -437,30 +462,34 @@ class SettingsDialog:
         self.targetComboBox = QComboBox()
         self._populateTargetComboBox()
         self.targetComboBox.currentIndexChanged.connect(
-            self._updateHighlightTab)
-
+            self._updateHighlightTab
+        )
         targetLayout = QHBoxLayout()
         targetLayout.addStretch()
 
         colors = self.getColorList()
-
         self.bgColorComboBox = QComboBox()
         self.bgColorComboBox.addItems(colors)
-        setComboBoxItem(self.bgColorComboBox,
-                        self.settings['highlightBgColor'])
+        setComboBoxItem(
+            self.bgColorComboBox,
+            self.settings['highlightBgColor']
+        )
         self.bgColorComboBox.currentIndexChanged.connect(
-            self._updateColorPreview)
+            self._updateColorPreview
+        )
         self.bgColorComboBox.activated.connect(self._saveHighlightSettings)
-
         self.textColorComboBox = QComboBox()
         self.textColorComboBox.addItems(colors)
-        setComboBoxItem(self.textColorComboBox,
-                        self.settings['highlightTextColor'])
+        setComboBoxItem(
+            self.textColorComboBox,
+            self.settings['highlightTextColor']
+        )
         self.textColorComboBox.currentIndexChanged.connect(
-            self._updateColorPreview)
+            self._updateColorPreview
+        )
         self.textColorComboBox.activated.connect(
-            self._saveHighlightSettings)
-
+            self._saveHighlightSettings
+        )
         self.colorPreviewLabel = QLabel('Example Text')
         self._updateColorPreview()
 
@@ -501,22 +530,32 @@ class SettingsDialog:
             return
 
         if target == '[Highlight Key]':
-            setComboBoxItem(self.bgColorComboBox,
-                            self.settings['highlightBgColor'])
-            setComboBoxItem(self.textColorComboBox,
-                            self.settings['highlightTextColor'])
+            setComboBoxItem(
+                self.bgColorComboBox,
+                self.settings['highlightBgColor']
+            )
+            setComboBoxItem(
+                self.textColorComboBox,
+                self.settings['highlightTextColor']
+            )
         elif target == '[Extract Key]':
-            setComboBoxItem(self.bgColorComboBox,
-                            self.settings['extractBgColor'])
-            setComboBoxItem(self.textColorComboBox,
-                            self.settings['extractTextColor'])
+            setComboBoxItem(
+                self.bgColorComboBox,
+                self.settings['extractBgColor']
+            )
+            setComboBoxItem(
+                self.textColorComboBox,
+                self.settings['extractTextColor']
+            )
         else:
-            setComboBoxItem(self.bgColorComboBox,
-                            self.settings['quickKeys']
-                            [target]['extractBgColor'])
-            setComboBoxItem(self.textColorComboBox,
-                            self.settings['quickKeys']
-                            [target]['extractTextColor'])
+            setComboBoxItem(
+                self.bgColorComboBox,
+                self.settings['quickKeys'][target]['extractBgColor']
+            )
+            setComboBoxItem(
+                self.textColorComboBox,
+                self.settings['quickKeys'][target]['extractTextColor']
+            )
 
     def getColorList(self):
         moduleDir, _ = os.path.split(__file__)
@@ -554,7 +593,8 @@ class SettingsDialog:
 
         underlineLabel = QLabel('Underline')
         self.underlineSeqEditBox = QKeySequenceEdit(
-            self.settings['underlineSeq'])
+            self.settings['underlineSeq']
+        )
         underlineLayout = QHBoxLayout()
         underlineLayout.addWidget(underlineLabel)
         underlineLayout.addStretch()
@@ -723,14 +763,16 @@ class SettingsDialog:
         self.quickKeysComboBox.addItem('')
         self.quickKeysComboBox.addItems(self.settings['quickKeys'].keys())
         self.quickKeysComboBox.currentIndexChanged.connect(
-            self._updateQuickKeysTab)
+            self._updateQuickKeysTab
+        )
 
         self.destDeckComboBox = QComboBox()
         self.destDeckComboBox.setFixedWidth(400)
         self.noteTypeComboBox = QComboBox()
         self.textFieldComboBox = QComboBox()
         self.textFieldComboBox.currentIndexChanged.connect(
-            self._updateSourceFieldComboBox)
+            self._updateSourceFieldComboBox
+        )
         self.sourceFieldComboBox = QComboBox()
         self.quickKeyEditExtractCheckBox = QCheckBox('Edit Extracted Note')
         self.quickKeyEditSourceCheckBox = QCheckBox('Edit Source Note')
@@ -742,7 +784,8 @@ class SettingsDialog:
         self.regularKeyComboBox = QComboBox()
         self.regularKeyComboBox.addItem('')
         self.regularKeyComboBox.addItems(
-            list('ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'))
+            list('ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789')
+        )
 
         destDeckLayout = QHBoxLayout()
         destDeckLayout.addWidget(destDeckLabel)
@@ -776,7 +819,8 @@ class SettingsDialog:
         self.noteTypeComboBox.addItem('')
         self.noteTypeComboBox.addItems(modelNames)
         self.noteTypeComboBox.currentIndexChanged.connect(
-            self._updateFieldLists)
+            self._updateFieldLists
+        )
 
         newButton = QPushButton('New')
         newButton.clicked.connect(self._clearQuickKeysTab)
@@ -829,7 +873,8 @@ class SettingsDialog:
             self.shiftKeyCheckBox.setChecked(settings['shift'])
             setComboBoxItem(self.regularKeyComboBox, settings['regularKey'])
             self.quickKeyEditExtractCheckBox.setChecked(
-                settings['editExtract'])
+                settings['editExtract']
+            )
             self.quickKeyEditSourceCheckBox.setChecked(settings['editSource'])
             self.quickKeyPlainTextCheckBox.setChecked(settings['plainText'])
             self.tagsEditBox.setText(mw.col.tags.join(settings['tags']))
@@ -845,8 +890,10 @@ class SettingsDialog:
     def _updateSourceFieldComboBox(self):
             self.sourceFieldComboBox.clear()
             modelName = self.noteTypeComboBox.currentText()
-            fieldNames = [f for f in getFieldNames(modelName)
-                          if f != self.textFieldComboBox.currentText()]
+            fieldNames = [
+                f for f in getFieldNames(modelName)
+                if f != self.textFieldComboBox.currentText()
+            ]
             self.sourceFieldComboBox.addItem('')
             self.sourceFieldComboBox.addItems(fieldNames)
 
@@ -898,9 +945,11 @@ class SettingsDialog:
 
         for k in ['extractDeck', 'modelName', 'regularKey']:
             if not settings[k]:
-                showInfo('Please complete all settings. Destination deck,'
-                         ' note type, and a letter or number for the key'
-                         ' combination are required.')
+                showInfo(
+                    'Please complete all settings. Destination deck, '
+                    'note type, and a letter or number for the key '
+                    'combination are required.'
+                )
                 return
 
         keyCombo = ''
@@ -933,7 +982,8 @@ class SettingsDialog:
         generalZoomPercent = round(self.settings['generalZoom'] * 100)
         self.zoomStepSpinBox = createSpinBox(zoomStepPercent, 5, 100, 5)
         self.generalZoomSpinBox = createSpinBox(
-            generalZoomPercent, 10, 200, 10)
+            generalZoomPercent, 10, 200, 10
+        )
 
         zoomStepLayout = QHBoxLayout()
         zoomStepLayout.addWidget(zoomStepLabel)
@@ -999,8 +1049,10 @@ class SettingsDialog:
         self.importDeckComboBox.addItems(deckNames)
 
         if self.settings['importDeck']:
-            setComboBoxItem(self.importDeckComboBox,
-                            self.settings['importDeck'])
+            setComboBoxItem(
+                self.importDeckComboBox,
+                self.settings['importDeck']
+            )
         else:
             setComboBoxItem(self.importDeckComboBox, '[Current Deck]')
 
