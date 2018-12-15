@@ -1,30 +1,9 @@
-from unittest import TestCase
 from unittest.mock import MagicMock, mock_open, patch
 
+from . import SettingsTests
 
-class SettingsTests(TestCase):
-    def setUp(self):
-        modules = {
-            'anki.hooks': MagicMock(),
-            'aqt': MagicMock(),
-            'aqt.utils': MagicMock(),
-            'ir.about': MagicMock(),
-            'ir.main': MagicMock(),
-            'ir.util': MagicMock(),
-        }
-        patch.dict('sys.modules', modules).start()
-        patch('ir.settings.json.load', MagicMock()).start()
-        pf_mock = MagicMock(return_value=str())
-        patch('ir.settings.mw.pm.profileFolder', pf_mock).start()
-        patch('ir.settings.open', mock_open()).start()
-        if_mock = MagicMock(return_value=True)
-        patch('ir.settings.os.path.isfile', if_mock).start()
-        from ir.settings import SettingsManager
-        self.sm = SettingsManager()
 
-    def tearDown(self):
-        patch.stopall()
-
+class SaveTests(SettingsTests):
     def test_save(self):
         open_mock = mock_open()
         dump_mock = MagicMock()
@@ -39,15 +18,55 @@ class SettingsTests(TestCase):
         dump_mock.assert_called_once_with({'foo': 'bar'}, open_mock())
         dump_patcher.stop()
 
+
+class PathTests(SettingsTests):
     def test_getMediaDir(self):
-        with patch('aqt.mw.pm.profileFolder', MagicMock(return_value='foo')):
+        with patch('ir.settings.mw.pm.profileFolder',
+                   MagicMock(return_value='foo')):
             self.assertEqual(self.sm.getMediaDir(), 'foo/collection.media')
 
     def test_getSettingsPath(self):
         self.sm.getMediaDir = MagicMock(return_value='foo')
         self.assertEqual(self.sm.getSettingsPath(), 'foo/_ir.json')
 
-    def test_validFormat(self):
+
+class ValidateFormatStringsTests(SettingsTests):
+    def test_valid(self):
+        self.sm.defaults = {
+            'fooFormat': '{foo} {bar}',
+            'barFormat': '{baz} {qux}'
+        }
+        self.sm.settings = self.sm.defaults.copy()
+        self.sm.requiredFormatKeys = {
+            'fooFormat': ['foo', 'bar'],
+            'barFormat': ['baz', 'qux']
+        }
+        self.sm._validateFormatStrings()
+        self.assertEqual(self.sm.settings, self.sm.defaults)
+
+    def test_invalid(self):
+        self.sm.defaults = {
+            'fooFormat': '{foo} {bar}',
+            'barFormat': '{baz} {qux}'
+        }
+        invalidSettings = {
+            'fooFormat': '{baz} {qux}',
+            'barFormat': '{foo} {bar}'
+        }
+        self.sm.settings = invalidSettings
+        self.sm.requiredFormatKeys = {
+            'fooFormat': ['foo', 'bar'],
+            'barFormat': ['baz', 'qux']
+        }
+        self.sm._validateFormatStrings()
+        self.assertEqual(self.sm.settings, self.sm.defaults)
+
+
+class ValidFormatTests(SettingsTests):
+    def test_valid(self):
         self.sm.requiredFormatKeys = {'test': ['foo', 'bar', 'baz']}
-        self.assertTrue(self.sm.validFormat('test', '{foo}{bar}{baz}'))
-        self.assertFalse(self.sm.validFormat('test', '{foo}{baz}'))
+        self.assertTrue(self.sm.validFormat('test', '{foo} {bar} {baz}'))
+
+    def test_invalid(self):
+        self.sm.requiredFormatKeys = {'test': ['foo', 'bar', 'baz']}
+        self.assertFalse(self.sm.validFormat('test', '{foo} {baz}'))

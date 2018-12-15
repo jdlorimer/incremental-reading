@@ -28,6 +28,7 @@ from .util import addMenuItem, setMenuVisibility, updateModificationTime
 
 
 class SettingsManager:
+    settings = {}
     updated = False
     requiredFormatKeys = {
         'organizerFormat': ['info', 'title'],
@@ -40,7 +41,6 @@ class SettingsManager:
         'scroll',
         'zoom',
     ]
-
     defaults = {
         'badTags': ['iframe', 'script'],
         'boldSeq': 'Ctrl+B',
@@ -126,12 +126,7 @@ class SettingsManager:
     def _loadExisting(self):
         with open(self.getSettingsPath(), encoding='utf-8') as jsonFile:
             self.settings = json.load(jsonFile)
-
-        self._addMissing()
-
-        if ('version' not in self.settings or
-                self.settings['version'] != __version__):
-            self._update()
+        self._update()
 
     def getSettingsPath(self):
         return os.path.join(self.getMediaDir(), '_ir.json')
@@ -141,8 +136,10 @@ class SettingsManager:
 
     def _update(self):
         self.settings['version'] = self.defaults['version']
+        self._addMissing()
         self._removeOutdated()
         self._updateUnmodified()
+        self._validateFormatStrings()
 
     def _addMissing(self):
         for k, v in self.defaults.items():
@@ -175,6 +172,11 @@ class SettingsManager:
                     self.updated = True
                     break
 
+        outdated = [k for k in self.settings if k not in self.defaults]
+        for k in outdated:
+            self.settings.pop(k)
+            self.updated = True
+
     def _updateUnmodified(self):
         for k in self.settings:
             if k in self.doNotUpdate:
@@ -188,6 +190,11 @@ class SettingsManager:
 
             self.settings[k] = self.defaults[k]
             self.updated = True
+
+    def _validateFormatStrings(self):
+        for name in self.requiredFormatKeys:
+            if not self.validFormat(name, self.settings[name]):
+                self.settings[name] = self.defaults[name]
 
     def validFormat(self, name, fmt):
         for k in self.requiredFormatKeys[name]:
