@@ -34,13 +34,7 @@ class SettingsManager:
         'organizerFormat': ['info', 'title'],
         'sourceFormat': ['url', 'date'],
     }
-    doNotUpdate = [
-        'feedLog',
-        'modified',
-        'quickKeys',
-        'scroll',
-        'zoom',
-    ]
+    doNotUpdate = ['feedLog', 'modified', 'quickKeys', 'scroll', 'zoom']
     defaults = {
         'badTags': ['iframe', 'script'],
         'boldSeq': 'Ctrl+B',
@@ -79,7 +73,7 @@ class SettingsManager:
         'prioDefault': '5',
         'prioEnabled': False,
         'prioField': 'Priority',
-        'priorities': ('', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'),
+        'priorities': ['', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
         'quickKeys': {},
         'removeKey': 'z',
         'scheduleExtract': True,
@@ -105,8 +99,10 @@ class SettingsManager:
         self.load()
 
     def __setitem__(self, key, value):
-        if (self.settings[key] != value and
-                key not in self.settings['modified']):
+        if (
+            self.settings[key] != value
+            and key not in self.settings['modified']
+        ):
             self.settings['modified'].append(key)
 
         self.settings[key] = value
@@ -224,7 +220,7 @@ class SettingsManager:
         for keyCombo, settings in self.settings['quickKeys'].items():
             text = 'Add Card [%s -> %s]' % (
                 settings['modelName'],
-                settings['extractDeck']
+                settings['extractDeck'],
             )
             func = partial(mw.readingManager.textManager.extract, settings)
             addMenuItem(path, text, func, keyCombo)
