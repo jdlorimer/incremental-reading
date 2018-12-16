@@ -1,2 +1,4 @@
 *~
+.mypy_cache/
 .ropeproject/
+__pycache__
