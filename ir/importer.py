@@ -57,7 +57,7 @@ class Importer:
     def _fetchWebpage(self, url):
         if isMac:
             context = _create_unverified_context()
-            html = urlopen(url, context=context).read().decode('utf-8')
+            html = urlopen(url, context=context).read()
         else:
             headers = {'User-Agent': self.settings['userAgent']}
             html = get(url, headers=headers).text
