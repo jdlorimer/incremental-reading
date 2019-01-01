@@ -1,4 +1,4 @@
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -16,12 +16,7 @@ from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
 
 from anki.utils import isMac, isWin
-from aqt.utils import (
-    askUser,
-    openLink,
-    showCritical,
-    showInfo
-)
+from aqt.utils import askUser, openLink, showCritical, showInfo
 
 from requests import post
 
@@ -48,13 +43,15 @@ class Pocket:
 
         response = post(
             'https://getpocket.com/v3/get',
-            json={'consumer_key': self.consumerKey,
-                  'access_token': self.accessToken,
-                  'contentType': 'article',
-                  'count': 30,
-                  'detailType': 'complete',
-                  'sort': 'newest'},
-            headers=self.headers
+            json={
+                'consumer_key': self.consumerKey,
+                'access_token': self.accessToken,
+                'contentType': 'article',
+                'count': 30,
+                'detailType': 'complete',
+                'sort': 'newest',
+            },
+            headers=self.headers,
         )
 
         if response.json()['list']:
@@ -69,9 +66,11 @@ class Pocket:
     def _authenticate(self):
         response = post(
             'https://getpocket.com/v3/oauth/request',
-            json={'consumer_key': self.consumerKey,
-                  'redirect_uri': self.redirectURI},
-            headers=self.headers
+            json={
+                'consumer_key': self.consumerKey,
+                'redirect_uri': self.redirectURI,
+            },
+            headers=self.headers,
         )
 
         requestToken = response.json()['code']
@@ -79,7 +78,7 @@ class Pocket:
         authUrl = 'https://getpocket.com/auth/authorize?'
         authParams = {
             'request_token': requestToken,
-            'redirect_uri': self.redirectURI
+            'redirect_uri': self.redirectURI,
         }
 
         openLink(authUrl + urlencode(authParams))
@@ -89,7 +88,7 @@ class Pocket:
         response = post(
             'https://getpocket.com/v3/oauth/authorize',
             json={'consumer_key': self.consumerKey, 'code': requestToken},
-            headers=self.headers
+            headers=self.headers,
         )
 
         try:
@@ -98,11 +97,13 @@ class Pocket:
             return None
 
     def archive(self, article):
-        post('https://getpocket.com/v3/send',
-             json={
-                 'consumer_key': self.consumerKey,
-                 'access_token': self.accessToken,
-                 'actions': [
-                     {'action': 'archive', 'item_id': article['item_id']}
-                 ]
-             })
+        post(
+            'https://getpocket.com/v3/send',
+            json={
+                'consumer_key': self.consumerKey,
+                'access_token': self.accessToken,
+                'actions': [
+                    {'action': 'archive', 'item_id': article['item_id']}
+                ],
+            },
+        )

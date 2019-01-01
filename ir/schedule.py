@@ -3,7 +3,7 @@
 # Copyright 2013-2016 Aleksej
 # Copyright 2017 Christian Weiß
 # Copyright 2018 Timothée Chauvin
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -21,18 +21,22 @@ from random import gauss, shuffle
 from re import sub
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QAbstractItemView,
-                             QDialog,
-                             QDialogButtonBox,
-                             QHBoxLayout,
-                             QListWidget,
-                             QListWidgetItem,
-                             QPushButton,
-                             QVBoxLayout)
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+)
 
 from anki.utils import stripHTML
-from aqt import mw, dialogs
+from aqt import mw
 from aqt.utils import showInfo, tooltip
+
+from .util import showBrowser
 
 SCHEDULE_EXTRACT = 0
 SCHEDULE_SOON = 1
@@ -41,6 +45,9 @@ SCHEDULE_CUSTOM = 3
 
 
 class Scheduler:
+    did = None
+    cardListWidget = None
+
     def showDialog(self, currentCard=None):
         if currentCard:
             self.did = currentCard.did
@@ -58,11 +65,14 @@ class Scheduler:
         self.cardListWidget = QListWidget()
         self.cardListWidget.setAlternatingRowColors(True)
         self.cardListWidget.setSelectionMode(
-            QAbstractItemView.ExtendedSelection)
+            QAbstractItemView.ExtendedSelection
+        )
         self.cardListWidget.setWordWrap(True)
         self.cardListWidget.itemDoubleClicked.connect(
-            lambda: self.showBrowser(
-                self.cardListWidget.currentItem().data(Qt.UserRole)['nid']))
+            lambda: showBrowser(
+                self.cardListWidget.currentItem().data(Qt.UserRole)['nid']
+            )
+        )
 
         self._updateListItems()
 
@@ -85,8 +95,9 @@ class Scheduler:
         controlsLayout.addStretch()
         controlsLayout.addWidget(randomizeButton)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Close |
-                                     QDialogButtonBox.Save)
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.Close | QDialogButtonBox.Save
+        )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
         buttonBox.setOrientation(Qt.Horizontal)
@@ -117,9 +128,10 @@ class Scheduler:
                 info = card['priority']
             else:
                 info = str(i).zfill(posWidth)
-            title = sub('\s+', ' ', stripHTML(card['title']))
+            title = sub(r'\s+', ' ', stripHTML(card['title']))
             text = self.settings['organizerFormat'].format(
-                info=info, title=title)
+                info=info, title=title
+            )
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, card)
             self.cardListWidget.addItem(item)
@@ -162,8 +174,10 @@ class Scheduler:
 
         selected.reverse()
 
-        if (self.cardListWidget.row(selected[0]) ==
-                self.cardListWidget.count() - 1):
+        if (
+            self.cardListWidget.row(selected[0])
+            == self.cardListWidget.count() - 1
+        ):
             return
 
         for item in selected:
@@ -187,20 +201,25 @@ class Scheduler:
         self.cardListWidget.scrollToBottom()
 
     def _getSelected(self):
-        return [self.cardListWidget.item(i)
-                for i in range(self.cardListWidget.count())
-                if self.cardListWidget.item(i).isSelected()]
+        return [
+            self.cardListWidget.item(i)
+            for i in range(self.cardListWidget.count())
+            if self.cardListWidget.item(i).isSelected()
+        ]
 
     def _randomize(self):
-        allItems = [self.cardListWidget.takeItem(0)
-                    for _ in range(self.cardListWidget.count())]
+        allItems = [
+            self.cardListWidget.takeItem(0)
+            for _ in range(self.cardListWidget.count())
+        ]
         if self.settings['prioEnabled']:
             maxPrio = len(self.settings['priorities']) - 1
             for item in allItems:
                 priority = item.data(Qt.UserRole)['priority']
                 if priority != '':
-                    item.contNewPos = gauss(maxPrio - int(priority),
-                                            maxPrio/20)
+                    item.contNewPos = gauss(
+                        maxPrio - int(priority), maxPrio / 20
+                    )
                 else:
                     item.contNewPos = float('inf')
             allItems.sort(key=lambda item: item.contNewPos)
@@ -254,7 +273,7 @@ class Scheduler:
         cids = [c['id'] for c in self._getCardInfo(card.did)]
         mw.col.sched.forgetCards(cids)
         cids.remove(card.id)
-        newOrder = cids[:newPos-1] + [card.id] + cids[newPos-1:]
+        newOrder = cids[: newPos - 1] + [card.id] + cids[newPos - 1 :]
         mw.col.sched.sortCards(newOrder)
 
     def reorder(self, cids):
@@ -265,8 +284,8 @@ class Scheduler:
         cardInfo = []
 
         for cid, nid in mw.col.db.execute(
-                'select id, nid from cards where did = ?',
-                did):
+            'select id, nid from cards where did = ?', did
+        ):
             note = mw.col.getNote(nid)
             if note.model()['name'] == self.settings['modelName']:
                 if self.settings['prioEnabled']:
@@ -274,14 +293,13 @@ class Scheduler:
                 else:
                     prio = None
 
-                cardInfo.append({'id': cid,
-                                 'nid': nid,
-                                 'title': note[self.settings['titleField']],
-                                 'priority': prio})
+                cardInfo.append(
+                    {
+                        'id': cid,
+                        'nid': nid,
+                        'title': note[self.settings['titleField']],
+                        'priority': prio,
+                    }
+                )
 
         return cardInfo
-
-    def showBrowser(self, nid):
-        browser = dialogs.open('Browser', mw)
-        browser.form.searchEdit.lineEdit().setText('nid:' + str(nid))
-        browser.onSearchActivated()

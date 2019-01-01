@@ -1,5 +1,5 @@
 # Copyright 2018 Timothée Chauvin
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -28,7 +28,7 @@ from aqt.utils import (
     showInfo,
     showCritical,
     showWarning,
-    tooltip
+    tooltip,
 )
 
 from PyQt5.QtCore import Qt
@@ -38,7 +38,7 @@ from PyQt5.QtWidgets import (
     QDialogButtonBox,
     QListWidget,
     QListWidgetItem,
-    QVBoxLayout
+    QVBoxLayout,
 )
 
 from bs4 import BeautifulSoup, Comment
@@ -127,8 +127,7 @@ class Importer:
 
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self.settings['sourceFormat'].format(
-            date=date.today(),
-            url='<a href="%s">%s</a>' % (url, url)
+            date=date.today(), url='<a href="%s">%s</a>' % (url, url)
         )
 
         if self.settings['prioEnabled'] and not priority:
@@ -166,7 +165,7 @@ class Importer:
                 url,
                 agent=self.settings['userAgent'],
                 etag=log[url]['etag'],
-                modified=log[url]['modified']
+                modified=log[url]['modified'],
             )
         except KeyError:
             log[url] = {'downloaded': []}
@@ -201,9 +200,7 @@ class Importer:
         n = len(selected)
 
         mw.progress.start(
-            label='Importing feed entries...',
-            max=n,
-            immediate=True
+            label='Importing feed entries...', max=n, immediate=True
         )
 
         for i, entry in enumerate(selected, start=1):
@@ -238,9 +235,7 @@ class Importer:
             n = len(selected)
 
             mw.progress.start(
-                label='Importing Pocket articles...',
-                max=n,
-                immediate=True
+                label='Importing Pocket articles...', max=n, immediate=True
             )
 
             for i, article in enumerate(selected, start=1):

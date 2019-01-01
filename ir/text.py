@@ -3,7 +3,7 @@
 # Copyright 2013-2016 Aleksej
 # Copyright 2017 Christian Weiß
 # Copyright 2018 Timothée Chauvin
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -27,12 +27,12 @@ from aqt.utils import getText, showInfo, showWarning, tooltip
 
 from .util import fixImages, getField, setField
 
+
 SCHEDULE_EXTRACT = 0
 
 
 class TextManager:
-    def __init__(self):
-        self.history = defaultdict(list)
+    history = defaultdict(list)
 
     def highlight(self, bgColor=None, textColor=None):
         if not bgColor:
@@ -62,12 +62,12 @@ class TextManager:
 
         if settings['plainText']:
             mw.web.evalWithCallback(
-                'getPlainText()',
-                lambda text: self.create(text, settings))
+                'getPlainText()', lambda text: self.create(text, settings)
+            )
         else:
             mw.web.evalWithCallback(
-                'getHtmlText()',
-                lambda text: self.create(text, settings))
+                'getHtmlText()', lambda text: self.create(text, settings)
+            )
 
     def create(self, text, settings):
         currentCard = mw.reviewer.card
@@ -80,8 +80,10 @@ class TextManager:
         if settings['extractDeck']:
             deck = mw.col.decks.byName(settings['extractDeck'])
             if not deck:
-                showWarning('Destination deck no longer exists. '
-                            'Please update your settings.')
+                showWarning(
+                    'Destination deck no longer exists. '
+                    'Please update your settings.'
+                )
                 return
             did = deck['id']
         else:
@@ -91,9 +93,11 @@ class TextManager:
             newNote.tags += settings['tags']
 
             if settings['sourceField']:
-                setField(newNote,
-                         settings['sourceField'],
-                         getField(currentNote, self.settings['sourceField']))
+                setField(
+                    newNote,
+                    settings['sourceField'],
+                    getField(currentNote, self.settings['sourceField']),
+                )
 
             if settings['editExtract']:
                 highlight = self._editExtract(newNote, did, settings)
@@ -107,13 +111,17 @@ class TextManager:
             else:
                 title = ''
 
-            setField(newNote,
-                     settings['sourceField'],
-                     getField(currentNote, settings['sourceField']))
+            setField(
+                newNote,
+                settings['sourceField'],
+                getField(currentNote, settings['sourceField']),
+            )
             if settings['prioEnabled']:
-                setField(newNote,
-                         settings['prioField'],
-                         getField(currentNote, settings['prioField']))
+                setField(
+                    newNote,
+                    settings['prioField'],
+                    getField(currentNote, settings['prioField']),
+                )
 
             if settings['editExtract']:
                 setField(newNote, settings['titleField'], title)
@@ -125,11 +133,13 @@ class TextManager:
                 cards = newNote.cards()
                 if cards:
                     mw.readingManager.scheduler.answer(
-                        cards[0], SCHEDULE_EXTRACT)
+                        cards[0], SCHEDULE_EXTRACT
+                    )
 
         if highlight:
-            self.highlight(settings['extractBgColor'],
-                           settings['extractTextColor'])
+            self.highlight(
+                settings['extractBgColor'], settings['extractTextColor']
+            )
 
         if settings['editSource']:
             EditCurrent(mw)
@@ -150,7 +160,8 @@ class TextManager:
 
     def _getTitle(self, note, did, title, settings):
         title, accepted = getText(
-            'Enter title', title='Extract Text', default=title)
+            'Enter title', title='Extract Text', default=title
+        )
 
         if accepted:
             setField(note, settings['titleField'], title)
@@ -185,4 +196,5 @@ class TextManager:
 
         mw.web.evalWithCallback(
             'document.getElementsByClassName("ir-text")[0].innerHTML;',
-            callback)
+            callback,
+        )

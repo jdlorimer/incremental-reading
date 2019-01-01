@@ -1,4 +1,4 @@
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -12,35 +12,30 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-from urllib.parse import unquote
 import os
 import stat
 import time
+from urllib.parse import unquote
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAction, QMenu, QSpinBox
-
-from aqt import mw
-
+from aqt import dialogs, mw
 from bs4 import BeautifulSoup
 
 
 def isIrCard(card):
-    if (card and (card.model()['name'] ==
-                  mw.readingManager.settings['modelName'])):
-        return True
-    else:
-        return False
+    return card and (
+        card.model()['name'] == mw.readingManager.settings['modelName']
+    )
 
 
 def viewingIrText():
-    if (isIrCard(mw.reviewer.card) and
-            (mw.reviewer.state == 'question') and
-            (mw.state == 'review')):
-        return True
-    else:
-        return False
+    return (
+        isIrCard(mw.reviewer.card)
+        and (mw.reviewer.state == 'question')
+        and (mw.state == 'review')
+    )
 
 
 def addMenu(fullPath):
@@ -115,6 +110,7 @@ def getFieldNames(modelName):
         return []
     return mw.col.models.fieldNames(mw.col.models.byName(modelName))
 
+
 def createSpinBox(value, minimum, maximum, step):
     spinBox = QSpinBox()
     spinBox.setRange(minimum, maximum)
@@ -153,3 +149,16 @@ def loadFile(fileDir, filename):
     path = os.path.join(moduleDir, fileDir, filename)
     with open(path, encoding='utf-8') as f:
         return f.read()
+
+
+def getColorList():
+    moduleDir, _ = os.path.split(__file__)
+    colorsFilePath = os.path.join(moduleDir, 'data', 'colors.u8')
+    with open(colorsFilePath, encoding='utf-8') as colorsFile:
+        return [line.strip() for line in colorsFile]
+
+
+def showBrowser(nid):
+    browser = dialogs.open('Browser', mw)
+    browser.form.searchEdit.lineEdit().setText('nid:' + str(nid))
+    browser.onSearchActivated()

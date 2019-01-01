@@ -2,7 +2,7 @@
 # Copyright 2013 Frank Kmiec
 # Copyright 2013-2016 Aleksej
 # Copyright 2018 Timothée Chauvin
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -34,6 +34,8 @@ from .view import ViewManager
 
 
 class ReadingManager:
+    shortcuts = []
+
     def __init__(self):
         self.importer = Importer()
         self.scheduler = Scheduler()
@@ -50,7 +52,8 @@ class ReadingManager:
     def onProfileLoaded(self):
         self.settings = SettingsManager()
         mw.addonManager.setConfigAction(
-            __name__, lambda: SettingsDialog(self.settings))
+            __name__, lambda: SettingsDialog(self.settings)
+        )
         self.importer.settings = self.settings
         self.scheduler.settings = self.settings
         self.textManager.settings = self.settings
@@ -68,34 +71,42 @@ class ReadingManager:
             (self.settings['removeKey'], self.textManager.remove),
             (self.settings['undoKey'], self.textManager.undo),
             (self.settings['overlaySeq'], self.textManager.toggleOverlay),
-            (self.settings['boldSeq'],
-             lambda: self.textManager.format('bold')),
-            (self.settings['italicSeq'],
-             lambda: self.textManager.format('italic')),
-            (self.settings['strikeSeq'],
-             lambda: self.textManager.format('strike')),
-            (self.settings['underlineSeq'],
-             lambda: self.textManager.format('underline')),
+            (
+                self.settings['boldSeq'],
+                lambda: self.textManager.format('bold'),
+            ),
+            (
+                self.settings['italicSeq'],
+                lambda: self.textManager.format('italic'),
+            ),
+            (
+                self.settings['strikeSeq'],
+                lambda: self.textManager.format('strike'),
+            ),
+            (
+                self.settings['underlineSeq'],
+                lambda: self.textManager.format('underline'),
+            ),
         ]
 
     def loadMenuItems(self):
         if hasattr(mw, 'customMenus') and 'Read' in mw.customMenus:
             mw.customMenus['Read'].clear()
 
-        addMenuItem('Read',
-                    'Options...',
-                    lambda: SettingsDialog(self.settings),
-                    'Alt+1')
+        addMenuItem(
+            'Read',
+            'Options...',
+            lambda: SettingsDialog(self.settings),
+            'Alt+1',
+        )
         addMenuItem('Read', 'Organizer...', self.scheduler.showDialog, 'Alt+2')
-        addMenuItem('Read',
-                    'Import Webpage',
-                    self.importer.importWebpage,
-                    'Alt+3')
+        addMenuItem(
+            'Read', 'Import Webpage', self.importer.importWebpage, 'Alt+3'
+        )
         addMenuItem('Read', 'Import Feed', self.importer.importFeed, 'Alt+4')
-        addMenuItem('Read',
-                    'Import Pocket',
-                    self.importer.importPocket,
-                    'Alt+5')
+        addMenuItem(
+            'Read', 'Import Pocket', self.importer.importPocket, 'Alt+5'
+        )
         addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
@@ -108,9 +119,12 @@ class ReadingManager:
         else:
             answerShortcuts = ['4']
 
-        activeAnswerShortcuts = [next(
-            (s for s in mw.stateShortcuts if s.key().toString() == i), None)
-                           for i in answerShortcuts]
+        activeAnswerShortcuts = [
+            next(
+                (s for s in mw.stateShortcuts if s.key().toString() == i), None
+            )
+            for i in answerShortcuts
+        ]
 
         if isIrCard(card):
             if context == 'reviewQuestion':
@@ -124,8 +138,13 @@ class ReadingManager:
             for shortcut in answerShortcuts:
                 if not activeAnswerShortcuts[answerShortcuts.index(shortcut)]:
                     mw.stateShortcuts += mw.applyShortcuts(
-                        [(shortcut,
-                          lambda: mw.reviewer._answerCard(int(shortcut)))])
+                        [
+                            (
+                                shortcut,
+                                lambda: mw.reviewer._answerCard(int(shortcut)),
+                            )
+                        ]
+                    )
 
         return html
 
@@ -161,12 +180,17 @@ class ReadingManager:
         mw.col.models.addField(model, sourceField)
 
         template = mw.col.models.newTemplate('IR Card')
-        template['qfmt'] = '\n'.join([
-            '<div class="ir-title">{{%s}}</div>' % self.settings['titleField'],
-            '<div class="ir-text">{{%s}}</div>' % self.settings['textField'],
-            '<div class="ir-src">{{%s}}</div>' % self.settings['sourceField'],
-            '<div class="ir-tags">{{Tags}}</div>'
-        ])
+        template['qfmt'] = '\n'.join(
+            [
+                '<div class="ir-title">{{%s}}</div>'
+                % self.settings['titleField'],
+                '<div class="ir-text">{{%s}}</div>'
+                % self.settings['textField'],
+                '<div class="ir-src">{{%s}}</div>'
+                % self.settings['sourceField'],
+                '<div class="ir-tags">{{Tags}}</div>',
+            ]
+        )
 
         if self.settings['prioEnabled']:
             template['afmt'] = 'Hit space to move to the next article'
@@ -181,10 +205,8 @@ def answerButtonList(self, _old):
     if isIrCard(self.card):
         if mw.readingManager.settings['prioEnabled']:
             return ((1, _('Next')),)
-        else:
-            return ((1, _('Soon')), (2, _('Later')), (3, _('Custom')))
-    else:
-        return _old(self)
+        return ((1, _('Soon')), (2, _('Later')), (3, _('Custom')))
+    return _old(self)
 
 
 def answerCard(self, ease, _old):
@@ -197,8 +219,7 @@ def answerCard(self, ease, _old):
 def buttonTime(self, i, _old):
     if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
-    else:
-        return _old(self, i)
+    return _old(self, i)
 
 
 def onBrowserClosed(self):
@@ -208,10 +229,9 @@ def onBrowserClosed(self):
         return
 
 
-Reviewer._answerButtonList = wrap(Reviewer._answerButtonList,
-                                  answerButtonList,
-                                  'around')
-
+Reviewer._answerButtonList = wrap(
+    Reviewer._answerButtonList, answerButtonList, 'around'
+)
 Reviewer._answerCard = wrap(Reviewer._answerCard, answerCard, 'around')
 Reviewer._buttonTime = wrap(Reviewer._buttonTime, buttonTime, 'around')
 Browser._closeWindow = wrap(Browser._closeWindow, onBrowserClosed)

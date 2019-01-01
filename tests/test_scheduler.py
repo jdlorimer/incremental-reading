@@ -13,6 +13,7 @@ class SchedulerTests(TestCase):
             'aqt': MagicMock(),
             'aqt.utils': MagicMock(),
             'ir.main': MagicMock(),
+            'ir.util': MagicMock(),
         }
         self.patcher = patch.dict('sys.modules', modules)
         self.patcher.start()

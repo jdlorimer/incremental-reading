@@ -1,7 +1,7 @@
 # Copyright 2013 Tiago Barroso
 # Copyright 2013 Frank Kmiec
 # Copyright 2013-2016 Aleksej
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -22,6 +22,9 @@ from .util import isIrCard, loadFile, viewingIrText
 
 
 class ViewManager:
+    viewportHeight = None
+    pageBottom = None
+
     def __init__(self):
         self.scrollScript = loadFile('web', 'scroll.js')
         self.textScript = loadFile('web', 'text.js')
@@ -32,8 +35,9 @@ class ViewManager:
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
     def prepareCard(self, html, card, context):
-        if ((isIrCard(card) and self.settings['limitWidth']) or
-                self.settings['limitWidthAll']):
+        if (isIrCard(card) and self.settings['limitWidth']) or self.settings[
+            'limitWidthAll'
+        ]:
             js = self.widthScript.format(maxWidth=self.settings['maxWidth'])
         else:
             js = ''
@@ -51,28 +55,31 @@ class ViewManager:
             self.setZoom()
             js += self.textScript
             js += self.scrollScript.format(
-                savedPos=self.settings['scroll'][cid])
+                savedPos=self.settings['scroll'][cid]
+            )
 
         if js:
-            return html + '<script>' + js + '</script>'
-        else:
-            return html
+            html += '<script>' + js + '</script>'
+
+        return html
 
     def storePageInfo(self, cmd):
         if cmd == 'store':
+
             def callback(pageInfo):
                 self.viewportHeight, self.pageBottom = pageInfo
 
             mw.web.evalWithCallback(
-                '[window.innerHeight, document.body.scrollHeight];',
-                callback)
+                '[window.innerHeight, document.body.scrollHeight];', callback
+            )
 
     def setZoom(self, factor=None):
         if factor:
             mw.web.setZoomFactor(factor)
         else:
             mw.web.setZoomFactor(
-                self.settings['zoom'][str(mw.reviewer.card.id)])
+                self.settings['zoom'][str(mw.reviewer.card.id)]
+            )
 
     def zoomIn(self):
         if viewingIrText():
@@ -108,6 +115,7 @@ class ViewManager:
 
     def saveScroll(self, event=None):
         if viewingIrText():
+
             def callback(currentPos):
                 self.settings['scroll'][str(mw.reviewer.card.id)] = currentPos
 
