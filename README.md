@@ -79,7 +79,7 @@ To install through Anki, navigate to Tools → Add-ons → Get Add-ons..., and e
 
 Experimentation should lead to a pretty quick understanding of how the add-on works. If in doubt, start with the following:
 
-1. Create a new IR note with an article you want to study (the easiest way to do this is to import a webpage, with <kbd>Alt</kbd>+<kbd>3</kbd>)
+1. Create a new IR note with an article you want to study (the easiest way to do this is to import a webpage, by pressing <kbd>Alt</kbd>+<kbd>3</kbd> while on the deck overview screen)
 2. Set up a shortcut for creating regular Anki cards from IR cards (press <kbd>Alt</kbd>+<kbd>1</kbd>, or go to the menu, then go to the Quick Keys tab)
 3. Review the IR card that was created, and extract any text you find interesting (by selecting the text and pressing <kbd>x</kbd>)
 4. Choose _Soon_ or _Later_ when you want to move to the next card (which will be a portion of text you extracted)
