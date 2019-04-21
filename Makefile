@@ -1,4 +1,4 @@
-# Copyright 2017-2018 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <joseph@lorimer.me>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -34,7 +34,9 @@ prep:
 
 pack:
 	(cd "$(PROJECT_SHORT)" && zip -r ../$(PROJECT_LONG)-v$(VERSION).zip *)
-	./convert-readme.py
+	git clone "https://github.com/luoliyan/anki-misc"
+	anki-misc/convert-readme.py
+	rm -rf anki-misc
 
 clean:
 	rm "$(PROJECT_SHORT)/LICENSE.txt"
