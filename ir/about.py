@@ -1,4 +1,4 @@
-# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <joseph@lorimer.me>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
@@ -35,7 +35,7 @@ def showAbout():
     ]
     text = '''
 <div style="font-weight: bold">Incremental Reading v%s</div>
-<div>Maintainer: Joseph Lorimer</div>
+<div>Joseph Lorimer &lt;joseph@lorimer.me&gt;</div>
 <div>Contributors: %s</div>
 <div>Website: <a href="%s">%s</a></div>
 ''' % (

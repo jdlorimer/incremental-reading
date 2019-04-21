@@ -3,7 +3,7 @@
 # Copyright 2013-2016 Aleksej
 # Copyright 2017 Christian Weiß
 # Copyright 2018 Timothée Chauvin
-# Copyright 2017-2019 Joseph Lorimer <luoliyan@posteo.net>
+# Copyright 2017-2019 Joseph Lorimer <joseph@lorimer.me>
 #
 # Permission to use, copy, modify, and distribute this software for any purpose
 # with or without fee is hereby granted, provided that the above copyright
