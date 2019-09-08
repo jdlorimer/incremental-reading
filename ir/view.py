@@ -30,6 +30,7 @@ class ViewManager:
         self.textScript = loadFile('web', 'text.js')
         self.widthScript = loadFile('web', 'width.js')
         self.zoomFactor = 1
+        self.origBridgeCmd = None
         addHook('afterStateChange', self.resetZoom)
         addHook('prepareQA', self.prepareCard)
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
@@ -43,6 +44,7 @@ class ViewManager:
             js = ''
 
         if isIrCard(card) and context.startswith('review'):
+            self.origBridgeCmd = mw.web.onBridgeCmd
             mw.web.onBridgeCmd = self.storePageInfo
             cid = str(card.id)
 
@@ -72,6 +74,8 @@ class ViewManager:
             mw.web.evalWithCallback(
                 '[window.innerHeight, document.body.scrollHeight];', callback
             )
+        elif self.origBridgeCmd:
+            return self.origBridgeCmd(cmd)
 
     def setZoom(self, factor=None):
         if factor:
