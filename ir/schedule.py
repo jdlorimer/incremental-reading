@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import (
 )
 
 from anki.utils import stripHTML
+from anki.consts import QUEUE_TYPE_SUSPENDED
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
@@ -284,7 +285,7 @@ class Scheduler:
         cardInfo = []
 
         for cid, nid in mw.col.db.execute(
-            'select id, nid from cards where did = ?', did
+            f'select id, nid from cards where did = ? and queue <> {QUEUE_TYPE_SUSPENDED}', did
         ):
             note = mw.col.getNote(nid)
             if note.model()['name'] == self.settings['modelName']:
