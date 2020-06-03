@@ -20,6 +20,7 @@ from anki.hooks import addHook, wrap
 from aqt import mw
 from aqt.browser import Browser
 from aqt.reviewer import Reviewer
+from anki.lang import _
 
 import sip
 
