@@ -16,11 +16,12 @@
 from datetime import date
 from ssl import _create_unverified_context
 from urllib.error import HTTPError
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, quote, urlunsplit, SplitResult
 from urllib.request import urlopen
+from mimetypes import guess_extension
 
 from anki.notes import Note
-from anki.utils import isMac
+from anki.utils import (isMac, checksum)
 from aqt import mw
 from aqt.utils import (
     chooseList,
@@ -125,6 +126,9 @@ class Importer:
             showWarning('There was a problem connecting to the website.')
             return
 
+        for img in webpage.find_all("img"):
+            self._downloadImage(img, url)
+
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self.settings['sourceFormat'].format(
             date=date.today(), url='<a href="%s">%s</a>' % (url, url)
@@ -139,6 +143,21 @@ class Importer:
             tooltip('Added to deck: {}'.format(deck))
 
         return deck
+
+    def _downloadImage(self, img, articleUrl):
+        imgAddress = img['src']
+        split = urlsplit(articleUrl)
+        if imgAddress.startswith("//"):
+            imgAddress = "http:" + imgAddress
+        elif not urlsplit(imgAddress).scheme:
+            imgAddress = urlunsplit(SplitResult(split.scheme, split.netloc, imgAddress, '', ''))
+
+        response = get(imgAddress, headers = {'Referer': articleUrl.encode("utf8")})
+        data = response.content
+        ext = guess_extension(response.headers['content-type'].partition(';')[0].strip())
+        fileName = "paste-ir-{}.{}".format(checksum(data), ext)
+        mw.col.media.writeData(fileName, data)
+        img['src'] = quote(fileName.encode("utf8"))
 
     def _getPriority(self, name=None):
         if name:
