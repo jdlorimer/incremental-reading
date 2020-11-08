@@ -55,12 +55,8 @@ class Importer:
     pocket = None
 
     def _fetchWebpage(self, url):
-        if isMac:
-            context = _create_unverified_context()
-            html = urlopen(url, context=context).read()
-        else:
-            headers = {'User-Agent': self.settings['userAgent']}
-            html = get(url, headers=headers).content
+        headers = {'User-Agent': self.settings['userAgent']}
+        html = get(url, headers=headers).content
 
         webpage = BeautifulSoup(html, 'html.parser')
 
