@@ -1,3 +1,5 @@
+**_2021 Project Status: Active development will resume on Saturday the 27th of February._**
+
 # Incremental Reading for Anki
 
 [![Build Status](https://travis-ci.org/luoliyan/incremental-reading.svg?branch=master)](https://travis-ci.org/luoliyan/incremental-reading)
