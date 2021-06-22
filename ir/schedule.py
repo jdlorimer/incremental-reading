@@ -285,7 +285,7 @@ class Scheduler:
         cardInfo = []
 
         for cid, nid in mw.col.db.execute(
-            f'select id, nid from cards where did = ? and queue <> ?', did, QUEUE_TYPE_SUSPENDED
+            'select id, nid from cards where did = ? and queue <> ?', did, QUEUE_TYPE_SUSPENDED
         ):
             note = mw.col.getNote(nid)
             if note.model()['name'] == self.settings['modelName']:
