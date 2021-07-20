@@ -216,10 +216,10 @@ def answerCard(self, ease, _old):
         mw.readingManager.scheduler.answer(card, ease)
 
 
-def buttonTime(self, i, _old):
+def buttonTime(self, *args, _old, **kwargs):
     if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
-    return _old(self, i)
+    return _old(self, *args, **kwargs)
 
 
 def onBrowserClosed(self):
