@@ -44,7 +44,7 @@ class ReadingManager:
         self.viewManager = ViewManager()
         addHook('profileLoaded', self.onProfileLoaded)
         addHook('overviewStateShortcuts', self.setShortcuts)
-        addHook('reviewStateShortcuts', self.setShortcuts)
+        addHook('reviewStateShortcuts', self.setReviewShortcuts)
         addHook('prepareQA', self.onPrepareQA)
         addHook('showAnswer', self.onShowAnswer)
         addHook('reviewCleanup', self.onReviewCleanup)
@@ -128,9 +128,6 @@ class ReadingManager:
         ]
 
         if isIrCard(card):
-            if context == 'reviewQuestion':
-                self.qshortcuts = mw.applyShortcuts(self.shortcuts)
-                mw.stateShortcuts += self.qshortcuts
             for shortcut in activeAnswerShortcuts:
                 if shortcut:
                     mw.stateShortcuts.remove(shortcut)
@@ -159,6 +156,10 @@ class ReadingManager:
 
     def setShortcuts(self, shortcuts):
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
+
+    def setReviewShortcuts(self, shortcuts):
+        self.setShortcuts(shortcuts)
+        shortcuts.extend(self.shortcuts)
 
     def addModel(self) -> None:
         if mw.col.models.by_name(self.settings['modelName']):
