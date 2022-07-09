@@ -54,6 +54,8 @@ jsonschema==4.6.2
     # via aqt
 markdown==3.3.7
     # via anki
+markdown2==2.4.3
+    # via -r -
 markupsafe==2.1.1
     # via jinja2
 mypy==0.961

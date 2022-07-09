@@ -2,6 +2,7 @@ pip-tools
 mypy
 aqt
 PyQt5
+markdown2
 
 pytest
 pytest-cov==3.*
