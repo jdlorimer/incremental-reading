@@ -159,8 +159,8 @@ class ReadingManager:
     def setShortcuts(self, shortcuts):
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
 
-    def addModel(self):
-        if mw.col.models.byName(self.settings['modelName']):
+    def addModel(self) -> None:
+        if mw.col.models.by_name(self.settings['modelName']):
             return
 
         model = mw.col.models.new(self.settings['modelName'])
