@@ -20,6 +20,7 @@ from anki.hooks import addHook, wrap
 from aqt import mw
 from aqt.browser import Browser
 from aqt.reviewer import Reviewer
+from typing import Any, Sequence
 
 import sip
 
@@ -201,7 +202,7 @@ class ReadingManager:
         mw.col.models.add(model)
 
 
-def answerButtonList(self, _old):
+def answerButtonList(self, _old: Any):
     if isIrCard(self.card):
         if mw.readingManager.settings['prioEnabled']:
             return ((1, _('Next')),)
@@ -216,7 +217,7 @@ def answerCard(self, ease, _old):
         mw.readingManager.scheduler.answer(card, ease)
 
 
-def buttonTime(self, i, _old):
+def buttonTime(self, i: int, v3_labels: Sequence[str], _old: Any) -> str:
     if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
     return _old(self, i)
