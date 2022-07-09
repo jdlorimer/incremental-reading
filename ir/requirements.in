@@ -1,4 +1,7 @@
 pip-tools
 mypy
 aqt
-PyQt6
+PyQt5
+
+pytest
+pytest-cov==3.*
