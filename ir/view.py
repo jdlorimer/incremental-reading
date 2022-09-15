@@ -16,7 +16,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from anki.cards import Card
-from anki.hooks import addHook
 from aqt import mw
 from aqt import gui_hooks
 from aqt.main import MainWindowState
@@ -31,7 +30,7 @@ class ViewManager:
         self._width_script = loadFile('web', 'width.js')
         self._zoom_factor = 1
 
-        addHook('afterStateChange', self.reset_zoom)
+        gui_hooks.state_did_change.append(self.reset_zoom)
         gui_hooks.card_will_show.append(self._prepare_card)
         mw.web.page().scrollPositionChanged.connect(self._save_scroll)
 
