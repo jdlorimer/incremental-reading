@@ -14,13 +14,38 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-function storePageInfo() {{
-    pycmd("store")
-}}
-
 function restoreScroll() {{
     window.scrollTo(0, {savedPos});
 }}
 
-onUpdateHook.push(storePageInfo);
+function getMovementFactor(keyCode) {{
+    switch (keyCode) {{
+        case "ArrowUp":
+            return -{lineScrollFactor};
+        case "ArrowDown":
+            return {lineScrollFactor};
+        case "PageUp":
+            return -{pageScrollFactor};
+        case "PageDown":
+            return {pageScrollFactor};
+        default:
+            return 0;
+    }}
+}}
+
+document.addEventListener("keydown", (e) => {{
+    if (["ArrowUp", "ArrowDown", "PageUp", "PageDown"].includes(e.code)) {{
+        let currentPos = window.pageYOffset;
+
+        let movementSize = window.innerHeight * getMovementFactor(e.code);
+        let newPos = currentPos + movementSize;
+        newPos = Math.max(newPos, 0);
+        newPos = Math.min(newPos, document.body.scrollHeight);
+
+        window.scrollTo(0, newPos);
+
+        e.preventDefault();
+    }}
+}});
+
 onUpdateHook.push(restoreScroll);

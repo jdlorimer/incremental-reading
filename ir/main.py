@@ -63,10 +63,6 @@ class ReadingManager:
         self.addModel()
         self.loadMenuItems()
         self.shortcuts = [
-            ('Down', self.viewManager.lineDown),
-            ('PgDown', self.viewManager.pageDown),
-            ('PgUp', self.viewManager.pageUp),
-            ('Up', self.viewManager.lineUp),
             (self.settings['extractKey'], self.textManager.extract),
             (self.settings['highlightKey'], self.textManager.highlight),
             (self.settings['removeKey'], self.textManager.remove),
