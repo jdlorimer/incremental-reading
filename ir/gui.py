@@ -251,7 +251,7 @@ class SettingsDialog:
             'strikeSeq'
         ] = self.strikeSeqEditBox.keySequence().toString()
 
-        mw.readingManager.viewManager.resetZoom(mw.state)
+        mw.readingManager.viewManager.reset_zoom(mw.state)
         return done
 
     def _addPrioFields(self):
