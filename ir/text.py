@@ -19,12 +19,14 @@
 
 from collections import defaultdict
 
+from anki.decks import DeckId
 from anki.notes import Note
 from aqt import mw
 from aqt.addcards import AddCards
 from aqt.editcurrent import EditCurrent
 from aqt.utils import getText, showInfo, showWarning, tooltip
 
+from .settings import SettingsManager
 from .util import fixImages, getField, setField
 
 
@@ -147,19 +149,18 @@ class TextManager:
         if settings['editSource']:
             EditCurrent(mw)
 
-    def _editExtract(self, note, did, settings):
+    def _editExtract(self, note: Note, deckId: DeckId, settings: SettingsManager):
         def onAdd():
-            addCards.rejected.disconnect(self.undo)
-            addCards.reject()
+            self.highlight(
+                settings['extractBgColor'], settings['extractTextColor']
+            )
 
         addCards = AddCards(mw)
-        addCards.rejected.connect(self.undo)
+        addCards.set_note(note, deckId)
         addCards.addButton.clicked.connect(onAdd)
-        addCards.editor.setNote(note, focusTo=0)
-        deckName = mw.col.decks.get(did)['name']
-        addCards.deckChooser.setDeckName(deckName)
-        addCards.modelChooser.models.setText(settings['modelName'])
-        return True
+
+        # Do not highlight immediately, but only after the card is added
+        return False
 
     def _getTitle(self, note, did, title, settings):
         title, accepted = getText(
