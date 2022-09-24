@@ -16,7 +16,7 @@
 from datetime import date
 from ssl import _create_unverified_context
 from urllib.error import HTTPError
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urljoin, urlparse
 from urllib.request import urlopen
 
 from anki.notes import Note
@@ -70,6 +70,13 @@ class Importer:
 
         for c in webpage.find_all(text=lambda s: isinstance(s, Comment)):
             c.extract()
+
+        parsed_url = urlparse(url)
+        base_path = "".join(parsed_url.path.rpartition("/")[:-1])
+        base_url = "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, base_path)
+        for a in webpage.find_all("a"):
+            if a.get("href") is not None:
+                a["href"] = urljoin(base_url, a.get("href", ""))
 
         return webpage
 

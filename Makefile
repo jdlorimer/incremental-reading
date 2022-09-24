@@ -29,15 +29,13 @@ prep:
 	find . -name .mypy_cache -type d -exec rm -rf {} +
 	find . -name .ropeproject -type d -exec rm -rf {} +
 	find . -name __pycache__ -type d -exec rm -rf {} +
-	mv "$(PROJECT_SHORT)/meta.json" .
 	cp LICENSE "$(PROJECT_SHORT)/LICENSE.txt"
 
 pack:
 	(cd "$(PROJECT_SHORT)" && zip -r ../$(PROJECT_LONG)-v$(VERSION).zip *)
-	git clone "https://github.com/luoliyan/anki-misc"
-	anki-misc/convert-readme.py
-	rm -rf anki-misc
+	curl https://raw.githubusercontent.com/luoliyan/anki-misc/master/convert-readme.py --output convert-readme.py
+	python convert-readme.py
+	rm convert-readme.py
 
 clean:
 	rm "$(PROJECT_SHORT)/LICENSE.txt"
-	mv meta.json "$(PROJECT_SHORT)/meta.json"

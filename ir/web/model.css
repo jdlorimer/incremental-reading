@@ -19,11 +19,30 @@ div {
   margin: 20px auto;
 }
 
+pre {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #f36d33;
+    color: #666;
+    page-break-inside: avoid;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 1.6em;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+}
+
 .card {
-  background-color: #eee;
+  background-color: #fff;
   color: #000;
-  font-family: fira sans;
+  font-family: Helvetica;
   font-size: 16px;
+  word-spacing: .5px !important;
+  line-height: 140% !important;
 }
 
 [ir-overlay~="on"].ir-highlight.bold { font-weight: bold; }
@@ -54,14 +73,14 @@ div {
                                  left bottom,
                                  color-stop(0.05, #f9f9f9),
                                  color-stop(1, #e9e9e9));
-    background-color: lightgrey;
+    background-color: white;
     color: black;
     border-radius: 4px;
     border: 1px solid #dcdcdc;
     display: inline-block;
     font-size: 14px;
     height: 12px;
-    line-height: 12px;
+    line-height: 14px;
     padding: 2px 4px;
     margin: 3px;
     text-align: center;

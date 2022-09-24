@@ -5,3 +5,5 @@
 .ropeproject/
 __pycache__
 meta.json
+.idea
+incremental-reading-v*.zip

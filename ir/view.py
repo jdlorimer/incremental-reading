@@ -14,38 +14,31 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
-
-from anki.hooks import addHook
+from anki.cards import Card
 from aqt import mw
+from aqt import gui_hooks
 
 from .util import isIrCard, loadFile, viewingIrText
 
 
 class ViewManager:
-    viewportHeight = None
-    pageBottom = None
-
     def __init__(self):
         self.scrollScript = loadFile('web', 'scroll.js')
         self.textScript = loadFile('web', 'text.js')
         self.widthScript = loadFile('web', 'width.js')
         self.zoomFactor = 1
-        self.origBridgeCmd = None
-        addHook('afterStateChange', self.resetZoom)
-        addHook('prepareQA', self.prepareCard)
+
+        gui_hooks.state_did_change.append(self.reset_zoom)
+        gui_hooks.card_will_show.append(self._prepare_card)
         mw.web.page().scrollPositionChanged.connect(self.saveScroll)
 
-    def prepareCard(self, html, card, context):
-        if (isIrCard(card) and self.settings['limitWidth']) or self.settings[
-            'limitWidthAll'
-        ]:
+    def _prepare_card(self, html: str, card: Card, kind: str) -> str:
+        if (isIrCard(card) and self.settings['limitWidth']) or self.settings['limitWidthAll']:
             js = self.widthScript.format(maxWidth=self.settings['maxWidth'])
         else:
             js = ''
 
-        if isIrCard(card) and context.startswith('review'):
-            self.origBridgeCmd = mw.web.onBridgeCmd
-            mw.web.onBridgeCmd = self.storePageInfo
+        if isIrCard(card) and kind.startswith('review'):
             cid = str(card.id)
 
             if cid not in self.settings['zoom']:
@@ -57,25 +50,15 @@ class ViewManager:
             self.setZoom()
             js += self.textScript
             js += self.scrollScript.format(
-                savedPos=self.settings['scroll'][cid]
+                savedPos=self.settings['scroll'][cid],
+                lineScrollFactor=self.settings['lineScrollFactor'],
+                pageScrollFactor=self.settings['pageScrollFactor'],
             )
 
         if js:
             html += '<script>' + js + '</script>'
 
         return html
-
-    def storePageInfo(self, cmd):
-        if cmd == 'store':
-
-            def callback(pageInfo):
-                self.viewportHeight, self.pageBottom = pageInfo
-
-            mw.web.evalWithCallback(
-                '[window.innerHeight, document.body.scrollHeight];', callback
-            )
-        elif self.origBridgeCmd:
-            return self.origBridgeCmd(cmd)
 
     def setZoom(self, factor=None):
         if factor:
@@ -124,30 +107,6 @@ class ViewManager:
                 self.settings['scroll'][str(mw.reviewer.card.id)] = currentPos
 
             mw.web.evalWithCallback('window.pageYOffset;', callback)
-
-    def pageUp(self):
-        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-        movementSize = self.viewportHeight * self.settings['pageScrollFactor']
-        newPos = max(0, (currentPos - movementSize))
-        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
-
-    def pageDown(self):
-        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-        movementSize = self.viewportHeight * self.settings['pageScrollFactor']
-        newPos = min(self.pageBottom, (currentPos + movementSize))
-        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
-
-    def lineUp(self):
-        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-        movementSize = self.viewportHeight * self.settings['lineScrollFactor']
-        newPos = max(0, (currentPos - movementSize))
-        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
-
-    def lineDown(self):
-        currentPos = self.settings['scroll'][str(mw.reviewer.card.id)]
-        movementSize = self.viewportHeight * self.settings['lineScrollFactor']
-        newPos = min(self.pageBottom, (currentPos + movementSize))
-        mw.web.eval('window.scrollTo(0, {});'.format(newPos))
 
     def resetZoom(self, state, *args):
         if not hasattr(self, 'settings'):

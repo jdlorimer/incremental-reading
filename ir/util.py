@@ -16,6 +16,7 @@ import os
 import stat
 import time
 from urllib.parse import unquote
+from anki.cards import Card
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
@@ -24,9 +25,9 @@ from aqt import dialogs, mw
 from bs4 import BeautifulSoup
 
 
-def isIrCard(card):
+def isIrCard(card: Card) -> bool:
     return card and (
-        card.model()['name'] == mw.readingManager.settings['modelName']
+        card.note_type()['name'] == mw.readingManager.settings['modelName']
     )
 
 

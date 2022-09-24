@@ -1,3 +1,5 @@
+<strong><i>2021 Project Status: Active development will resume on Saturday the 27th of February.</i></strong>
+
 <a href="https://travis-ci.org/luoliyan/incremental-reading"><img src="https://travis-ci.org/luoliyan/incremental-reading.svg?branch=master" alt="Build Status" /></a>
 
 
@@ -5,9 +7,9 @@
 
 <b><i>Introduction</i></b>
 
-This is an updated version of the <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">Incremental Reading add-on</a>, which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation of the technique (see their <a href="https://www.supermemo.com/help/read.htm">help article</a> for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
+This is a rewrite of the <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">Incremental Reading add-on</a>, which aims to provide features that support incremental reading in Anki. The idea of working with long-form content within a spaced-repetition program appears to have originated with SuperMemo, which offers an elaborate implementation of the technique (see their <a href="https://www.supermemo.com/help/read.htm">help article</a> for more information). This add-on for Anki is comparatively bare-bones, providing a minimal set of tools for iterating over long texts and creating new flashcards from existing ones. For an overview of these features, see below.
 
-<ul><li>Version 4: <a href="https://github.com/luoliyan/incremental-reading">GitHub</a>, <a href="https://github.com/luoliyan/incremental-reading/issues">issue tracker</a>, <a href="https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support">discussion board</a></li><li>Version 3: <a href="https://github.com/luoliyan/incremental-reading/tree/legacy">GitHub</a>, <a href="https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support">discussion board</a></li><li>Version 2: <a href="https://ankiweb.net/shared/info/355348508">AnkiWeb</a>, <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">GitHub</a>, <a href="https://htmlpreview.github.io/?https://github.com/aleksejrs/anki-2.0-vsa-and-ire/blob/for_everyone/doc/View_Size_Adjust_and_Incremental_Reading_Extension_addons_-_Google_Groups.html">manual</a></li></ul>
+<ul><li>Version 4: <a href="https://github.com/luoliyan/incremental-reading">GitHub</a>, <a href="https://github.com/luoliyan/incremental-reading/issues">issue tracker</a>, <a href="https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support">discussion board</a></li><li>Version 3: <a href="https://github.com/luoliyan/incremental-reading/tree/legacy">GitHub</a>, <a href="https://anki.tenderapp.com/discussions/add-ons/9054-incremental-reading-add-on-discussion-support">discussion board</a></li><li>Version 2: <a href="https://ankiweb.net/shared/info/355348508">AnkiWeb</a>, <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">GitHub</a>, <a href="https://luoliyan.github.io/incremental-reading">manual</a></li></ul>
 <b><i>Main Features</i></b>
 
 <ul><li>Import content from web feeds (RSS/Atom), webpages, or Pocket (<b>v4 only</b>)</li><li>Extract selected text into a new card by pressing <code><b>x</b></code></li><li>Highlight selected text by pressing <code><b>h</b></code></li><li>Remove selected text by pressing <code><b>z</b></code></li><li>Undo changes to the text by pressing <code><b>u</b></code></li><li>Apply rich text formatting while reading</li><li>Create custom shortcuts to quickly add cards</li><li>Maintain scroll position and zoom on a per-card basis</li><li>Rearrange cards in the built-in organiser</li><li>Control the scheduling of incremental reading cards</li><li>Limit the width of cards (useful on large screens) (<b>v4 only</b>)</li></ul>
@@ -34,13 +36,7 @@ To install through Anki, navigate to Tools → Add-ons → Get Add-ons..., and e
 Experimentation should lead to a pretty quick understanding of how the add-on works. If in doubt, start with the following:
 
 <ol><li>Create a new IR note with an article you want to study (the easiest way to do this is to import a webpage, by pressing <code><b>Alt</b></code>+<code><b>3</b></code> while on the deck overview screen)</li><li>Set up a shortcut for creating regular Anki cards from IR cards (press <code><b>Alt</b></code>+<code><b>1</b></code>, or go to the menu, then go to the Quick Keys tab)</li><li>Review the IR card that was created, and extract any text you find interesting (by selecting the text and pressing <code><b>x</b></code>)</li><li>Choose <i>Soon</i> or <i>Later</i> when you want to move to the next card (which will be a portion of text you extracted)</li><li>Whenever you want to create a regular Anki note, simply select the desired text and use the shortcut you created earlier</li></ol>
-Outdated instructions can be found <a href="https://htmlpreview.github.io/?https://github.com/aleksejrs/anki-2.0-vsa-and-ire/blob/for_everyone/doc/View_Size_Adjust_and_Incremental_Reading_Extension_addons_-_Google_Groups.html">here</a>. They were written for v2, but the basic behaviour of the current add-on is similar.
-
-<b><i>Compatibility</i></b>
-
-In general, the settings stored in <code>_ir.json</code> will be preserved when upgrading. The main exception is that v3 and v4 of the add-on are not backwards-compatible with v2. The newer versions store settings in a very different manner. v2 settings will be ignored.
-
-Additionally, changes were made to the v2 card template, so if you have incremental reading notes from v2, you will need to select them in the card browser and choose Edit → Change Note Type, to convert them to IR3 notes.
+Outdated instructions can be found <a href="https://luoliyan.github.io/incremental-reading">here</a>. They were written for v2, but the basic behaviour of the add-on is still similar.
 
 <b><i>Support</i></b>
 
@@ -48,13 +44,13 @@ If any issues are encountered, please post details to the <a href="https://anki.
 
 Please include the following information in your post:
 
-<ul><li>The version of Anki you are using (e.g., v2.1.0-beta5; can be found in Help → About...)</li><li>The version of IR you are using (this can be found in Read → About...)</li><li>The operating system you are using</li><li>Details of the problem</li><li>Steps need to reproduce the problem</li></ul>
+<ul><li>The version of Anki you are using (e.g., v2.1.0-beta5; can be found in Help → About...)</li><li>The version of IR you are using (this can be found in Read → About...)</li><li>The operating system you are using</li><li>Details of the problem</li><li>Steps needed to reproduce the problem</li></ul>
 <b><i>License</i></b>
 
-Multiple people have contributed to this add-on, and it’s somewhat unclear who to credit for which changes, and which licenses to apply.
+Multiple people have contributed to this add-on, and it’s somewhat unclear who to credit for which changes and which licenses to apply.
 
-Tiago Barroso appears to be the person who began the project, and he has <a href="https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ">stated</a> that he releases all of his add-ons under the ISC license. Frank Kmiec was responsible for vastly expanding the add-on, but it’s unclear which license his changes were released under. Presuming he didn’t specify one, the <a href="https://ankiweb.net/account/terms">terms and conditions of AnkiWeb</a> suggest they were automatically released under the AGPL v3. Aleksej’s changes to Frank’s version are <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">multi-licensed under the ISC license and the GPL</a>.
+Tiago Barroso appears to have initiated the project, and he has <a href="https://groups.google.com/d/msg/anki-addons/xibqDVFqQwQ/-qpxKvxurPMJ">stated</a> that he releases all of his add-ons under the ISC license. Frank Kmiec later vastly expanded the add-on, but it’s unclear which license his changes were released under. Presuming he didn’t specify one, the <a href="https://ankiweb.net/account/terms">AnkiWeb terms and conditions</a> suggest they were automatically released under the AGPL v3. Aleksej’s changes to Frank’s version are <a href="https://github.com/aleksejrs/anki-2.0-vsa-and-ire">multi-licensed under the GPL and ISC licenses</a>.
 
-For the sake of simplicity, I am also releasing my changes under the ISC license. For each author, I have placed a copyright line in the license with what I believe are correct dates. If I have made a mistake in this respect, please let me know. I have also removed the manual that is still available in Aleksej’s fork, mainly because it is becoming less relevant, but also because it is a Google Groups conversation, which makes the licensing slightly murky.
+For the sake of simplicity, my changes are also released under the ISC license. For each author, I have placed a copyright lines where appropriate, with what I believe are correct dates. If I have made a mistake in this respect, please let me know.
 
 Frank Raiser released an Anki 1 add-on under a similar name, but it doesn’t appear to share any code with the current project and functions quite differently. For more information, see <a href="http://frankraiser.de/drupal/AnkiIR">Anki Incremental Reading</a>.
