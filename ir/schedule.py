@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 
-from anki.utils import stripHTML
+from anki.utils import strip_html
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
@@ -128,7 +128,7 @@ class Scheduler:
                 info = card['priority']
             else:
                 info = str(i).zfill(posWidth)
-            title = sub(r'\s+', ' ', stripHTML(card['title']))
+            title = sub(r'\s+', ' ', strip_html(card['title']))
             text = self.settings['organizerFormat'].format(
                 info=info, title=title
             )

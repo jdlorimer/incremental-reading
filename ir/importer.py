@@ -20,7 +20,7 @@ from urllib.parse import urlsplit, urljoin, urlparse
 from urllib.request import urlopen
 
 from anki.notes import Note
-from anki.utils import isMac
+from anki.utils import is_mac
 from aqt import mw
 from aqt.utils import (
     chooseList,
@@ -55,7 +55,7 @@ class Importer:
     pocket = None
 
     def _fetchWebpage(self, url):
-        if isMac:
+        if is_mac:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read()
         else:
