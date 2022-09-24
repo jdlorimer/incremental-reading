@@ -274,11 +274,11 @@ class Scheduler:
         mw.col.sched.forgetCards(cids)
         cids.remove(card.id)
         newOrder = cids[: newPos - 1] + [card.id] + cids[newPos - 1 :]
-        mw.col.sched.sortCards(newOrder)
+        mw.col.sched.reposition_new_cards(newOrder, starting_from=1, step_size=1, randomize=False, shift_existing=False)
 
     def reorder(self, cids):
         mw.col.sched.forgetCards(cids)
-        mw.col.sched.sortCards(cids)
+        mw.col.sched.reposition_new_cards(cids, starting_from=1, step_size=1, randomize=False, shift_existing=False)
 
     def _getCardInfo(self, did):
         cardInfo = []
