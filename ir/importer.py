@@ -261,11 +261,11 @@ class Importer:
         dialog = QDialog(mw)
         layout = QVBoxLayout()
         listWidget = QListWidget()
-        listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        listWidget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         for c in choices:
             item = QListWidgetItem(c['text'])
-            item.setData(Qt.UserRole, c['data'])
+            item.setData(Qt.ItemDataRole.UserRole, c['data'])
             listWidget.addItem(item)
 
         buttonBox = QDialogButtonBox(
@@ -279,13 +279,13 @@ class Importer:
         layout.addWidget(buttonBox)
 
         dialog.setLayout(layout)
-        dialog.setWindowModality(Qt.WindowModal)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
         dialog.resize(500, 500)
         choice = dialog.exec()
 
         if choice == 1:
             return [
-                listWidget.item(i).data(Qt.UserRole)
+                listWidget.item(i).data(Qt.ItemDataRole.UserRole)
                 for i in range(listWidget.count())
                 if listWidget.item(i).isSelected()
             ]

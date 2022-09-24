@@ -55,4 +55,4 @@ def showAbout():
 
     dialog.setLayout(layout)
     dialog.setWindowTitle('About')
-    dialog.exec_()
+    dialog.exec()

@@ -65,12 +65,12 @@ class Scheduler:
         self.cardListWidget = QListWidget()
         self.cardListWidget.setAlternatingRowColors(True)
         self.cardListWidget.setSelectionMode(
-            QAbstractItemView.ExtendedSelection
+            QAbstractItemView.SelectionMode.ExtendedSelection
         )
         self.cardListWidget.setWordWrap(True)
         self.cardListWidget.itemDoubleClicked.connect(
             lambda: showBrowser(
-                self.cardListWidget.currentItem().data(Qt.UserRole)['nid']
+                self.cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)['nid']
             )
         )
 
@@ -100,21 +100,21 @@ class Scheduler:
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         layout.addLayout(controlsLayout)
         layout.addWidget(self.cardListWidget)
         layout.addWidget(buttonBox)
 
         dialog.setLayout(layout)
-        dialog.setWindowModality(Qt.WindowModal)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
         dialog.resize(500, 500)
-        choice = dialog.exec_()
+        choice = dialog.exec()
 
         if choice == 1:
             cids = []
             for i in range(self.cardListWidget.count()):
-                card = self.cardListWidget.item(i).data(Qt.UserRole)
+                card = self.cardListWidget.item(i).data(Qt.ItemDataRole.UserRole)
                 cids.append(card['id'])
 
             self.reorder(cids)
@@ -133,7 +133,7 @@ class Scheduler:
                 info=info, title=title
             )
             item = QListWidgetItem(text)
-            item.setData(Qt.UserRole, card)
+            item.setData(Qt.ItemDataRole.UserRole, card)
             self.cardListWidget.addItem(item)
 
     def _moveToTop(self):
@@ -215,7 +215,7 @@ class Scheduler:
         if self.settings['prioEnabled']:
             maxPrio = len(self.settings['priorities']) - 1
             for item in allItems:
-                priority = item.data(Qt.UserRole)['priority']
+                priority = item.data(Qt.ItemDataRole.UserRole)['priority']
                 if priority != '':
                     item.contNewPos = gauss(
                         maxPrio - int(priority), maxPrio / 20
