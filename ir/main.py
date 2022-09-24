@@ -59,7 +59,7 @@ class ReadingManager:
         self.scheduler.settings = self.settings
         self.textManager.settings = self.settings
         self.viewManager.settings = self.settings
-        self.viewManager.reset_zoom('deckBrowser')
+        self.viewManager.resetZoom('deckBrowser')
         self.addModel()
         self.loadMenuItems()
         self.shortcuts = [
@@ -104,8 +104,8 @@ class ReadingManager:
         addMenuItem(
             'Read', 'Import Pocket', self.importer.importPocket, 'Alt+5'
         )
-        addMenuItem('Read', 'Zoom In', self.viewManager.zoom_in, 'Ctrl++')
-        addMenuItem('Read', 'Zoom Out', self.viewManager.zoom_out, 'Ctrl+-')
+        addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
+        addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)
 
         self.settings.loadMenuItems()
@@ -151,7 +151,7 @@ class ReadingManager:
         self.qshortcuts = []
 
     def setShortcuts(self, shortcuts):
-        shortcuts.append(('Ctrl+=', self.viewManager.zoom_in))
+        shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
 
     def setReviewShortcuts(self, shortcuts):
         self.setShortcuts(shortcuts)
