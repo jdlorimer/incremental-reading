@@ -77,13 +77,13 @@ class TextManager:
     def create(self, text, settings):
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
-        model = mw.col.models.byName(settings['modelName'])
+        model = mw.col.models.by_name(settings['modelName'])
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
         setField(newNote, settings['textField'], fixImages(text))
 
         if settings['extractDeck']:
-            deck = mw.col.decks.byName(settings['extractDeck'])
+            deck = mw.col.decks.by_name(settings['extractDeck'])
             if not deck:
                 showWarning(
                     'Destination deck no longer exists. '
