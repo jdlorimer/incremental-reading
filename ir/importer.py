@@ -20,7 +20,7 @@ from urllib.parse import urlsplit, urljoin, urlparse
 from urllib.request import urlopen
 
 from anki.notes import Note
-from anki.utils import isMac
+from anki.utils import is_mac
 from aqt import mw
 from aqt.utils import (
     chooseList,
@@ -55,7 +55,7 @@ class Importer:
     pocket = None
 
     def _fetchWebpage(self, url):
-        if isMac:
+        if is_mac:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read()
         else:
@@ -82,7 +82,7 @@ class Importer:
 
     def _createNote(self, title, text, source, priority=None):
         if self.settings['importDeck']:
-            deck = mw.col.decks.byName(self.settings['importDeck'])
+            deck = mw.col.decks.by_name(self.settings['importDeck'])
             if not deck:
                 showWarning(
                     'Destination deck no longer exists. '
@@ -93,14 +93,14 @@ class Importer:
         else:
             did = mw.col.conf['curDeck']
 
-        model = mw.col.models.byName(self.settings['modelName'])
+        model = mw.col.models.by_name(self.settings['modelName'])
         note = Note(mw.col, model)
         setField(note, self.settings['titleField'], title)
         setField(note, self.settings['textField'], text)
         setField(note, self.settings['sourceField'], source)
         if priority:
             setField(note, self.settings['prioField'], priority)
-        note.model()['did'] = did
+        note.note_type()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
         return mw.col.decks.get(did)['name']
@@ -261,31 +261,31 @@ class Importer:
         dialog = QDialog(mw)
         layout = QVBoxLayout()
         listWidget = QListWidget()
-        listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        listWidget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         for c in choices:
             item = QListWidgetItem(c['text'])
-            item.setData(Qt.UserRole, c['data'])
+            item.setData(Qt.ItemDataRole.UserRole, c['data'])
             listWidget.addItem(item)
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Close | QDialogButtonBox.Save
+            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.Save
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         layout.addWidget(listWidget)
         layout.addWidget(buttonBox)
 
         dialog.setLayout(layout)
-        dialog.setWindowModality(Qt.WindowModal)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
         dialog.resize(500, 500)
-        choice = dialog.exec_()
+        choice = dialog.exec()
 
         if choice == 1:
             return [
-                listWidget.item(i).data(Qt.UserRole)
+                listWidget.item(i).data(Qt.ItemDataRole.UserRole)
                 for i in range(listWidget.count())
                 if listWidget.item(i).isSelected()
             ]

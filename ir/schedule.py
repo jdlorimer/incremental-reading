@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 
-from anki.utils import stripHTML
+from anki.utils import strip_html
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
@@ -65,12 +65,12 @@ class Scheduler:
         self.cardListWidget = QListWidget()
         self.cardListWidget.setAlternatingRowColors(True)
         self.cardListWidget.setSelectionMode(
-            QAbstractItemView.ExtendedSelection
+            QAbstractItemView.SelectionMode.ExtendedSelection
         )
         self.cardListWidget.setWordWrap(True)
         self.cardListWidget.itemDoubleClicked.connect(
             lambda: showBrowser(
-                self.cardListWidget.currentItem().data(Qt.UserRole)['nid']
+                self.cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)['nid']
             )
         )
 
@@ -96,25 +96,25 @@ class Scheduler:
         controlsLayout.addWidget(randomizeButton)
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Close | QDialogButtonBox.Save
+            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.Save
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         layout.addLayout(controlsLayout)
         layout.addWidget(self.cardListWidget)
         layout.addWidget(buttonBox)
 
         dialog.setLayout(layout)
-        dialog.setWindowModality(Qt.WindowModal)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
         dialog.resize(500, 500)
-        choice = dialog.exec_()
+        choice = dialog.exec()
 
         if choice == 1:
             cids = []
             for i in range(self.cardListWidget.count()):
-                card = self.cardListWidget.item(i).data(Qt.UserRole)
+                card = self.cardListWidget.item(i).data(Qt.ItemDataRole.UserRole)
                 cids.append(card['id'])
 
             self.reorder(cids)
@@ -128,12 +128,12 @@ class Scheduler:
                 info = card['priority']
             else:
                 info = str(i).zfill(posWidth)
-            title = sub(r'\s+', ' ', stripHTML(card['title']))
+            title = sub(r'\s+', ' ', strip_html(card['title']))
             text = self.settings['organizerFormat'].format(
                 info=info, title=title
             )
             item = QListWidgetItem(text)
-            item.setData(Qt.UserRole, card)
+            item.setData(Qt.ItemDataRole.UserRole, card)
             self.cardListWidget.addItem(item)
 
     def _moveToTop(self):
@@ -215,7 +215,7 @@ class Scheduler:
         if self.settings['prioEnabled']:
             maxPrio = len(self.settings['priorities']) - 1
             for item in allItems:
-                priority = item.data(Qt.UserRole)['priority']
+                priority = item.data(Qt.ItemDataRole.UserRole)['priority']
                 if priority != '':
                     item.contNewPos = gauss(
                         maxPrio - int(priority), maxPrio / 20
@@ -274,11 +274,11 @@ class Scheduler:
         mw.col.sched.forgetCards(cids)
         cids.remove(card.id)
         newOrder = cids[: newPos - 1] + [card.id] + cids[newPos - 1 :]
-        mw.col.sched.sortCards(newOrder)
+        mw.col.sched.reposition_new_cards(newOrder, starting_from=1, step_size=1, randomize=False, shift_existing=False)
 
     def reorder(self, cids):
         mw.col.sched.forgetCards(cids)
-        mw.col.sched.sortCards(cids)
+        mw.col.sched.reposition_new_cards(cids, starting_from=1, step_size=1, randomize=False, shift_existing=False)
 
     def _getCardInfo(self, did):
         cardInfo = []
@@ -286,8 +286,8 @@ class Scheduler:
         for cid, nid in mw.col.db.execute(
             'select id, nid from cards where did = ?', did
         ):
-            note = mw.col.getNote(nid)
-            if note.model()['name'] == self.settings['modelName']:
+            note = mw.col.get_note(nid)
+            if note.note_type()['name'] == self.settings['modelName']:
                 if self.settings['prioEnabled']:
                     prio = note[self.settings['prioField']]
                 else:

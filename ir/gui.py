@@ -132,11 +132,11 @@ class SettingsDialog:
         tabWidget.addTab(zoomScrollTab, 'Zoom / Scroll')
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Close | QDialogButtonBox.Save
+            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.Save
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(tabWidget)
@@ -147,7 +147,7 @@ class SettingsDialog:
 
         done = False
         while not done:
-            if dialog.exec_():
+            if dialog.exec():
                 done = self._saveChanges()
             else:
                 done = True
@@ -255,7 +255,7 @@ class SettingsDialog:
         return done
 
     def _addPrioFields(self):
-        model = mw.col.models.byName(self.settings['modelName'])
+        model = mw.col.models.by_name(self.settings['modelName'])
         if self.settings['prioField'] in getFieldNames(
             self.settings['modelName']
         ):
@@ -265,7 +265,7 @@ class SettingsDialog:
         for (nid,) in mw.col.db.execute(
             'SELECT id FROM notes WHERE mid = ?', model['id']
         ):
-            note = mw.col.getNote(nid)
+            note = mw.col.get_note(nid)
             setField(
                 note, self.settings['prioField'], self.settings['prioDefault']
             )
@@ -611,7 +611,7 @@ class SettingsDialog:
             '}'
         ) % (bgColor, textColor)
         self.colorPreviewLabel.setStyleSheet(styleSheet)
-        self.colorPreviewLabel.setAlignment(Qt.AlignCenter)
+        self.colorPreviewLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def _getStylingGroupBox(self):
         boldLabel = QLabel('Bold')
@@ -723,7 +723,7 @@ class SettingsDialog:
             self.settings['organizerFormat'].replace('\t', r'\t')
         )
         font = QFont('Lucida Sans Typewriter')
-        font.setStyleHint(QFont.Monospace)
+        font.setStyleHint(QFont.StyleHint.Monospace)
         self.organizerFormatEditBox.setFont(font)
 
         modeLayout = QHBoxLayout()
@@ -1104,7 +1104,7 @@ class SettingsDialog:
         self.sourceFormatEditBox.setFixedWidth(400)
         self.sourceFormatEditBox.setText(str(self.settings['sourceFormat']))
         font = QFont('Lucida Sans Typewriter')
-        font.setStyleHint(QFont.Monospace)
+        font.setStyleHint(QFont.StyleHint.Monospace)
         self.sourceFormatEditBox.setFont(font)
 
         sourceFormatLayout = QHBoxLayout()

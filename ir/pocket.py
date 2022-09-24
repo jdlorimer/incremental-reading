@@ -15,7 +15,7 @@
 from json.decoder import JSONDecodeError
 from urllib.parse import urlencode
 
-from anki.utils import isMac, isWin
+from anki.utils import is_mac, is_win
 from aqt.utils import askUser, openLink, showCritical, showInfo
 
 from requests import post
@@ -26,9 +26,9 @@ class Pocket:
     redirectURI = 'https://github.com/luoliyan/incremental-reading'
     headers = {'X-Accept': 'application/json'}
 
-    if isWin:
+    if is_win:
         consumerKey = '71462-da4f02100e7e381cbc4a86df'
-    elif isMac:
+    elif is_mac:
         consumerKey = '71462-ed224e5a561a545814023bf9'
     else:
         consumerKey = '71462-05fb63bf0314903c7e73c52f'

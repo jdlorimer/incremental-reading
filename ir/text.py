@@ -77,13 +77,13 @@ class TextManager:
     def create(self, text, settings):
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
-        model = mw.col.models.byName(settings['modelName'])
+        model = mw.col.models.by_name(settings['modelName'])
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
         setField(newNote, settings['textField'], fixImages(text))
 
         if settings['extractDeck']:
-            deck = mw.col.decks.byName(settings['extractDeck'])
+            deck = mw.col.decks.by_name(settings['extractDeck'])
             if not deck:
                 showWarning(
                     'Destination deck no longer exists. '
@@ -108,7 +108,7 @@ class TextManager:
                 highlight = self._editExtract(newNote, did, settings)
             else:
                 highlight = True
-                newNote.model()['did'] = did
+                newNote.note_type()['did'] = did
                 mw.col.addNote(newNote)
         else:
             if settings['copyTitle']:
@@ -169,7 +169,7 @@ class TextManager:
 
         if accepted:
             setField(note, settings['titleField'], title)
-            note.model()['did'] = did
+            note.note_type()['did'] = did
             mw.col.addNote(note)
 
         return accepted

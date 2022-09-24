@@ -93,15 +93,15 @@ def addMenuItem(path, text, function, keys=None):
 
 
 def getField(note, fieldName):
-    model = note.model()
-    index, _ = mw.col.models.fieldMap(model)[fieldName]
+    model = note.note_type()
+    index, _ = mw.col.models.field_map(model)[fieldName]
     return note.fields[index]
 
 
 def setField(note, field, value):
     """Set the value of a note field. Overwrite any existing value."""
-    model = note.model()
-    index, _ = mw.col.models.fieldMap(model)[field]
+    model = note.note_type()
+    index, _ = mw.col.models.field_map(model)[field]
     note.fields[index] = value
 
 
@@ -109,7 +109,7 @@ def getFieldNames(modelName):
     """Return list of field names for given model name."""
     if not modelName:
         return []
-    return mw.col.models.fieldNames(mw.col.models.byName(modelName))
+    return mw.col.models.fieldNames(mw.col.models.by_name(modelName))
 
 
 def createSpinBox(value, minimum, maximum, step):
@@ -121,12 +121,12 @@ def createSpinBox(value, minimum, maximum, step):
 
 
 def setComboBoxItem(comboBox, text):
-    index = comboBox.findText(text, Qt.MatchFixedString)
+    index = comboBox.findText(text, Qt.MatchFlag.MatchFixedString)
     comboBox.setCurrentIndex(index)
 
 
 def removeComboBoxItem(comboBox, text):
-    index = comboBox.findText(text, Qt.MatchFixedString)
+    index = comboBox.findText(text, Qt.MatchFlag.MatchFixedString)
     comboBox.removeItem(index)
 
 
