@@ -269,11 +269,11 @@ class Importer:
             listWidget.addItem(item)
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.Close | QDialogButtonBox.Save
+            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.Save
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         layout.addWidget(listWidget)
         layout.addWidget(buttonBox)
@@ -281,7 +281,7 @@ class Importer:
         dialog.setLayout(layout)
         dialog.setWindowModality(Qt.WindowModal)
         dialog.resize(500, 500)
-        choice = dialog.exec_()
+        choice = dialog.exec()
 
         if choice == 1:
             return [

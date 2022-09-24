@@ -46,7 +46,7 @@ def showAbout():
     )
     label.setText(text)
 
-    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+    buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
     buttonBox.accepted.connect(dialog.accept)
 
     layout = QVBoxLayout()

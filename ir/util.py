@@ -121,12 +121,12 @@ def createSpinBox(value, minimum, maximum, step):
 
 
 def setComboBoxItem(comboBox, text):
-    index = comboBox.findText(text, Qt.MatchFixedString)
+    index = comboBox.findText(text, Qt.MatchFlag.MatchFixedString)
     comboBox.setCurrentIndex(index)
 
 
 def removeComboBoxItem(comboBox, text):
-    index = comboBox.findText(text, Qt.MatchFixedString)
+    index = comboBox.findText(text, Qt.MatchFlag.MatchFixedString)
     comboBox.removeItem(index)
 
 
