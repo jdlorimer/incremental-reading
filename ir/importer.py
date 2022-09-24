@@ -100,7 +100,7 @@ class Importer:
         setField(note, self.settings['sourceField'], source)
         if priority:
             setField(note, self.settings['prioField'], priority)
-        note.model()['did'] = did
+        note.note_type()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
         return mw.col.decks.get(did)['name']

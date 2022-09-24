@@ -265,7 +265,7 @@ class SettingsDialog:
         for (nid,) in mw.col.db.execute(
             'SELECT id FROM notes WHERE mid = ?', model['id']
         ):
-            note = mw.col.getNote(nid)
+            note = mw.col.get_note(nid)
             setField(
                 note, self.settings['prioField'], self.settings['prioDefault']
             )

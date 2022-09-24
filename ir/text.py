@@ -108,7 +108,7 @@ class TextManager:
                 highlight = self._editExtract(newNote, did, settings)
             else:
                 highlight = True
-                newNote.model()['did'] = did
+                newNote.note_type()['did'] = did
                 mw.col.addNote(newNote)
         else:
             if settings['copyTitle']:
@@ -169,7 +169,7 @@ class TextManager:
 
         if accepted:
             setField(note, settings['titleField'], title)
-            note.model()['did'] = did
+            note.note_type()['did'] = did
             mw.col.addNote(note)
 
         return accepted

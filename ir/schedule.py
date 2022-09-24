@@ -286,8 +286,8 @@ class Scheduler:
         for cid, nid in mw.col.db.execute(
             'select id, nid from cards where did = ?', did
         ):
-            note = mw.col.getNote(nid)
-            if note.model()['name'] == self.settings['modelName']:
+            note = mw.col.get_note(nid)
+            if note.note_type()['name'] == self.settings['modelName']:
                 if self.settings['prioEnabled']:
                     prio = note[self.settings['prioField']]
                 else:
