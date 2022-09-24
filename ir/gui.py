@@ -255,7 +255,7 @@ class SettingsDialog:
         return done
 
     def _addPrioFields(self):
-        model = mw.col.models.byName(self.settings['modelName'])
+        model = mw.col.models.by_name(self.settings['modelName'])
         if self.settings['prioField'] in getFieldNames(
             self.settings['modelName']
         ):

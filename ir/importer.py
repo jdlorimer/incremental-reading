@@ -82,7 +82,7 @@ class Importer:
 
     def _createNote(self, title, text, source, priority=None):
         if self.settings['importDeck']:
-            deck = mw.col.decks.byName(self.settings['importDeck'])
+            deck = mw.col.decks.by_name(self.settings['importDeck'])
             if not deck:
                 showWarning(
                     'Destination deck no longer exists. '
@@ -93,7 +93,7 @@ class Importer:
         else:
             did = mw.col.conf['curDeck']
 
-        model = mw.col.models.byName(self.settings['modelName'])
+        model = mw.col.models.by_name(self.settings['modelName'])
         note = Note(mw.col, model)
         setField(note, self.settings['titleField'], title)
         setField(note, self.settings['textField'], text)
