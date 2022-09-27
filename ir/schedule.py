@@ -36,6 +36,7 @@ from anki.utils import strip_html
 from aqt import mw
 from aqt.utils import showInfo, tooltip
 
+from .settings import SettingsManager
 from .util import showBrowser
 
 SCHEDULE_EXTRACT = 0
@@ -47,6 +48,10 @@ SCHEDULE_CUSTOM = 3
 class Scheduler:
     did = None
     cardListWidget = None
+    settings: SettingsManager = None
+
+    def changeProfile(self, settings: SettingsManager):
+        self.settings = settings
 
     def showDialog(self, currentCard=None):
         if currentCard:

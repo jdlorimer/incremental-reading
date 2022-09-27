@@ -54,10 +54,10 @@ class ReadingManager:
         mw.addonManager.setConfigAction(
             __name__, lambda: SettingsDialog(self.settings)
         )
-        self.importer.settings = self.settings
-        self.scheduler.settings = self.settings
-        self.textManager.settings = self.settings
-        self.viewManager.settings = self.settings
+        self.importer.changeProfile(self.settings)
+        self.scheduler.changeProfile(self.settings)
+        self.textManager.changeProfile(self.settings)
+        self.viewManager.changeProfile(self.settings)
         self.viewManager.resetZoom('deckBrowser')
         self.addModel()
         self.loadMenuItems()

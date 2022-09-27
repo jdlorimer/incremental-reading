@@ -48,11 +48,16 @@ from requests.exceptions import ConnectionError
 from .lib.feedparser import parse
 
 from .pocket import Pocket
+from .settings import SettingsManager
 from .util import setField
 
 
 class Importer:
     pocket = None
+    settings: SettingsManager = None
+
+    def changeProfile(self, settings: SettingsManager):
+        self.settings = settings
 
     def _fetchWebpage(self, url):
         if is_mac:

@@ -35,6 +35,10 @@ SCHEDULE_EXTRACT = 0
 
 class TextManager:
     history = defaultdict(list)
+    settings: SettingsManager = None
+
+    def changeProfile(self, settings: SettingsManager):
+        self.settings = settings
 
     def highlight(self, bgColor=None, textColor=None):
         if not bgColor:

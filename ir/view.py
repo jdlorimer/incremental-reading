@@ -18,10 +18,13 @@ from anki.cards import Card
 from aqt import mw
 from aqt import gui_hooks
 
+from .settings import SettingsManager
 from .util import isIrCard, loadFile, viewingIrText
 
 
 class ViewManager:
+    settings: SettingsManager = None
+
     def __init__(self):
         self._scrollScript = loadFile('web', 'scroll.js')
         self._textScript = loadFile('web', 'text.js')
@@ -32,8 +35,11 @@ class ViewManager:
         gui_hooks.card_will_show.append(self._prepareCard)
         mw.web.page().scrollPositionChanged.connect(self._saveScroll)
 
+    def changeProfile(self, settings: SettingsManager):
+        self.settings = settings
+
     def resetZoom(self, state, *args):
-        if not hasattr(self, 'settings'):
+        if not self.settings:
             return
 
         if state in ['deckBrowser', 'overview']:
