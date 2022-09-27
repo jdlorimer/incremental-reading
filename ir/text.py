@@ -34,17 +34,17 @@ SCHEDULE_EXTRACT = 0
 
 
 class TextManager:
-    history = defaultdict(list)
-    settings: SettingsManager = None
+    _history = defaultdict(list)
+    _settings: SettingsManager = None
 
     def changeProfile(self, settings: SettingsManager):
-        self.settings = settings
+        self._settings = settings
 
     def highlight(self, bgColor=None, textColor=None):
         if not bgColor:
-            bgColor = self.settings['highlightBgColor']
+            bgColor = self._settings['highlightBgColor']
         if not textColor:
-            textColor = self.settings['highlightTextColor']
+            textColor = self._settings['highlightTextColor']
 
         script = "highlight('%s', '%s')" % (bgColor, textColor)
         mw.web.eval(script)
@@ -63,7 +63,7 @@ class TextManager:
             return
 
         if not settings:
-            settings = self.settings
+            settings = self._settings
 
         if not mw.web.selectedText() and not settings['editExtract']:
             showInfo('Please select some text to extract.')
@@ -105,7 +105,7 @@ class TextManager:
                 setField(
                     newNote,
                     settings['sourceField'],
-                    getField(currentNote, self.settings['sourceField']),
+                    getField(currentNote, self._settings['sourceField']),
                 )
 
             if settings['editExtract']:
@@ -185,11 +185,11 @@ class TextManager:
     def undo(self):
         note = mw.reviewer.card.note()
 
-        if note.id not in self.history or not self.history[note.id]:
+        if note.id not in self._history or not self._history[note.id]:
             showInfo('No undo history for this note.')
             return
 
-        note['Text'] = self.history[note.id].pop()
+        note['Text'] = self._history[note.id].pop()
         note.flush()
         mw.reset()
         tooltip('Undone')
@@ -198,7 +198,7 @@ class TextManager:
         def callback(text):
             if text:
                 note = mw.reviewer.card.note()
-                self.history[note.id].append(note['Text'])
+                self._history[note.id].append(note['Text'])
                 note['Text'] = text
                 note.flush()
 
