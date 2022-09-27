@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 
+from anki.cards import Card
 from anki.utils import strip_html
 from aqt import mw
 from aqt.utils import showInfo, tooltip
@@ -46,36 +47,36 @@ SCHEDULE_CUSTOM = 3
 
 
 class Scheduler:
-    did = None
-    cardListWidget = None
-    settings: SettingsManager = None
+    _deckId = None
+    _cardListWidget = None
+    _settings: SettingsManager = None
 
     def changeProfile(self, settings: SettingsManager):
-        self.settings = settings
+        self._settings = settings
 
-    def showDialog(self, currentCard=None):
+    def showDialog(self, currentCard: Card = None):
         if currentCard:
-            self.did = currentCard.did
+            self._deckId = currentCard.did
         elif mw._selectedDeck():
-            self.did = mw._selectedDeck()['id']
+            self._deckId = mw._selectedDeck()['id']
         else:
             return
 
-        if not self._getCardInfo(self.did):
+        if not self._getCardInfo(self._deckId):
             showInfo('Please select an Incremental Reading deck.')
             return
 
         dialog = QDialog(mw)
         layout = QVBoxLayout()
-        self.cardListWidget = QListWidget()
-        self.cardListWidget.setAlternatingRowColors(True)
-        self.cardListWidget.setSelectionMode(
+        self._cardListWidget = QListWidget()
+        self._cardListWidget.setAlternatingRowColors(True)
+        self._cardListWidget.setSelectionMode(
             QAbstractItemView.SelectionMode.ExtendedSelection
         )
-        self.cardListWidget.setWordWrap(True)
-        self.cardListWidget.itemDoubleClicked.connect(
+        self._cardListWidget.setWordWrap(True)
+        self._cardListWidget.itemDoubleClicked.connect(
             lambda: showBrowser(
-                self.cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)['nid']
+                self._cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)['nid']
             )
         )
 
@@ -108,7 +109,7 @@ class Scheduler:
         buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
         layout.addLayout(controlsLayout)
-        layout.addWidget(self.cardListWidget)
+        layout.addWidget(self._cardListWidget)
         layout.addWidget(buttonBox)
 
         dialog.setLayout(layout)
@@ -118,28 +119,28 @@ class Scheduler:
 
         if choice == 1:
             cids = []
-            for i in range(self.cardListWidget.count()):
-                card = self.cardListWidget.item(i).data(Qt.ItemDataRole.UserRole)
+            for i in range(self._cardListWidget.count()):
+                card = self._cardListWidget.item(i).data(Qt.ItemDataRole.UserRole)
                 cids.append(card['id'])
 
             self.reorder(cids)
 
     def _updateListItems(self):
-        cardInfo = self._getCardInfo(self.did)
-        self.cardListWidget.clear()
+        cardInfo = self._getCardInfo(self._deckId)
+        self._cardListWidget.clear()
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
-            if self.settings['prioEnabled']:
+            if self._settings['prioEnabled']:
                 info = card['priority']
             else:
                 info = str(i).zfill(posWidth)
             title = sub(r'\s+', ' ', strip_html(card['title']))
-            text = self.settings['organizerFormat'].format(
+            text = self._settings['organizerFormat'].format(
                 info=info, title=title
             )
             item = QListWidgetItem(text)
             item.setData(Qt.ItemDataRole.UserRole, card)
-            self.cardListWidget.addItem(item)
+            self._cardListWidget.addItem(item)
 
     def _moveToTop(self):
         selected = self._getSelected()
@@ -149,11 +150,11 @@ class Scheduler:
 
         selected.reverse()
         for item in selected:
-            self.cardListWidget.takeItem(self.cardListWidget.row(item))
-            self.cardListWidget.insertItem(0, item)
+            self._cardListWidget.takeItem(self._cardListWidget.row(item))
+            self._cardListWidget.insertItem(0, item)
             item.setSelected(True)
 
-        self.cardListWidget.scrollToTop()
+        self._cardListWidget.scrollToTop()
 
     def _moveUp(self):
         selected = self._getSelected()
@@ -161,15 +162,15 @@ class Scheduler:
             showInfo('Please select one or several items.')
             return
 
-        if self.cardListWidget.row(selected[0]) == 0:
+        if self._cardListWidget.row(selected[0]) == 0:
             return
 
         for item in selected:
-            row = self.cardListWidget.row(item)
-            self.cardListWidget.takeItem(row)
-            self.cardListWidget.insertItem(row - 1, item)
+            row = self._cardListWidget.row(item)
+            self._cardListWidget.takeItem(row)
+            self._cardListWidget.insertItem(row - 1, item)
             item.setSelected(True)
-            self.cardListWidget.scrollToItem(item)
+            self._cardListWidget.scrollToItem(item)
 
     def _moveDown(self):
         selected = self._getSelected()
@@ -180,17 +181,17 @@ class Scheduler:
         selected.reverse()
 
         if (
-            self.cardListWidget.row(selected[0])
-            == self.cardListWidget.count() - 1
+            self._cardListWidget.row(selected[0])
+            == self._cardListWidget.count() - 1
         ):
             return
 
         for item in selected:
-            row = self.cardListWidget.row(item)
-            self.cardListWidget.takeItem(row)
-            self.cardListWidget.insertItem(row + 1, item)
+            row = self._cardListWidget.row(item)
+            self._cardListWidget.takeItem(row)
+            self._cardListWidget.insertItem(row + 1, item)
             item.setSelected(True)
-            self.cardListWidget.scrollToItem(item)
+            self._cardListWidget.scrollToItem(item)
 
     def _moveToBottom(self):
         selected = self._getSelected()
@@ -199,26 +200,26 @@ class Scheduler:
             return
 
         for item in selected:
-            self.cardListWidget.takeItem(self.cardListWidget.row(item))
-            self.cardListWidget.insertItem(self.cardListWidget.count(), item)
+            self._cardListWidget.takeItem(self._cardListWidget.row(item))
+            self._cardListWidget.insertItem(self._cardListWidget.count(), item)
             item.setSelected(True)
 
-        self.cardListWidget.scrollToBottom()
+        self._cardListWidget.scrollToBottom()
 
     def _getSelected(self):
         return [
-            self.cardListWidget.item(i)
-            for i in range(self.cardListWidget.count())
-            if self.cardListWidget.item(i).isSelected()
+            self._cardListWidget.item(i)
+            for i in range(self._cardListWidget.count())
+            if self._cardListWidget.item(i).isSelected()
         ]
 
     def _randomize(self):
         allItems = [
-            self.cardListWidget.takeItem(0)
-            for _ in range(self.cardListWidget.count())
+            self._cardListWidget.takeItem(0)
+            for _ in range(self._cardListWidget.count())
         ]
-        if self.settings['prioEnabled']:
-            maxPrio = len(self.settings['priorities']) - 1
+        if self._settings['prioEnabled']:
+            maxPrio = len(self._settings['priorities']) - 1
             for item in allItems:
                 priority = item.data(Qt.ItemDataRole.UserRole)['priority']
                 if priority != '':
@@ -233,27 +234,27 @@ class Scheduler:
             shuffle(allItems)
 
         for item in allItems:
-            self.cardListWidget.addItem(item)
+            self._cardListWidget.addItem(item)
 
-    def answer(self, card, ease):
-        if self.settings['prioEnabled']:
+    def answer(self, card: Card, ease: int):
+        if self._settings['prioEnabled']:
             # reposition the card at the end of the organizer
             cardCount = len(self._getCardInfo(card.did))
             self.reposition(card, cardCount)
             return
 
         if ease == SCHEDULE_EXTRACT:
-            value = self.settings['extractValue']
-            randomize = self.settings['extractRandom']
-            method = self.settings['extractMethod']
+            value = self._settings['extractValue']
+            randomize = self._settings['extractRandom']
+            method = self._settings['extractMethod']
         elif ease == SCHEDULE_SOON:
-            value = self.settings['soonValue']
-            randomize = self.settings['soonRandom']
-            method = self.settings['soonMethod']
+            value = self._settings['soonValue']
+            randomize = self._settings['soonRandom']
+            method = self._settings['soonMethod']
         elif ease == SCHEDULE_LATER:
-            value = self.settings['laterValue']
-            randomize = self.settings['laterRandom']
-            method = self.settings['laterMethod']
+            value = self._settings['laterValue']
+            randomize = self._settings['laterRandom']
+            method = self._settings['laterMethod']
         elif ease == SCHEDULE_CUSTOM:
             self.reposition(card, 1)
             self.showDialog(card)
@@ -292,9 +293,9 @@ class Scheduler:
             'select id, nid from cards where did = ?', did
         ):
             note = mw.col.get_note(nid)
-            if note.note_type()['name'] == self.settings['modelName']:
-                if self.settings['prioEnabled']:
-                    prio = note[self.settings['prioField']]
+            if note.note_type()['name'] == self._settings['modelName']:
+                if self._settings['prioEnabled']:
+                    prio = note[self._settings['prioField']]
                 else:
                     prio = None
 
@@ -302,7 +303,7 @@ class Scheduler:
                     {
                         'id': cid,
                         'nid': nid,
-                        'title': note[self.settings['titleField']],
+                        'title': note[self._settings['titleField']],
                         'priority': prio,
                     }
                 )
