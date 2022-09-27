@@ -16,8 +16,9 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+from anki.cards import Card
 from anki.hooks import addHook, wrap
-from aqt import mw
+from aqt import gui_hooks, mw
 from aqt.browser import Browser
 from aqt.reviewer import Reviewer
 from typing import Any, Sequence
@@ -42,15 +43,17 @@ class ReadingManager:
         self.scheduler = Scheduler()
         self.textManager = TextManager()
         self.viewManager = ViewManager()
-        addHook('profileLoaded', self.onProfileLoaded)
+        gui_hooks.profile_did_open.append(self.onProfileLoaded)
+        gui_hooks.card_will_show.append(self.onPrepareQA)
+        gui_hooks.reviewer_did_show_answer.append(self.onShowAnswer)
+        gui_hooks.reviewer_will_end.append(self.onReviewCleanup)
+
         addHook('overviewStateShortcuts', self.setShortcuts)
         addHook('reviewStateShortcuts', self.setReviewShortcuts)
-        addHook('prepareQA', self.onPrepareQA)
-        addHook('showAnswer', self.onShowAnswer)
-        addHook('reviewCleanup', self.onReviewCleanup)
+
         self.qshortcuts = []
 
-    def onProfileLoaded(self):
+    def onProfileLoaded(self) -> None:
         self.settings = SettingsManager()
         mw.addonManager.setConfigAction(
             __name__, lambda: SettingsDialog(self.settings)
@@ -110,7 +113,7 @@ class ReadingManager:
 
         self.settings.loadMenuItems()
 
-    def onPrepareQA(self, html, card, context):
+    def onPrepareQA(self, text: str, card: Card, kind: str) -> str:
         if self.settings['prioEnabled']:
             answerShortcuts = ['1', '2', '3', '4']
         else:
@@ -140,20 +143,20 @@ class ReadingManager:
                         ]
                     )
 
-        return html
+        return text
 
-    def onShowAnswer(self):
+    def onShowAnswer(self, card: Card) -> None:
         for qs in self.qshortcuts:
             mw.stateShortcuts.remove(qs)
             sip.delete(qs)
 
-    def onReviewCleanup(self):
+    def onReviewCleanup(self) -> None:
         self.qshortcuts = []
 
-    def setShortcuts(self, shortcuts):
+    def setShortcuts(self, shortcuts) -> None:
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
 
-    def setReviewShortcuts(self, shortcuts):
+    def setReviewShortcuts(self, shortcuts) -> None:
         self.setShortcuts(shortcuts)
         shortcuts.extend(self.shortcuts)
 
@@ -208,7 +211,7 @@ def answerButtonList(self, _old: Any) -> tuple[tuple[int, str], ...]:
     return _old(self)
 
 
-def answerCard(self, ease, _old):
+def answerCard(self, ease: int, _old: Any):
     card = self.card
     _old(self, ease)
     if isIrCard(card):
@@ -221,7 +224,7 @@ def buttonTime(self, i: int, v3_labels: Sequence[str], _old: Any) -> str:
     return _old(self, i)
 
 
-def onBrowserClosed(self):
+def onBrowserClosed(self) -> None:
     try:
         mw.readingManager.scheduler._updateListItems()
     except:
