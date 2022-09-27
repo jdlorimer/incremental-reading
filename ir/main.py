@@ -167,20 +167,20 @@ class ReadingManager:
         model = mw.col.models.new(self.settings['modelName'])
         model['css'] = loadFile('web', 'model.css')
 
-        titleField = mw.col.models.newField(self.settings['titleField'])
-        textField = mw.col.models.newField(self.settings['textField'])
-        sourceField = mw.col.models.newField(self.settings['sourceField'])
+        titleField = mw.col.models.new_field(self.settings['titleField'])
+        textField = mw.col.models.new_field(self.settings['textField'])
+        sourceField = mw.col.models.new_field(self.settings['sourceField'])
         sourceField['sticky'] = True
 
-        mw.col.models.addField(model, titleField)
+        mw.col.models.add_field(model, titleField)
         if self.settings['prioEnabled']:
-            prioField = mw.col.models.newField(self.settings['prioField'])
-            mw.col.models.addField(model, prioField)
+            prioField = mw.col.models.new_field(self.settings['prioField'])
+            mw.col.models.add_field(model, prioField)
 
-        mw.col.models.addField(model, textField)
-        mw.col.models.addField(model, sourceField)
+        mw.col.models.add_field(model, textField)
+        mw.col.models.add_field(model, sourceField)
 
-        template = mw.col.models.newTemplate('IR Card')
+        template = mw.col.models.new_template('IR Card')
         template['qfmt'] = '\n'.join(
             [
                 '<div class="ir-title">{{%s}}</div>'
@@ -198,7 +198,7 @@ class ReadingManager:
         else:
             template['afmt'] = 'When do you want to see this card again?'
 
-        mw.col.models.addTemplate(model, template)
+        mw.col.models.add_template(model, template)
         mw.col.models.add(model)
 
 

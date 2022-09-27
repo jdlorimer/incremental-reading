@@ -260,8 +260,8 @@ class SettingsDialog:
             self.settings['modelName']
         ):
             return
-        field = mw.col.models.newField(self.settings['prioField'])
-        mw.col.models.addField(model, field)
+        field = mw.col.models.new_field(self.settings['prioField'])
+        mw.col.models.add_field(model, field)
         for (nid,) in mw.col.db.execute(
             'SELECT id FROM notes WHERE mid = ?', model['id']
         ):

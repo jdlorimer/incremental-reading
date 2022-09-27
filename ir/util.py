@@ -109,7 +109,7 @@ def getFieldNames(modelName):
     """Return list of field names for given model name."""
     if not modelName:
         return []
-    return mw.col.models.fieldNames(mw.col.models.by_name(modelName))
+    return mw.col.models.field_names(mw.col.models.by_name(modelName))
 
 
 def createSpinBox(value, minimum, maximum, step):
