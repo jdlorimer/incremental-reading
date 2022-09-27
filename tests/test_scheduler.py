@@ -9,6 +9,8 @@ class SchedulerTests(TestCase):
             'PyQt5.QtCore': MagicMock(),
             'PyQt5.QtWidgets': MagicMock(),
             'anki': MagicMock(),
+            'anki.cards': MagicMock(),
+            'anki.hooks': MagicMock(),
             'anki.utils': MagicMock(),
             'aqt': MagicMock(),
             'aqt.utils': MagicMock(),
