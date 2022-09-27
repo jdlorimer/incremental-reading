@@ -48,23 +48,28 @@ from requests.exceptions import ConnectionError
 from .lib.feedparser import parse
 
 from .pocket import Pocket
+from .settings import SettingsManager
 from .util import setField
 
 
 class Importer:
-    pocket = None
+    _pocket = None
+    _settings: SettingsManager = None
+
+    def changeProfile(self, settings: SettingsManager):
+        self._settings = settings
 
     def _fetchWebpage(self, url):
         if is_mac:
             context = _create_unverified_context()
             html = urlopen(url, context=context).read()
         else:
-            headers = {'User-Agent': self.settings['userAgent']}
+            headers = {'User-Agent': self._settings['userAgent']}
             html = get(url, headers=headers).content
 
         webpage = BeautifulSoup(html, 'html.parser')
 
-        for tagName in self.settings['badTags']:
+        for tagName in self._settings['badTags']:
             for tag in webpage.find_all(tagName):
                 tag.decompose()
 
@@ -81,8 +86,8 @@ class Importer:
         return webpage
 
     def _createNote(self, title, text, source, priority=None):
-        if self.settings['importDeck']:
-            deck = mw.col.decks.by_name(self.settings['importDeck'])
+        if self._settings['importDeck']:
+            deck = mw.col.decks.by_name(self._settings['importDeck'])
             if not deck:
                 showWarning(
                     'Destination deck no longer exists. '
@@ -93,13 +98,13 @@ class Importer:
         else:
             did = mw.col.conf['curDeck']
 
-        model = mw.col.models.by_name(self.settings['modelName'])
+        model = mw.col.models.by_name(self._settings['modelName'])
         note = Note(mw.col, model)
-        setField(note, self.settings['titleField'], title)
-        setField(note, self.settings['textField'], text)
-        setField(note, self.settings['sourceField'], source)
+        setField(note, self._settings['titleField'], title)
+        setField(note, self._settings['textField'], text)
+        setField(note, self._settings['sourceField'], source)
         if priority:
-            setField(note, self.settings['prioField'], priority)
+            setField(note, self._settings['prioField'], priority)
         note.note_type()['did'] = did
         mw.col.addNote(note)
         mw.deckBrowser.show()
@@ -133,11 +138,11 @@ class Importer:
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
-        source = self.settings['sourceFormat'].format(
+        source = self._settings['sourceFormat'].format(
             date=date.today(), url='<a href="%s">%s</a>' % (url, url)
         )
 
-        if self.settings['prioEnabled'] and not priority:
+        if self._settings['prioEnabled'] and not priority:
             priority = self._getPriority(webpage.title.string)
 
         deck = self._createNote(webpage.title.string, body, source, priority)
@@ -152,8 +157,8 @@ class Importer:
             prompt = 'Select priority for <b>{}</b>'.format(name)
         else:
             prompt = 'Select priority for import'
-        return self.settings['priorities'][
-            chooseList(prompt, self.settings['priorities'])
+        return self._settings['priorities'][
+            chooseList(prompt, self._settings['priorities'])
         ]
 
     def importFeed(self):
@@ -165,18 +170,18 @@ class Importer:
         if not urlsplit(url).scheme:
             url = 'http://' + url
 
-        log = self.settings['feedLog']
+        log = self._settings['feedLog']
 
         try:
             feed = parse(
                 url,
-                agent=self.settings['userAgent'],
+                agent=self._settings['userAgent'],
                 etag=log[url]['etag'],
                 modified=log[url]['modified'],
             )
         except KeyError:
             log[url] = {'downloaded': []}
-            feed = parse(url, agent=self.settings['userAgent'])
+            feed = parse(url, agent=self._settings['userAgent'])
 
         if feed['status'] not in [200, 301, 302]:
             showWarning(
@@ -184,7 +189,7 @@ class Importer:
                 '{}'.format(feed['status'])
             )
 
-        if self.settings['prioEnabled']:
+        if self._settings['prioEnabled']:
             priority = self._getPriority()
         else:
             priority = None
@@ -224,16 +229,16 @@ class Importer:
         tooltip('Added {} item(s) to deck: {}'.format(n, deck))
 
     def importPocket(self):
-        if not self.pocket:
-            self.pocket = Pocket()
+        if not self._pocket:
+            self._pocket = Pocket()
 
-        articles = self.pocket.getArticles()
+        articles = self._pocket.getArticles()
         if not articles:
             return
 
         selected = self._select(articles)
 
-        if self.settings['prioEnabled']:
+        if self._settings['prioEnabled']:
             priority = self._getPriority()
         else:
             priority = None
@@ -247,8 +252,8 @@ class Importer:
 
             for i, article in enumerate(selected, start=1):
                 deck = self.importWebpage(article['given_url'], priority, True)
-                if self.settings['pocketArchive']:
-                    self.pocket.archive(article)
+                if self._settings['pocketArchive']:
+                    self._pocket.archive(article)
                 mw.progress.update(value=i)
 
             mw.progress.finish()

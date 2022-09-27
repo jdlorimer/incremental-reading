@@ -45,23 +45,19 @@ class ReadingManager:
         self.viewManager = ViewManager()
         gui_hooks.profile_did_open.append(self.onProfileLoaded)
         gui_hooks.card_will_show.append(self.onPrepareQA)
-        gui_hooks.reviewer_did_show_answer.append(self.onShowAnswer)
-        gui_hooks.reviewer_will_end.append(self.onReviewCleanup)
 
         addHook('overviewStateShortcuts', self.setShortcuts)
         addHook('reviewStateShortcuts', self.setReviewShortcuts)
-
-        self.qshortcuts = []
 
     def onProfileLoaded(self) -> None:
         self.settings = SettingsManager()
         mw.addonManager.setConfigAction(
             __name__, lambda: SettingsDialog(self.settings)
         )
-        self.importer.settings = self.settings
-        self.scheduler.settings = self.settings
-        self.textManager.settings = self.settings
-        self.viewManager.settings = self.settings
+        self.importer.changeProfile(self.settings)
+        self.scheduler.changeProfile(self.settings)
+        self.textManager.changeProfile(self.settings)
+        self.viewManager.changeProfile(self.settings)
         self.viewManager.resetZoom('deckBrowser')
         self.addModel()
         self.loadMenuItems()
@@ -144,14 +140,6 @@ class ReadingManager:
                     )
 
         return text
-
-    def onShowAnswer(self, card: Card) -> None:
-        for qs in self.qshortcuts:
-            mw.stateShortcuts.remove(qs)
-            sip.delete(qs)
-
-    def onReviewCleanup(self) -> None:
-        self.qshortcuts = []
 
     def setShortcuts(self, shortcuts) -> None:
         shortcuts.append(('Ctrl+=', self.viewManager.zoomIn))
