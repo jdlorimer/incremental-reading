@@ -14,13 +14,10 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from datetime import date
-from ssl import _create_unverified_context
 from urllib.error import HTTPError
 from urllib.parse import urlsplit, urljoin, urlparse
-from urllib.request import urlopen
 
 from anki.notes import Note
-from anki.utils import is_mac
 from aqt import mw
 from aqt.utils import (
     chooseList,
@@ -60,12 +57,8 @@ class Importer:
         self._settings = settings
 
     def _fetchWebpage(self, url):
-        if is_mac:
-            context = _create_unverified_context()
-            html = urlopen(url, context=context).read()
-        else:
-            headers = {'User-Agent': self._settings['userAgent']}
-            html = get(url, headers=headers).content
+        headers = {'User-Agent': self._settings['userAgent']}
+        html = get(url, headers=headers).content
 
         webpage = BeautifulSoup(html, 'html.parser')
 
