@@ -55,9 +55,17 @@ make test
 
 # Publishing
 
-Build zip file:
-```shell
-make
-```
-
-Then upload it to https://ankiweb.net/shared/addons/ .
+1. Update version file:
+    ```
+    nano ir/_version.py
+    ```
+2. Build the `incremental-reading-v{version}.zip` file:
+    ```shell
+    make
+    ```
+3. Test the zip file in Anki
+    * Disable current IR add-on: Open Anki > Tools > Add-ons > Select current IR add-on > Toggle Enabled.
+    * Add the zipped add-on: In Add-ons page > Install from file... > Pick the zip file from earlier.
+    * Restart Anki to test.
+    * After finish, revert the above steps.
+4. Upload to https://ankiweb.net/shared/addons/ .
