@@ -70,11 +70,19 @@ class Importer:
             c.extract()
 
         parsed_url = urlparse(url)
-        base_path = "".join(parsed_url.path.rpartition("/")[:-1])
-        base_url = "{}://{}{}".format(parsed_url.scheme, parsed_url.netloc, base_path)
-        for a in webpage.find_all("a"):
-            if a.get("href") is not None:
-                a["href"] = urljoin(base_url, a.get("href", ""))
+        base_path = ''.join(parsed_url.path.rpartition('/')[:-1])
+        base_url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, base_path)
+        for a in webpage.find_all('a'):
+            if a.get('href') is not None:
+                a['href'] = urljoin(base_url, a.get('href', ''))
+
+        for img in webpage.find_all('img'):
+            if img.get('src') is not None:
+                img['src'] = urljoin(base_url, img.get('src', ''))
+
+            # Some webpages send broken base64-encoded URI in srcset attribute.
+            # Remove them for now.
+            del img['srcset']
 
         return webpage
 
