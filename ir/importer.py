@@ -38,7 +38,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup, Comment, PageElement
 from requests import get
 from requests.exceptions import ConnectionError
 
@@ -69,20 +69,11 @@ class Importer:
         for c in webpage.find_all(text=lambda s: isinstance(s, Comment)):
             c.extract()
 
-        parsed_url = urlparse(url)
-        base_path = ''.join(parsed_url.path.rpartition('/')[:-1])
-        base_url = '{}://{}{}'.format(parsed_url.scheme, parsed_url.netloc, base_path)
         for a in webpage.find_all('a'):
-            if a.get('href') is not None:
-                a['href'] = urljoin(base_url, a.get('href', ''))
+            self._processATag(url, a)
 
         for img in webpage.find_all('img'):
-            if img.get('src') is not None:
-                img['src'] = urljoin(base_url, img.get('src', ''))
-
-            # Some webpages send broken base64-encoded URI in srcset attribute.
-            # Remove them for now.
-            del img['srcset']
+            self._processImgTag(url, img)
 
         return webpage
 
@@ -296,3 +287,23 @@ class Importer:
                 if listWidget.item(i).isSelected()
             ]
         return []
+
+    def _processATag(self, url: str, a: PageElement):
+        if a.get('href'):
+            if a['href'].startswith('#'):
+                # Need to override onclick for named anchor to work
+                # See https://forums.ankiweb.net/t/links-to-named-anchors-malfunction/5157
+                if not a.get('onclick'):
+                    named_anchor = a['href'][1:] # Remove first hash
+                    a['href'] = 'javascript:;'
+                    a['onclick'] = f"document.location.hash='{named_anchor}';"
+            else:
+                a['href'] = urljoin(url, a['href'])
+
+    def _processImgTag(self, url: str, img: PageElement):
+        if img.get('src'):
+            img['src'] = urljoin(url, img.get('src', ''))
+
+        # Some webpages send broken base64-encoded URI in srcset attribute.
+        # Remove them for now.
+        del img['srcset']
