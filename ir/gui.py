@@ -262,6 +262,7 @@ class SettingsDialog:
             return
         field = mw.col.models.new_field(self.settings['prioField'])
         mw.col.models.add_field(model, field)
+        mw.col.models.update_dict(model)
         for (nid,) in mw.col.db.execute(
             'SELECT id FROM notes WHERE mid = ?', model['id']
         ):
