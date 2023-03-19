@@ -58,6 +58,7 @@ make test
 1. Update version file:
     ```
     nano ir/_version.py
+    nano ir/manifest.json
     ```
 2. Build the `incremental-reading-v{version}.zip` file:
     ```shell
