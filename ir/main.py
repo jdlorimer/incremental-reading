@@ -167,7 +167,6 @@ class ReadingManager:
 
         mw.col.models.add_field(model, textField)
         mw.col.models.add_field(model, sourceField)
-        mw.col.models.update_dict(model)
 
         template = mw.col.models.new_template('IR Card')
         template['qfmt'] = '\n'.join(
