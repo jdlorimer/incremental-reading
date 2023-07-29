@@ -102,7 +102,7 @@ class Importer:
         mw.deckBrowser.show()
         return mw.col.decks.get(did)['name']
 
-    def importWebpage(self, url=None, priority=None, silent=False):
+    def importWebpage(self, url=None, priority=None, silent=False, title=None):
         if not url:
             url, accepted = getText('Enter URL:', title='Import Webpage')
         else:
@@ -137,7 +137,9 @@ class Importer:
         if self._settings['prioEnabled'] and not priority:
             priority = self._getPriority(webpage.title.string)
 
-        deck = self._createNote(webpage.title.string, body, source, priority)
+        if not title:
+            title = webpage.title.string or url
+        deck = self._createNote(title, body, source, priority)
 
         if not silent:
             tooltip('Added to deck: {}'.format(deck))
@@ -237,13 +239,12 @@ class Importer:
 
         if selected:
             n = len(selected)
-
             mw.progress.start(
                 label='Importing Pocket articles...', max=n, immediate=True
             )
 
             for i, article in enumerate(selected, start=1):
-                deck = self.importWebpage(article['given_url'], priority, True)
+                deck = self.importWebpage(article['given_url'], priority, True, article['resolved_title'])
                 if self._settings['pocketArchive']:
                     self._pocket.archive(article)
                 mw.progress.update(value=i)
