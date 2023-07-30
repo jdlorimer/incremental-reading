@@ -103,6 +103,9 @@ class ReadingManager:
         addMenuItem(
             'Read', 'Import Pocket', self.importer.importPocket, 'Alt+5'
         )
+        addMenuItem(
+            'Read', 'Import Epub', self.importer.importEpub, 'Alt+6'
+        )
         addMenuItem('Read', 'Zoom In', self.viewManager.zoomIn, 'Ctrl++')
         addMenuItem('Read', 'Zoom Out', self.viewManager.zoomOut, 'Ctrl+-')
         addMenuItem('Read', 'About...', showAbout)

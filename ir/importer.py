@@ -13,9 +13,10 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+import os
 from datetime import date
 from urllib.error import HTTPError
-from urllib.parse import urlsplit, urljoin, urlparse
+from urllib.parse import urlsplit, urljoin, urlparse, urlunsplit
 
 from anki.notes import Note
 from aqt import mw
@@ -45,6 +46,7 @@ from requests.exceptions import ConnectionError
 from .lib.feedparser import parse
 
 from .pocket import Pocket
+from .epub import get_epub_toc
 from .settings import SettingsManager
 from .util import setField
 
@@ -59,7 +61,15 @@ class Importer:
     def _fetchWebpage(self, url):
         headers = {'User-Agent': self._settings['userAgent']}
         html = get(url, headers=headers).content
+        return self._cleanWebpage(html, url)
 
+    def _fetchLocalpage(self, filepath):
+        with open(filepath, "r") as f:
+            html = f.read()
+            url = urlunsplit(("file", "", filepath, None, None))
+            return self._cleanWebpage(html, url)
+
+    def _cleanWebpage(self, html, url):
         webpage = BeautifulSoup(html, 'html.parser')
 
         for tagName in self._settings['badTags']:
@@ -139,6 +149,49 @@ class Importer:
 
         if not title:
             title = webpage.title.string or url
+        deck = self._createNote(title, body, source, priority)
+
+        if not silent:
+            tooltip('Added to deck: {}'.format(deck))
+
+        return deck
+
+    def importLocalFile(self, filepath=None, priority=None, silent=False, title=None):
+        print("filepath=", filepath)
+        if not filepath:
+            filepath, accepted = getText('Enter FILEPATH:', title='Import Local File')
+        else:
+            accepted = True
+
+        if not filepath or not accepted:
+            return
+
+        if not os.path.isfile(filepath):
+            showCritical('File Not exists.')
+            return
+
+        try:
+            webpage = self._fetchLocalpage(filepath)
+        except HTTPError as error:
+            showWarning(
+                'The remote server has returned an error: '
+                'HTTP Error {} ({})'.format(error.code, error.reason)
+            )
+            return
+        except ConnectionError as error:
+            showWarning('There was a problem connecting to the website.')
+            return
+
+        body = '\n'.join(map(str, webpage.find('body').children))
+        source = self._settings['sourceFormat'].format(
+            date=date.today(), url='<a href="%s">%s</a>' % (filepath, filepath)
+        )
+
+        if self._settings['prioEnabled'] and not priority:
+            priority = self._getPriority(webpage.title.string)
+
+        if not title:
+            title = webpage.title.string or filepath
         deck = self._createNote(title, body, source, priority)
 
         if not silent:
@@ -251,6 +304,47 @@ class Importer:
 
             mw.progress.finish()
             tooltip('Added {} item(s) to deck: {}'.format(n, deck))
+
+    def importEpub(self, epub_file_path = None):
+        if not epub_file_path:
+            epub_file_path, accepted = getText('Enter epub file path:', title='Import Epub')
+        else:
+            accepted = True
+
+        if not epub_file_path or not accepted:
+            return
+
+        articles = get_epub_toc(epub_file_path)
+        if not articles:
+            return
+
+        selected = self._select(articles)
+
+        if self._settings['prioEnabled']:
+            priority = self._getPriority()
+        else:
+            priority = None
+
+        if selected:
+            n = len(selected)
+
+            mw.progress.start(
+                label='Importing Epub articles...', max=n, immediate=True
+            )
+
+            importedArticle = []
+            for i, article in enumerate(selected, start=1):
+                text = article.get('text')
+                href = article['href']
+                if href not in importedArticle:
+                    deck = self.importLocalFile(href, priority, True, text)
+                    importedArticle.append(href)
+                else:
+                    print(href, "Already imported, Skipping")
+                mw.progress.update(value=i)
+
+            mw.progress.finish()
+            tooltip('Added {} item(s) to deck: {}'.format(len(importedArticle), deck))
 
     def _select(self, choices):
         if not choices:
