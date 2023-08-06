@@ -67,9 +67,9 @@ class Importer:
         with open(filepath, "r") as f:
             html = f.read()
             url = urlunsplit(("file", "", filepath, None, None))
-            return self._cleanWebpage(html, url)
+            return self._cleanWebpage(html, url, True)
 
-    def _cleanWebpage(self, html, url):
+    def _cleanWebpage(self, html, url, local=False):
         webpage = BeautifulSoup(html, 'html.parser')
 
         for tagName in self._settings['badTags']:
@@ -83,7 +83,7 @@ class Importer:
             self._processATag(url, a)
 
         for img in webpage.find_all('img'):
-            self._processImgTag(url, img)
+            self._processImgTag(url, img, local)
 
         return webpage
 
@@ -395,9 +395,14 @@ class Importer:
             else:
                 a['href'] = urljoin(url, a['href'])
 
-    def _processImgTag(self, url: str, img: PageElement):
+    def _processImgTag(self, url: str, img: PageElement, local=False):
         if img.get('src'):
             img['src'] = urljoin(url, img.get('src', ''))
+        if local and urlsplit(img['src']).scheme == "file":
+            filepath = urlsplit(img['src']).path
+            mediafilepath = mw.col.media.add_file(filepath)
+            print(filepath, "===>", mediafilepath)
+            img['src'] = mediafilepath
 
         # Some webpages send broken base64-encoded URI in srcset attribute.
         # Remove them for now.
