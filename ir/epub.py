@@ -126,9 +126,9 @@ def nov_content_epub3_files(root, manifest, files):
     files[toc_id] = toc_file
     return files
 
-def nov_content_toc_file(extract_dir, root):
+def nov_content_toc_file(content_dir, root):
     "Return toc file from content ROOT"
-    manifest = nov_content_manifest(extract_dir,root)
+    manifest = nov_content_manifest(content_dir,root)
     spine = nov_content_spine(root)
     files = {item:manifest[item] for item in spine}
     version = nov_content_version(root)
@@ -138,7 +138,7 @@ def nov_content_toc_file(extract_dir, root):
         toc_filename = nov_content_epub3_toc_file(root, manifest)
     return toc_filename
 
-def nov_toc_files(extract_dir, root):
+def nov_toc_files(content_dir, root):
     query = '{*}navMap//{*}navPoint'
     nav_points = root.findall(query)
     files = []
@@ -146,7 +146,7 @@ def nov_toc_files(extract_dir, root):
         text_node = point.find('{*}navLabel/{*}text')
         content_node = point.find('{*}content')
         text = text_node.text
-        href = os.path.join(extract_dir, content_node.get('src'))
+        href = os.path.join(content_dir, content_node.get('src'))
         scheme, netloc, path, *_ = urlsplit(href)
         data = {"text": text, "href": path}
         files.append({'text':text, "data": data})
@@ -174,10 +174,11 @@ def get_epub_toc(epub_file_path):
     container_filename = os.path.join(extract_dir,"META-INF","container.xml")
     content_filename = nov_container_content_filename(container_filename)
     content_filename = os.path.join(extract_dir, content_filename)
+    content_dir = os.path.dirname(content_filename)
     content_doc = ET.parse(content_filename)
     content_root = content_doc.getroot()
-    toc_filename = nov_content_toc_file(extract_dir, content_root)
-    toc_file = os.path.join(extract_dir, toc_filename)
+    toc_filename = nov_content_toc_file(content_dir, content_root)
+    toc_file = os.path.join(content_dir, toc_filename)
     toc_doc = ET.parse(toc_file)
     toc_root = toc_doc.getroot()
-    return nov_toc_files(extract_dir, toc_root)
+    return nov_toc_files(content_dir, toc_root)
