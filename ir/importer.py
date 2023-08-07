@@ -17,6 +17,7 @@ import os
 from datetime import date
 from urllib.error import HTTPError
 from urllib.parse import urlsplit, urljoin, urlparse, urlunsplit
+from pathlib import Path
 
 from anki.notes import Note
 from aqt import mw
@@ -166,6 +167,7 @@ class Importer:
         if not filepath or not accepted:
             return
 
+        filepath = Path(filepath).as_posix()  # Convert Windows Path to Linux
         if not os.path.isfile(filepath):
             showCritical('File Not exists.')
             return
@@ -396,8 +398,10 @@ class Importer:
                 a['href'] = urljoin(url, a['href'])
 
     def _processImgTag(self, url: str, img: PageElement, local=False):
+        print("url=",url)
         if img.get('src'):
             img['src'] = urljoin(url, img.get('src', ''))
+        print("src=",img['src'])
         if local and urlsplit(img['src']).scheme == "file":
             filepath = urlsplit(img['src']).path
             mediafilepath = mw.col.media.add_file(filepath)

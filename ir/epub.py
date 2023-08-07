@@ -13,6 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from urllib.parse import urlencode, urlsplit
+from pathlib import Path
 
 from anki.utils import is_mac, is_win
 from aqt.utils import askUser, openLink, showCritical, showInfo
@@ -156,6 +157,7 @@ def nov_toc_files(content_dir, root):
 def get_extract_dir(filename):
     'get extract directory by epub filename.'
     tempdir = tempfile.gettempdir()
+    tempdir = Path(tempdir).as_posix()
     basename = os.path.basename(filename)
     nonextension = os.path.splitext(basename)[0]
     return os.path.join(tempdir, nonextension)
