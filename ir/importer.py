@@ -24,6 +24,7 @@ from aqt import mw
 from aqt.utils import (
     chooseList,
     getText,
+    getFile,
     showInfo,
     showCritical,
     showWarning,
@@ -158,13 +159,10 @@ class Importer:
         return deck
 
     def importLocalFile(self, filepath=None, priority=None, silent=False, title=None):
-        print("filepath=", filepath)
         if not filepath:
-            filepath, accepted = getText('Enter FILEPATH:', title='Import Local File')
-        else:
-            accepted = True
+            filepath = getFile(None, 'Import Local File', None, filter="*")
 
-        if not filepath or not accepted:
+        if not filepath:
             return
 
         filepath = Path(filepath).as_posix()  # Convert Windows Path to Linux
@@ -309,11 +307,9 @@ class Importer:
 
     def importEpub(self, epub_file_path = None):
         if not epub_file_path:
-            epub_file_path, accepted = getText('Enter epub file path:', title='Import Epub')
-        else:
-            accepted = True
+            epub_file_path  = getFile(None, 'Enter epub File path', None, filter="*.epub")
 
-        if not epub_file_path or not accepted:
+        if not epub_file_path:
             return
 
         articles = get_epub_toc(epub_file_path)
