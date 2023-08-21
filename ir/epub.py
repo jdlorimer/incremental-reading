@@ -50,12 +50,6 @@ def nov_content_manifest(directory, root):
     nodes = root.findall(query)
     return {node.get('id'):os.path.join(directory, node.get('href')) for node in nodes}
 
-def nov_content_spine(root):
-    """Extract a list of spine identifiers for CONTENT."""
-    query = "{*}spine/{*}itemref"
-    nodes = root.findall(query)
-    return [node.get('idref') for node in nodes]
-
 def nov_content_epub2_toc_file(root, manifest):
     """Return toc file for EPUB 2."""
     node = root.find("{*}spine[@toc]")
@@ -130,8 +124,6 @@ def nov_content_epub3_files(root, manifest, files):
 def nov_content_toc_file(content_dir, root):
     "Return toc file from content ROOT"
     manifest = nov_content_manifest(content_dir,root)
-    spine = nov_content_spine(root)
-    files = {item:manifest[item] for item in spine}
     version = nov_content_version(root)
     if version < 3.0:
         toc_filename = nov_content_epub2_toc_file(root, manifest)
