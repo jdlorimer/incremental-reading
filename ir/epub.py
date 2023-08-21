@@ -154,7 +154,7 @@ def nov_toc_files(content_dir, root):
     return files
 
 
-def get_extract_dir(filename):
+def _get_extract_dir(filename):
     'get extract directory by epub filename.'
     tempdir = tempfile.gettempdir()
     tempdir = Path(tempdir).as_posix()
@@ -162,8 +162,8 @@ def get_extract_dir(filename):
     nonextension = os.path.splitext(basename)[0]
     return os.path.join(tempdir, nonextension)
 
-def unzip_epub(file_path):
-    extract_dir = get_extract_dir(file_path)
+def _unzip_epub(file_path):
+    extract_dir = _get_extract_dir(file_path)
     if not os.path.exists(extract_dir):
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
             zip_ref.extractall(extract_dir)
@@ -172,7 +172,7 @@ def unzip_epub(file_path):
 
 
 def get_epub_toc(epub_file_path):
-    extract_dir = unzip_epub(epub_file_path)
+    extract_dir = _unzip_epub(epub_file_path)
     container_filename = os.path.join(extract_dir,"META-INF","container.xml")
     content_filename = nov_container_content_filename(container_filename)
     content_filename = os.path.join(extract_dir, content_filename)
