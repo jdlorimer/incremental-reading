@@ -70,7 +70,7 @@ def nov_content_epub2_toc_file(root, manifest):
 
 def nov_content_epub3_toc_file(root, manifest):
     """Return toc file for EPUB 3."""
-    node = root.find("{*}manifest/{*}item[@properties~=nav]")
+    node = root.find("{*}manifest/{*}item[@properties='nav']")
     if node is None:
         raise ValueError("EPUB 3 <nav> ID not found")
 
@@ -129,9 +129,9 @@ def nov_content_toc_file(content_dir, root):
         toc_filename = nov_content_epub2_toc_file(root, manifest)
     else:
         toc_filename = nov_content_epub3_toc_file(root, manifest)
-    return toc_filename
+    return version, toc_filename
 
-def nov_toc_files(content_dir, root):
+def nov_toc_epub2_files(content_dir, root):
     query = '{*}navMap//{*}navPoint'
     nav_points = root.findall(query)
     files = []
@@ -145,6 +145,23 @@ def nov_toc_files(content_dir, root):
         files.append({'text':text, "data": data})
     return files
 
+def nov_toc_epub3_files(toc_file, root):
+    toc_dir = os.path.dirname(toc_file)
+    query = './/{*}nav//{*}ol/{*}li'
+    nav_points = root.findall(query)
+    files = []
+    for point in nav_points:
+        node = point.find('{*}a')
+        text = node.text
+        href = node.get('href')
+        if href.startswith('#'):
+            path = toc_file
+        else:
+            path = os.path.join(toc_dir, href)
+            scheme, netloc, path, *_ = urlsplit(path)
+        data = {"text": text, "href": path}
+        files.append({'text':text, "data": data})
+    return files
 
 def _get_extract_dir(filename):
     'get extract directory by epub filename.'
@@ -171,8 +188,11 @@ def get_epub_toc(epub_file_path):
     content_dir = os.path.dirname(content_filename)
     content_doc = ET.parse(content_filename)
     content_root = content_doc.getroot()
-    toc_filename = nov_content_toc_file(content_dir, content_root)
+    version, toc_filename = nov_content_toc_file(content_dir, content_root)
     toc_file = os.path.join(content_dir, toc_filename)
     toc_doc = ET.parse(toc_file)
     toc_root = toc_doc.getroot()
-    return nov_toc_files(content_dir, toc_root)
+    if version < 3.0:
+        return nov_toc_epub2_files(content_dir, toc_root)
+    else:
+        return nov_toc_epub3_files(toc_file, toc_root)
