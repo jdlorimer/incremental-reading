@@ -167,7 +167,7 @@ class Importer:
 
         filepath = Path(filepath).as_posix()  # Convert Windows Path to Linux
         if not os.path.isfile(filepath):
-            showCritical('File Not exists.')
+            showCritical('File[{}] Not exists.'.format(filepath))
             return
 
         try:
@@ -314,6 +314,7 @@ class Importer:
 
         articles = get_epub_toc(epub_file_path)
         if not articles:
+            showInfo("No articles found in {}.".format(epub_file_path))
             return
 
         selected = self._select(articles)
