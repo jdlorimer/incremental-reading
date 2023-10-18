@@ -18,9 +18,15 @@ import time
 from urllib.parse import unquote
 from anki.cards import Card
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QAction, QMenu, QSpinBox
+try:
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QKeySequence, QAction
+    from PyQt6.QtWidgets import QMenu, QSpinBox
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtGui import QKeySequence
+    from PyQt5.QtWidgets import QAction, QMenu, QSpinBox
+
 from aqt import dialogs, mw
 from bs4 import BeautifulSoup
 

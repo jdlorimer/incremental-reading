@@ -12,7 +12,10 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+try:
+    from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+except ImportError:
+    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 
 from aqt import mw
 

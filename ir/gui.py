@@ -19,25 +19,46 @@
 
 from unicodedata import normalize
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (
-    QButtonGroup,
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QGroupBox,
-    QHBoxLayout,
-    QKeySequenceEdit,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QRadioButton,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+try:
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QFont
+    from PyQt6.QtWidgets import (
+        QButtonGroup,
+        QCheckBox,
+        QComboBox,
+        QDialog,
+        QDialogButtonBox,
+        QGroupBox,
+        QHBoxLayout,
+        QKeySequenceEdit,
+        QLabel,
+        QLineEdit,
+        QPushButton,
+        QRadioButton,
+        QTabWidget,
+        QVBoxLayout,
+        QWidget,
+    )
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtGui import QFont
+    from PyQt5.QtWidgets import (
+        QButtonGroup,
+        QCheckBox,
+        QComboBox,
+        QDialog,
+        QDialogButtonBox,
+        QGroupBox,
+        QHBoxLayout,
+        QKeySequenceEdit,
+        QLabel,
+        QLineEdit,
+        QPushButton,
+        QRadioButton,
+        QTabWidget,
+        QVBoxLayout,
+        QWidget,
+    )
 
 from anki.notes import Note
 from aqt import mw

@@ -23,7 +23,10 @@ from aqt.browser import Browser
 from aqt.reviewer import Reviewer
 from typing import Any, Sequence
 
-import sip
+try:
+    from PyQt6 import sip
+except ImportError:
+    import sip
 
 from .about import showAbout
 from .gui import SettingsDialog

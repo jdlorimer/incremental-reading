@@ -31,15 +31,26 @@ from aqt.utils import (
     tooltip,
 )
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QAbstractItemView,
-    QDialog,
-    QDialogButtonBox,
-    QListWidget,
-    QListWidgetItem,
-    QVBoxLayout,
-)
+try:
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtWidgets import (
+        QAbstractItemView,
+        QDialog,
+        QDialogButtonBox,
+        QListWidget,
+        QListWidgetItem,
+        QVBoxLayout,
+    )
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtWidgets import (
+        QAbstractItemView,
+        QDialog,
+        QDialogButtonBox,
+        QListWidget,
+        QListWidgetItem,
+        QVBoxLayout,
+    )
 
 from bs4 import BeautifulSoup, Comment, PageElement
 from requests import get

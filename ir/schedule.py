@@ -20,17 +20,30 @@
 from random import gauss, shuffle
 from re import sub
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QAbstractItemView,
-    QDialog,
-    QDialogButtonBox,
-    QHBoxLayout,
-    QListWidget,
-    QListWidgetItem,
-    QPushButton,
-    QVBoxLayout,
-)
+try:
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtWidgets import (
+        QAbstractItemView,
+        QDialog,
+        QDialogButtonBox,
+        QHBoxLayout,
+        QListWidget,
+        QListWidgetItem,
+        QPushButton,
+        QVBoxLayout,
+    )
+except ImportError:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtWidgets import (
+        QAbstractItemView,
+        QDialog,
+        QDialogButtonBox,
+        QHBoxLayout,
+        QListWidget,
+        QListWidgetItem,
+        QPushButton,
+        QVBoxLayout,
+    )
 
 from anki.cards import Card
 from anki.utils import strip_html
