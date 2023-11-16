@@ -16,18 +16,18 @@ import os
 import stat
 import time
 from urllib.parse import unquote
+
 from anki.cards import Card
 
 try:
     from PyQt6.QtCore import Qt
-    from PyQt6.QtGui import QKeySequence, QAction
-    from PyQt6.QtWidgets import QMenu, QSpinBox
-except ImportError:
+    from PyQt6.QtGui import QKeySequence
+except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
     from PyQt5.QtGui import QKeySequence
-    from PyQt5.QtWidgets import QAction, QMenu, QSpinBox
 
 from aqt import dialogs, mw
+from aqt.qt import QAction, QMenu, QSpinBox
 from bs4 import BeautifulSoup
 
 

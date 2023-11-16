@@ -15,8 +15,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 from anki.cards import Card
-from aqt import mw
-from aqt import gui_hooks
+from aqt import gui_hooks, mw
 
 from .settings import SettingsManager
 from .util import isIrCard, loadFile, viewingIrText
@@ -116,7 +115,7 @@ class ViewManager:
         return html
 
     def _saveScroll(self, event=None):
-        if viewingIrText():
+        if viewingIrText() and mw.reviewer.card is not None:
 
             def callback(currentPos):
                 self._settings['scroll'][str(mw.reviewer.card.id)] = currentPos

@@ -29,7 +29,6 @@ from aqt.utils import getText, showInfo, showWarning, tooltip
 from .settings import SettingsManager
 from .util import fixImages, getField, setField
 
-
 SCHEDULE_EXTRACT = 0
 
 
@@ -190,7 +189,8 @@ class TextManager:
             return
 
         note['Text'] = self._history[note.id].pop()
-        note.flush()
+        #note.flush()
+        mw.col.update_note(note)
         mw.reset()
         tooltip('Undone')
 
@@ -200,7 +200,8 @@ class TextManager:
                 note = mw.reviewer.card.note()
                 self._history[note.id].append(note['Text'])
                 note['Text'] = text
-                note.flush()
+                #note.flush()
+                mw.col.update_note(note)
 
         mw.web.evalWithCallback(
             'document.getElementsByClassName("ir-text")[0].innerHTML;',

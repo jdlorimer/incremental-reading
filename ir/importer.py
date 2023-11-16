@@ -15,51 +15,29 @@
 
 import os
 from datetime import date
-from urllib.error import HTTPError
-from urllib.parse import urlsplit, urljoin, urlparse, urlunsplit
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
 
 from anki.notes import Note
 from aqt import mw
-from aqt.utils import (
-    chooseList,
-    getText,
-    getFile,
-    showInfo,
-    showCritical,
-    showWarning,
-    tooltip,
-)
 
 try:
     from PyQt6.QtCore import Qt
-    from PyQt6.QtWidgets import (
-        QAbstractItemView,
-        QDialog,
-        QDialogButtonBox,
-        QListWidget,
-        QListWidgetItem,
-        QVBoxLayout,
-    )
-except ImportError:
+except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (
-        QAbstractItemView,
-        QDialog,
-        QDialogButtonBox,
-        QListWidget,
-        QListWidgetItem,
-        QVBoxLayout,
-    )
 
+from aqt.qt import (QAbstractItemView, QDialog, QDialogButtonBox, QListWidget,
+                    QListWidgetItem, QVBoxLayout)
+from aqt.utils import (chooseList, getFile, getText, showCritical, showInfo,
+                       showWarning, tooltip)
 from bs4 import BeautifulSoup, Comment, PageElement
 from requests import get
 from requests.exceptions import ConnectionError
 
-from .lib.feedparser import parse
-
-from .pocket import Pocket
 from .epub import get_epub_toc
+from .lib.feedparser import parse
+from .pocket import Pocket
 from .settings import SettingsManager
 from .util import setField
 
@@ -97,6 +75,9 @@ class Importer:
 
         for img in webpage.find_all('img'):
             self._processImgTag(url, img, local)
+
+        for link in webpage.find_all('link'):
+            self._processLinkTag(url, link, local)
 
         return webpage
 
@@ -327,7 +308,6 @@ class Importer:
         if not articles:
             showInfo("No articles found in {}.".format(epub_file_path))
             return
-
         selected = self._select(articles)
 
         if self._settings['prioEnabled']:
@@ -406,12 +386,15 @@ class Importer:
                 a['href'] = urljoin(url, a['href'])
 
     def _processImgTag(self, url: str, img: PageElement, local=False):
-        print("url=",url)
         if img.get('src'):
             img['src'] = urljoin(url, img.get('src', ''))
         print("src=",img['src'])
         if local and urlsplit(img['src']).scheme == "file":
             filepath = urlsplit(img['src']).path
+            # urlsplit(urlunsplit(('file','','c:/a/b',None,None))).path => '/c:/a/b'
+            # TODO I Don't konw how to fix it properly
+            if os.name == "nt" and not Path(filepath).exists():
+                filepath = filepath[1:]
             mediafilepath = mw.col.media.add_file(filepath)
             print(filepath, "===>", mediafilepath)
             img['src'] = mediafilepath
@@ -419,3 +402,15 @@ class Importer:
         # Some webpages send broken base64-encoded URI in srcset attribute.
         # Remove them for now.
         del img['srcset']
+
+    def _processLinkTag(self, url: str, link: PageElement, local=False):
+        if link.get('href'):
+            link['href'] = urljoin(url, link.get('href', ''))
+        if local and urlsplit(link['href']).scheme == "file":
+            filepath = urlsplit(link['href']).path
+            if os.name == "nt" and not Path(filepath).exists():
+                filepath = filepath[1:]
+            print('filepath', filepath)
+            mediafilepath = mw.col.media.add_file(filepath)
+            print(filepath, "===>", mediafilepath)
+            link['href'] = mediafilepath

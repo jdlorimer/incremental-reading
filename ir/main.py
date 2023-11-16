@@ -16,17 +16,14 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Any, Sequence
+
 from anki.cards import Card
 from anki.hooks import addHook, wrap
 from aqt import gui_hooks, mw
 from aqt.browser import Browser
+from aqt.qt import sip
 from aqt.reviewer import Reviewer
-from typing import Any, Sequence
-
-try:
-    from PyQt6 import sip
-except ImportError:
-    import sip
 
 from .about import showAbout
 from .gui import SettingsDialog
@@ -215,7 +212,7 @@ def answerCard(self, ease: int, _old: Any):
 def buttonTime(self, i: int, v3_labels: Sequence[str], _old: Any) -> str:
     if isIrCard(mw.reviewer.card):
         return '<div class=spacer></div>'
-    return _old(self, i)
+    return _old(self, i, v3_labels)
 
 
 def onBrowserClosed(self) -> None:

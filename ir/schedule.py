@@ -22,32 +22,14 @@ from re import sub
 
 try:
     from PyQt6.QtCore import Qt
-    from PyQt6.QtWidgets import (
-        QAbstractItemView,
-        QDialog,
-        QDialogButtonBox,
-        QHBoxLayout,
-        QListWidget,
-        QListWidgetItem,
-        QPushButton,
-        QVBoxLayout,
-    )
-except ImportError:
+except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (
-        QAbstractItemView,
-        QDialog,
-        QDialogButtonBox,
-        QHBoxLayout,
-        QListWidget,
-        QListWidgetItem,
-        QPushButton,
-        QVBoxLayout,
-    )
 
 from anki.cards import Card
 from anki.utils import strip_html
 from aqt import mw
+from aqt.qt import (QAbstractItemView, QDialog, QDialogButtonBox, QHBoxLayout,
+                    QListWidget, QListWidgetItem, QPushButton, QVBoxLayout)
 from aqt.utils import showInfo, tooltip
 
 from .settings import SettingsManager

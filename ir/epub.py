@@ -12,19 +12,18 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-from urllib.parse import urlencode, urlsplit
+import os
+import re
+import tempfile
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 from anki.utils import is_mac, is_win
 from aqt.utils import askUser, openLink, showCritical, showInfo
-
 from requests import post
 
-import os
-import re
-import xml.etree.ElementTree as ET
-import zipfile
-import tempfile
 
 def nov_container_content_filename(filename):
     """Return the content filename for CONTENT."""
@@ -141,8 +140,10 @@ def nov_toc_epub2_files(content_dir, root):
         text = text_node.text
         href = os.path.join(content_dir, content_node.get('src'))
         scheme, netloc, path, *_ = urlsplit(href)
+        path=urlunsplit((scheme,netloc,path,'',''))
         data = {"text": text, "href": path}
         files.append({'text':text, "data": data})
+    print(files)
     return files
 
 def nov_toc_epub3_files(toc_file, root):

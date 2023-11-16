@@ -22,57 +22,21 @@ from unicodedata import normalize
 try:
     from PyQt6.QtCore import Qt
     from PyQt6.QtGui import QFont
-    from PyQt6.QtWidgets import (
-        QButtonGroup,
-        QCheckBox,
-        QComboBox,
-        QDialog,
-        QDialogButtonBox,
-        QGroupBox,
-        QHBoxLayout,
-        QKeySequenceEdit,
-        QLabel,
-        QLineEdit,
-        QPushButton,
-        QRadioButton,
-        QTabWidget,
-        QVBoxLayout,
-        QWidget,
-    )
-except ImportError:
+except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
     from PyQt5.QtGui import QFont
-    from PyQt5.QtWidgets import (
-        QButtonGroup,
-        QCheckBox,
-        QComboBox,
-        QDialog,
-        QDialogButtonBox,
-        QGroupBox,
-        QHBoxLayout,
-        QKeySequenceEdit,
-        QLabel,
-        QLineEdit,
-        QPushButton,
-        QRadioButton,
-        QTabWidget,
-        QVBoxLayout,
-        QWidget,
-    )
 
 from anki.notes import Note
 from aqt import mw
+from aqt.qt import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                    QDialogButtonBox, QGroupBox, QHBoxLayout, QKeySequenceEdit,
+                    QLabel, QLineEdit, QPushButton, QRadioButton, QTabWidget,
+                    QVBoxLayout, QWidget)
 from aqt.tagedit import TagEdit
 from aqt.utils import showInfo, showWarning, tooltip
 
-from .util import (
-    createSpinBox,
-    getColorList,
-    getFieldNames,
-    removeComboBoxItem,
-    setComboBoxItem,
-    setField,
-)
+from .util import (createSpinBox, getColorList, getFieldNames,
+                   removeComboBoxItem, setComboBoxItem, setField)
 
 
 class SettingsDialog:
@@ -291,7 +255,8 @@ class SettingsDialog:
             setField(
                 note, self.settings['prioField'], self.settings['prioDefault']
             )
-            note.flush()
+            #note.flush()
+            mw.col.update_note(note)
         showInfo(
             'A <b><i>Priority</i></b> field has been added to your IR notes. '
             'Valid priority values are integers 1-10, where 10 represents '
