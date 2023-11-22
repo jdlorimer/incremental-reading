@@ -18,6 +18,7 @@ from datetime import date
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
+from urllib.request import url2pathname
 
 from anki.notes import Note
 from aqt import mw
@@ -390,11 +391,7 @@ class Importer:
             img['src'] = urljoin(url, img.get('src', ''))
         print("src=",img['src'])
         if local and urlsplit(img['src']).scheme == "file":
-            filepath = urlsplit(img['src']).path
-            # urlsplit(urlunsplit(('file','','c:/a/b',None,None))).path => '/c:/a/b'
-            # TODO I Don't konw how to fix it properly
-            if os.name == "nt" and not Path(filepath).exists():
-                filepath = filepath[1:]
+            filepath = url2pathname(urlsplit(img['src']).path) 
             mediafilepath = mw.col.media.add_file(filepath)
             print(filepath, "===>", mediafilepath)
             img['src'] = mediafilepath
@@ -407,10 +404,7 @@ class Importer:
         if link.get('href'):
             link['href'] = urljoin(url, link.get('href', ''))
         if local and urlsplit(link['href']).scheme == "file":
-            filepath = urlsplit(link['href']).path
-            if os.name == "nt" and not Path(filepath).exists():
-                filepath = filepath[1:]
-            print('filepath', filepath)
+            filepath = url2pathname(urlsplit(link['href']).path)
             mediafilepath = mw.col.media.add_file(filepath)
             print(filepath, "===>", mediafilepath)
             link['href'] = mediafilepath
