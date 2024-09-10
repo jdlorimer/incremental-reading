@@ -139,11 +139,12 @@ class Importer:
             date=date.today(), url='<a href="%s">%s</a>' % (url, url)
         )
 
-        if self._settings['prioEnabled'] and not priority:
-            priority = self._getPriority(webpage.title.string)
-
         if not title:
-            title = webpage.title.string or url
+            title = webpage.title.string if webpage.title else url
+
+        if self._settings['prioEnabled'] and not priority:
+            priority = self._getPriority(title)
+
         deck = self._createNote(title, body, source, priority)
 
         if not silent:
@@ -180,11 +181,12 @@ class Importer:
             date=date.today(), url='<a href="%s">%s</a>' % (filepath, filepath)
         )
 
-        if self._settings['prioEnabled'] and not priority:
-            priority = self._getPriority(webpage.title.string)
-
         if not title:
-            title = webpage.title.string or filepath
+            title = webpage.title.string if webpage.title else filepath
+
+        if self._settings['prioEnabled'] and not priority:
+            priority = self._getPriority(title)
+
         deck = self._createNote(title, body, source, priority)
 
         if not silent:
