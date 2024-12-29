@@ -104,7 +104,6 @@ class Importer:
             setField(note, self._settings['prioField'], priority)
         note.note_type()['did'] = did
         mw.col.addNote(note)
-        mw.deckBrowser.show()
         return mw.col.decks.get(did)['name']
 
     def importWebpage(self, url=None, priority=None, silent=False, title=None):
@@ -188,7 +187,7 @@ class Importer:
         deck = self._createNote(title, body, source, priority)
 
         if not silent:
-            tooltip('Added to deck: {}'.format(deck))
+            tooltip(f'Added to deck: {deck}')
 
         return deck
 
