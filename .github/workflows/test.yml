@@ -1,0 +1,34 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - main  # Or your main branch name (e.g., master)
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python (if needed)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x' # Or your desired Python version (e.g., '3.9')
+
+      - name: Install Dependencies (if needed)
+        run: |
+          cd ir
+          if [ -f requirements.txt ]; then
+            echo "Installing dependencies..."
+            pip install -r requirements.txt
+          fi
+
+      - name: Run make test
+        run: |
+          make test
