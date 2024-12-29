@@ -6,6 +6,7 @@
 __pycache__
 meta.json
 .idea
+.vscode
 incremental-reading-v*.zip
 
 # asdf tool versions
