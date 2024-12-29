@@ -13,6 +13,7 @@ class SchedulerTests(TestCase):
             'anki.hooks': MagicMock(),
             'anki.utils': MagicMock(),
             'aqt': MagicMock(),
+            'aqt.qt': MagicMock(),
             'aqt.utils': MagicMock(),
             'ir.main': MagicMock(),
             'ir.util': MagicMock(),

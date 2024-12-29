@@ -17,7 +17,7 @@ import os
 from datetime import date
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 from urllib.request import url2pathname
 
 from anki.notes import Note
@@ -126,11 +126,10 @@ class Importer:
             webpage = self._fetchWebpage(url)
         except HTTPError as error:
             showWarning(
-                'The remote server has returned an error: '
-                'HTTP Error {} ({})'.format(error.code, error.reason)
+                f'The remote server has returned an error: HTTP Error {error.code} ({error.reason})'
             )
             return
-        except ConnectionError as error:
+        except ConnectionError:
             showWarning('There was a problem connecting to the website.')
             return
 
@@ -148,7 +147,7 @@ class Importer:
         deck = self._createNote(title, body, source, priority)
 
         if not silent:
-            tooltip('Added to deck: {}'.format(deck))
+            tooltip(f'Added to deck: {deck}')
 
         return deck
 
@@ -161,24 +160,23 @@ class Importer:
 
         filepath = Path(filepath).as_posix()  # Convert Windows Path to Linux
         if not os.path.isfile(filepath):
-            showCritical('File[{}] Not exists.'.format(filepath))
+            showCritical(f'File[{filepath}] Not exists.')
             return
 
         try:
             webpage = self._fetchLocalpage(filepath)
         except HTTPError as error:
             showWarning(
-                'The remote server has returned an error: '
-                'HTTP Error {} ({})'.format(error.code, error.reason)
+                f'The remote server has returned an error: HTTP Error {error.code} ({error.reason})'
             )
             return
-        except ConnectionError as error:
+        except ConnectionError:
             showWarning('There was a problem connecting to the website.')
             return
 
         body = '\n'.join(map(str, webpage.find('body').children))
         source = self._settings['sourceFormat'].format(
-            date=date.today(), url='<a href="%s">%s</a>' % (filepath, filepath)
+            date=date.today(), url=f'<a href="{filepath}">{filepath}</a>'
         )
 
         if not title:
