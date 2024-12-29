@@ -37,12 +37,14 @@ pre {
 }
 
 .card {
-  background-color: #fff;
-  color: #000;
-  font-family: Helvetica;
-  font-size: 16px;
-  word-spacing: .5px !important;
-  line-height: 140% !important;
+  font-family: Georgia;
+  margin-left: 10%;
+  margin-right: 10%;
+  max-width: 40em;
+  text-align: left;
+  font-size: 20px;
+  line-height: 1.6;
+  background-color: white;
 }
 
 [ir-overlay~="on"].ir-highlight.bold { font-weight: bold; }

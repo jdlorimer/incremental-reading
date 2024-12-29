@@ -27,7 +27,6 @@ class ViewManager:
     def __init__(self):
         self._scrollScript = loadFile('web', 'scroll.js')
         self._textScript = loadFile('web', 'text.js')
-        self._widthScript = loadFile('web', 'width.js')
         self._zoomFactor = 1
 
         gui_hooks.state_did_change.append(self.resetZoom)
@@ -87,10 +86,7 @@ class ViewManager:
             )
 
     def _prepareCard(self, html: str, card: Card, kind: str) -> str:
-        if (isIrCard(card) and self._settings['limitWidth']) or self._settings['limitWidthAll']:
-            js = self._widthScript.format(maxWidth=self._settings['maxWidth'])
-        else:
-            js = ''
+        js = ''
 
         if isIrCard(card) and kind.startswith('review'):
             cid = str(card.id)

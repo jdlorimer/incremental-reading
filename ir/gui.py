@@ -61,8 +61,6 @@ class SettingsDialog:
     laterPercentButton = None
     laterRandomCheckBox = None
     laterValueEditBox = None
-    limitAllCardsButton = None
-    limitIrCardsButton = None
     lineStepSpinBox = None
     noteTypeComboBox = None
     organizerFormatEditBox = None
@@ -89,7 +87,6 @@ class SettingsDialog:
     textFieldComboBox = None
     underlineSeqEditBox = None
     undoKeyComboBox = None
-    widthEditBox = None
     zoomStepSpinBox = None
 
     def __init__(self, settings):
@@ -173,7 +170,6 @@ class SettingsDialog:
             self.settings['extractValue'] = int(
                 self.extractValueEditBox.text()
             )
-            self.settings['maxWidth'] = int(self.widthEditBox.text())
         except ValueError:
             showWarning('Integer value expected. Please try again.')
             done = False
@@ -214,16 +210,6 @@ class SettingsDialog:
                 showWarning('Missing required keys for format string.')
                 done = False
                 break
-
-        if self.limitAllCardsButton.isChecked():
-            self.settings['limitWidth'] = True
-            self.settings['limitWidthAll'] = True
-        elif self.limitIrCardsButton.isChecked():
-            self.settings['limitWidth'] = True
-            self.settings['limitWidthAll'] = False
-        else:
-            self.settings['limitWidth'] = False
-            self.settings['limitWidthAll'] = False
 
         self.settings['boldSeq'] = self.boldSeqEditBox.keySequence().toString()
         self.settings[
@@ -316,46 +302,8 @@ class SettingsDialog:
         controlsGroupBox = QGroupBox('Basic Controls')
         controlsGroupBox.setLayout(controlsLayout)
 
-        widthLabel = QLabel('Card Width Limit:')
-        self.widthEditBox = QLineEdit()
-        self.widthEditBox.setFixedWidth(50)
-        self.widthEditBox.setText(str(self.settings['maxWidth']))
-        pixelsLabel = QLabel('pixels')
-
-        widthEditLayout = QHBoxLayout()
-        widthEditLayout.addWidget(widthLabel)
-        widthEditLayout.addWidget(self.widthEditBox)
-        widthEditLayout.addWidget(pixelsLabel)
-
-        applyLabel = QLabel('Apply to')
-        self.limitAllCardsButton = QRadioButton('All Cards')
-        self.limitIrCardsButton = QRadioButton('IR Cards')
-        limitNoneButton = QRadioButton('None')
-
-        if self.settings['limitWidth'] and self.settings['limitWidthAll']:
-            self.limitAllCardsButton.setChecked(True)
-        elif self.settings['limitWidth']:
-            self.limitIrCardsButton.setChecked(True)
-        else:
-            limitNoneButton.setChecked(True)
-
-        applyLayout = QHBoxLayout()
-        applyLayout.addWidget(applyLabel)
-        applyLayout.addWidget(self.limitAllCardsButton)
-        applyLayout.addWidget(self.limitIrCardsButton)
-        applyLayout.addWidget(limitNoneButton)
-
-        displayLayout = QVBoxLayout()
-        displayLayout.addLayout(widthEditLayout)
-        displayLayout.addLayout(applyLayout)
-        displayLayout.addStretch()
-
-        displayGroupBox = QGroupBox('Display')
-        displayGroupBox.setLayout(displayLayout)
-
         layout = QHBoxLayout()
         layout.addWidget(controlsGroupBox)
-        layout.addWidget(displayGroupBox)
 
         tab = QWidget()
         tab.setLayout(layout)
