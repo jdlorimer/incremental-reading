@@ -21,14 +21,14 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from urllib.request import url2pathname
 
 from anki.notes import Note
-from aqt import mw
 
 try:
     from PyQt6.QtCore import Qt
 except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
 
-from aqt.qt import (QAbstractItemView, QDialog, QDialogButtonBox, QListWidget,
+from aqt import mw
+from aqt.qt import (QAbstractItemView, QDialog, QDialogButtonBox, QLabel, QListWidget,
                     QListWidgetItem, QVBoxLayout)
 from aqt.utils import (chooseList, getFile, getText, showCritical, showInfo,
                        showWarning, tooltip)
@@ -243,7 +243,7 @@ class Importer:
             showInfo('There are no new items in this feed.')
             return
 
-        selected = self._select(entries)
+        selected = self._selectEntriesToImport(entries)
 
         if not selected:
             return
@@ -275,7 +275,7 @@ class Importer:
         if not articles:
             return
 
-        selected = self._select(articles)
+        selected = self._selectEntriesToImport(articles)
 
         if self._settings['prioEnabled']:
             priority = self._getPriority()
@@ -306,9 +306,9 @@ class Importer:
 
         articles = get_epub_toc(epub_file_path)
         if not articles:
-            showInfo("No articles found in {}.".format(epub_file_path))
+            showInfo(f"No articles found in {epub_file_path}.")
             return
-        selected = self._select(articles)
+        selected = self._selectEntriesToImport(articles)
 
         if self._settings['prioEnabled']:
             priority = self._getPriority()
@@ -336,12 +336,16 @@ class Importer:
             mw.progress.finish()
             tooltip('Added {} item(s) to deck: {}'.format(len(importedArticle), deck))
 
-    def _select(self, choices):
+    def _selectEntriesToImport(self, choices):
         if not choices:
             return []
 
         dialog = QDialog(mw)
         layout = QVBoxLayout()
+
+        textWidget = QLabel()
+        textWidget.setText('Select entries to import: ')
+
         listWidget = QListWidget()
         listWidget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
@@ -351,12 +355,13 @@ class Importer:
             listWidget.addItem(item)
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.Save
+            QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.SaveAll
         )
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
         buttonBox.setOrientation(Qt.Orientation.Horizontal)
 
+        layout.addWidget(textWidget)
         layout.addWidget(listWidget)
         layout.addWidget(buttonBox)
 
