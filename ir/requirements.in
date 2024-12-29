@@ -1,9 +1,0 @@
-pip-tools
-mypy
-aqt
-PyQt5
-PyQt5-stubs
-markdown2
-
-pytest
-pytest-cov==3.*

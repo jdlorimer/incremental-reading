@@ -19,8 +19,11 @@ PROJECT_LONG=incremental-reading
 
 all: test prep pack clean
 
+install-deps:
+	poetry install --sync --no-root
+
 test:
-	pytest --cov="$(PROJECT_SHORT)" tests -v
+	poetry run pytest --cov="$(PROJECT_SHORT)" tests -v
 
 prep:
 	rm -f $(PROJECT_LONG)-v*.zip

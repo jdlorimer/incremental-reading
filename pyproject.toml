@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "incremental-reading-anki"
+version = "4.11.9"
+description = "Incremental Reading for Anki"
+authors = [
+    "Tiago Barroso",
+    "Frank Kmiec",
+    "Aleksej",
+    "Christian Weiß",
+    "Timothée Chauvin",
+    "Joseph Lorimer <joseph@lorimer.me>",
+    "Vy Hong <shiweistg@gmail.com>"]
+license = "ISC"
+readme = "README.md"
+homepage = "https://ankiweb.net/shared/info/999215520"
+repository = "https://github.com/tvhong/incremental-reading/"
+
+packages = [{include = "ir"}]
+
+include = ["CHANGELOG.md"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[tool.poetry.group.dev.dependencies]
+aqt = "^24.11"
+mypy = "^1.14"
+PyQt5 = "^5.15.10"
+PyQt5-stubs = "^5.15.5"
+markdown2 = "^2.5.2"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

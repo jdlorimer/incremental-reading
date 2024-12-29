@@ -5,17 +5,17 @@ The project is structured as follow:
 * `docs/` contains documentation
 
 # Dev setup
+We use `poetry` to manage project dependency.
 
-To install dependencies:
+First, install poetry following the instructions from https://python-poetry.org/docs/#installation .
+
+Then, install dependencies:
 ```shell
-cd ir && pip install -r requirements.txt
+make install-deps
 ```
 
-Occasionally, we'll want to update the dependencies list. You don't need this in first set-up.
-To upgrade the dependencies:
-```shell
-cd ir && pip-compile - --output-file=- < requirements.in > requirements.txt
-```
+Poetry will automatically create a virtual environment and install the dependencies.
+To use the virtual environment, see https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment
 
 # Manual Test
 

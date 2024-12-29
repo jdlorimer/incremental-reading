@@ -21,13 +21,12 @@ jobs:
         with:
           python-version: '3.x' # Or your desired Python version (e.g., '3.9')
 
-      - name: Install Dependencies (if needed)
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install Dependencies
         run: |
-          cd ir
-          if [ -f requirements.txt ]; then
-            echo "Installing dependencies..."
-            pip install -r requirements.txt
-          fi
+          make install-deps
 
       - name: Run make test
         run: |
