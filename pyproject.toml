@@ -1,4 +1,5 @@
 [tool.poetry]
+package-mode = false
 name = "incremental-reading-anki"
 version = "4.11.9"
 description = "Incremental Reading for Anki"
@@ -9,7 +10,7 @@ authors = [
     "Christian Weiß",
     "Timothée Chauvin",
     "Joseph Lorimer <joseph@lorimer.me>",
-    "Vy Hong <shiweistg@gmail.com>"]
+    "Vy Hong <contact@vyhong.me>"]
 license = "ISC"
 readme = "README.md"
 homepage = "https://ankiweb.net/shared/info/999215520"
@@ -36,3 +37,7 @@ pytest-cov = "^6.0.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry_bumpversion.file."ir/_version.py"]
+[tool.poetry_bumpversion.file."ir/manifest.json"]

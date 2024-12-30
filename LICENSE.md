@@ -5,7 +5,8 @@ Copyright 2013 Frank Kmiec
 Copyright 2013-2016 Aleksej
 Copyright 2017 Christian Weiß
 Copyright 2018 Timothée Chauvin
-Copyright 2017-2018 Joseph Lorimer <joseph@lorimer.me>
+Copyright 2017-2022 Joseph Lorimer <joseph@lorimer.me>
+Copyright 2022-2024 Vy Hong <contact@vyhong.me>
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above

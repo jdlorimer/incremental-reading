@@ -8,6 +8,10 @@ The project is structured as follow:
 We use `poetry` to manage project dependency.
 
 First, install poetry following the instructions from https://python-poetry.org/docs/#installation .
+Then, install poetry-bumpversion plugin
+```
+poetry self add poetry-bumpversion
+```
 
 Then, install dependencies:
 ```shell
@@ -55,9 +59,9 @@ make test
 
 # Publishing
 
-1. Update version file:
+1. Update the version
     ```
-    nano ir/_version.py
+    poetry version patch|minor|major
     nano ir/manifest.json
     ```
 2. Build the `incremental-reading-v{version}.zip` file:
