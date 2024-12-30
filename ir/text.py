@@ -41,9 +41,9 @@ class TextManager:
 
     def highlight(self, bgColor=None, textColor=None):
         if not bgColor:
-            bgColor = self._settings['highlightBgColor']
+            bgColor = self._settings["highlightBgColor"]
         if not textColor:
-            textColor = self._settings['highlightTextColor']
+            textColor = self._settings["highlightTextColor"]
 
         script = "highlight('%s', '%s')" % (bgColor, textColor)
         mw.web.eval(script)
@@ -54,109 +54,102 @@ class TextManager:
         self.save()
 
     def toggleOverlay(self):
-        mw.web.eval('toggleOverlay()')
+        mw.web.eval("toggleOverlay()")
         self.save()
 
     def extract(self, settings=None):
-        if mw.state != 'review':
+        if mw.state != "review":
             return
 
         if not settings:
             settings = self._settings
 
-        if not mw.web.selectedText() and not settings['editExtract']:
-            showInfo('Please select some text to extract.')
+        if not mw.web.selectedText() and not settings["editExtract"]:
+            showInfo("Please select some text to extract.")
             return
 
-        if settings['plainText']:
+        if settings["plainText"]:
             mw.web.evalWithCallback(
-                'getPlainText()', lambda text: self.create(text, settings)
+                "getPlainText()", lambda text: self.create(text, settings)
             )
         else:
             mw.web.evalWithCallback(
-                'getHtmlText()', lambda text: self.create(text, settings)
+                "getHtmlText()", lambda text: self.create(text, settings)
             )
 
     def create(self, text, settings):
         currentCard = mw.reviewer.card
         currentNote = currentCard.note()
-        model = mw.col.models.by_name(settings['modelName'])
+        model = mw.col.models.by_name(settings["modelName"])
         newNote = Note(mw.col, model)
         newNote.tags = currentNote.tags
-        setField(newNote, settings['textField'], fixImages(text))
+        setField(newNote, settings["textField"], fixImages(text))
 
-        if settings['extractDeck']:
-            deck = mw.col.decks.by_name(settings['extractDeck'])
+        if settings["extractDeck"]:
+            deck = mw.col.decks.by_name(settings["extractDeck"])
             if not deck:
                 showWarning(
-                    'Destination deck no longer exists. '
-                    'Please update your settings.'
+                    "Destination deck no longer exists. " "Please update your settings."
                 )
                 return
-            did = deck['id']
+            did = deck["id"]
         else:
             did = currentCard.did
 
-        if settings['isQuickKey']:
-            newNote.tags += settings['tags']
+        if settings["isQuickKey"]:
+            newNote.tags += settings["tags"]
 
-            if settings['sourceField']:
+            if settings["sourceField"]:
                 setField(
                     newNote,
-                    settings['sourceField'],
-                    getField(currentNote, self._settings['sourceField']),
+                    settings["sourceField"],
+                    getField(currentNote, self._settings["sourceField"]),
                 )
 
-            if settings['editExtract']:
+            if settings["editExtract"]:
                 highlight = self._editExtract(newNote, did, settings)
             else:
                 highlight = True
-                newNote.note_type()['did'] = did
+                newNote.note_type()["did"] = did
                 mw.col.addNote(newNote)
         else:
-            if settings['copyTitle']:
-                title = getField(currentNote, settings['titleField'])
+            if settings["copyTitle"]:
+                title = getField(currentNote, settings["titleField"])
             else:
-                title = ''
+                title = ""
 
             setField(
                 newNote,
-                settings['sourceField'],
-                getField(currentNote, settings['sourceField']),
+                settings["sourceField"],
+                getField(currentNote, settings["sourceField"]),
             )
-            if settings['prioEnabled']:
+            if settings["prioEnabled"]:
                 setField(
                     newNote,
-                    settings['prioField'],
-                    getField(currentNote, settings['prioField']),
+                    settings["prioField"],
+                    getField(currentNote, settings["prioField"]),
                 )
 
-            if settings['editExtract']:
-                setField(newNote, settings['titleField'], title)
+            if settings["editExtract"]:
+                setField(newNote, settings["titleField"], title)
                 highlight = self._editExtract(newNote, did, settings)
             else:
                 highlight = self._getTitle(newNote, did, title, settings)
 
-            if settings['scheduleExtract'] and not settings['prioEnabled']:
+            if settings["scheduleExtract"] and not settings["prioEnabled"]:
                 cards = newNote.cards()
                 if cards:
-                    mw.readingManager.scheduler.answer(
-                        cards[0], SCHEDULE_EXTRACT
-                    )
+                    mw.readingManager.scheduler.answer(cards[0], SCHEDULE_EXTRACT)
 
         if highlight:
-            self.highlight(
-                settings['extractBgColor'], settings['extractTextColor']
-            )
+            self.highlight(settings["extractBgColor"], settings["extractTextColor"])
 
-        if settings['editSource']:
+        if settings["editSource"]:
             EditCurrent(mw)
 
     def _editExtract(self, note: Note, deckId: DeckId, settings: SettingsManager):
         def onAdd():
-            self.highlight(
-                settings['extractBgColor'], settings['extractTextColor']
-            )
+            self.highlight(settings["extractBgColor"], settings["extractTextColor"])
 
         addCards = AddCards(mw)
         addCards.set_note(note, deckId)
@@ -166,41 +159,39 @@ class TextManager:
         return False
 
     def _getTitle(self, note, did, title, settings):
-        title, accepted = getText(
-            'Enter title', title='Extract Text', default=title
-        )
+        title, accepted = getText("Enter title", title="Extract Text", default=title)
 
         if accepted:
-            setField(note, settings['titleField'], title)
-            note.note_type()['did'] = did
+            setField(note, settings["titleField"], title)
+            note.note_type()["did"] = did
             mw.col.addNote(note)
 
         return accepted
 
     def remove(self):
-        mw.web.eval('removeText()')
+        mw.web.eval("removeText()")
         self.save()
 
     def undo(self):
         note = mw.reviewer.card.note()
 
         if note.id not in self._history or not self._history[note.id]:
-            showInfo('No undo history for this note.')
+            showInfo("No undo history for this note.")
             return
 
-        note['Text'] = self._history[note.id].pop()
-        #note.flush()
+        note["Text"] = self._history[note.id].pop()
+        # note.flush()
         mw.col.update_note(note)
         mw.reset()
-        tooltip('Undone')
+        tooltip("Undone")
 
     def save(self):
         def callback(text):
             if text:
                 note = mw.reviewer.card.note()
-                self._history[note.id].append(note['Text'])
-                note['Text'] = text
-                #note.flush()
+                self._history[note.id].append(note["Text"])
+                note["Text"] = text
+                # note.flush()
                 mw.col.update_note(note)
 
         mw.web.evalWithCallback(

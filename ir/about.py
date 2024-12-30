@@ -17,29 +17,29 @@ from aqt.qt import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 
 from ._version import __version__
 
-IR_GITHUB_URL = 'https://github.com/luoliyan/incremental-reading'
+IR_GITHUB_URL = "https://github.com/luoliyan/incremental-reading"
 
 
 def showAbout():
     dialog = QDialog(mw)
 
     label = QLabel()
-    label.setStyleSheet('QLabel { font-size: 14px; }')
+    label.setStyleSheet("QLabel { font-size: 14px; }")
     names = [
-        'Tiago Barroso',
-        'Frank Kmiec',
-        'Aleksej',
-        'Christian Weiß',
-        'Timothée Chauvin',
+        "Tiago Barroso",
+        "Frank Kmiec",
+        "Aleksej",
+        "Christian Weiß",
+        "Timothée Chauvin",
     ]
-    text = '''
+    text = """
 <div style="font-weight: bold">Incremental Reading v%s</div>
 <div>Joseph Lorimer &lt;joseph@lorimer.me&gt;</div>
 <div>Contributors: %s</div>
 <div>Website: <a href="%s">%s</a></div>
-''' % (
+""" % (
         __version__,
-        ', '.join(names),
+        ", ".join(names),
         IR_GITHUB_URL,
         IR_GITHUB_URL,
     )
@@ -53,5 +53,5 @@ def showAbout():
     layout.addWidget(buttonBox)
 
     dialog.setLayout(layout)
-    dialog.setWindowTitle('About')
+    dialog.setWindowTitle("About")
     dialog.exec()
