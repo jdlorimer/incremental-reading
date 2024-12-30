@@ -17,7 +17,7 @@ from aqt.qt import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 
 from ._version import __version__
 
-IR_GITHUB_URL = "https://github.com/luoliyan/incremental-reading"
+IR_GITHUB_URL = "https://github.com/tvhong/incremental-reading"
 
 
 def showAbout():
@@ -25,24 +25,19 @@ def showAbout():
 
     label = QLabel()
     label.setStyleSheet("QLabel { font-size: 14px; }")
-    names = [
-        "Tiago Barroso",
-        "Frank Kmiec",
-        "Aleksej",
+    contributors = [
+        "Joseph Lorimer <joseph@lorimer.me>" "Timothée Chauvin",
         "Christian Weiß",
-        "Timothée Chauvin",
+        "Aleksej",
+        "Frank Kmiec",
+        "Tiago Barroso",
     ]
-    text = """
-<div style="font-weight: bold">Incremental Reading v%s</div>
-<div>Joseph Lorimer &lt;joseph@lorimer.me&gt;</div>
-<div>Contributors: %s</div>
-<div>Website: <a href="%s">%s</a></div>
-""" % (
-        __version__,
-        ", ".join(names),
-        IR_GITHUB_URL,
-        IR_GITHUB_URL,
-    )
+    text = f"""
+<div style="font-weight: bold">Incremental Reading v{__version__}</div>
+<div>Vy Hong &lt;contact@vyhong.me&gt;</div>
+<div>Contributors: {", ".join(contributors)}</div>
+<div>Website: <a href="{IR_GITHUB_URL}">{IR_GITHUB_URL}</a></div>
+"""
     label.setText(text)
 
     buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)

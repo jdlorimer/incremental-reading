@@ -13,6 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 import os
+import re
 import stat
 import time
 from urllib.parse import unquote
@@ -83,19 +84,39 @@ def addMenuItem(path, text, function, keys=None):
     if keys:
         action.setShortcut(QKeySequence(keys))
 
+    # Override surprising behavior in OSX
+    # https://doc.qt.io/qt-6/qmenubar.html#qmenubar-as-a-global-menu-bar
+    if _hasSpecialOsxMenuKeywords(text):
+        action.setMenuRole(QAction.MenuRole.NoRole)
+
     action.triggered.connect(function)
 
+    menu = None
     if path == "File":
-        mw.form.menuCol.addAction(action)
+        menu = mw.form.menuCol
     elif path == "Edit":
-        mw.form.menuEdit.addAction(action)
+        menu = mw.form.menuEdit
     elif path == "Tools":
-        mw.form.menuTools.addAction(action)
+        menu = mw.form.menuTools
     elif path == "Help":
-        mw.form.menuHelp.addAction(action)
+        menu = mw.form.menuHelp
     else:
         addMenu(path)
-        mw.customMenus[path].addAction(action)
+        menu = mw.customMenus[path]
+
+    menu.addAction(action)
+
+
+def _hasSpecialOsxMenuKeywords(text: str):
+    """Checks if a string contains any of the specified keywords.
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if any keyword is found, False otherwise.
+    """
+    keywords = r"about|config|options|setup|settings|preferences|quit|exit"
+    return bool(re.search(keywords, text, re.IGNORECASE))
 
 
 def getField(note, fieldName):
