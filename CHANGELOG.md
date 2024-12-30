@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.12.0]
 
 ### Fixed
 - Don't switch to deck browser after import (#38)
@@ -13,8 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing About menu on OSX (#47)
 
 ### Changed
-- Use `poetry` to manage the project (#43)
-- Add GitHub workflow to run tests automatically
+- Various improvements to development process (#43)
 
 ### Removed
 - `maxWidth` configuration

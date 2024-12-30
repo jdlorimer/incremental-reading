@@ -1,7 +1,7 @@
 [tool.poetry]
 package-mode = false
 name = "incremental-reading-anki"
-version = "4.11.9"
+version = "4.12.0"
 description = "Incremental Reading for Anki"
 authors = [
     "Tiago Barroso",
@@ -43,3 +43,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry_bumpversion.file."ir/_version.py"]
 [tool.poetry_bumpversion.file."ir/manifest.json"]
+[tool.poetry_bumpversion.file."CHANGELOG.md"]
+search = '[Unreleased]'
+replace = '[{new_version}]'
