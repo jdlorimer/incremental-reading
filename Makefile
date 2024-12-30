@@ -20,15 +20,23 @@ PROJECT_LONG=incremental-reading
 RELEASE_DIR=$(CURDIR)/release
 RELEASE_FILE=$(RELEASE_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
 
-.PHONY: install-deps test clean release
+.PHONY: install-deps lint format test clean release
 
 all: install-deps test
 
 install-deps:
 	poetry install --sync --no-root
 
+lint:
+	poetry run pylint "$(PROJECT_SHORT)" tests
+
+format:
+	poetry run black "$(PROJECT_SHORT)" tests
+
 test:
 	poetry run pytest --cov="$(PROJECT_SHORT)" tests -v
+
+check: lint test
 
 clean:
 	rm -rf "$(RELEASE_DIR)"

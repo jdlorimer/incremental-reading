@@ -26,12 +26,14 @@ python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
 aqt = "^24.11"
+black = "^24.10.0"
 mypy = "^1.14"
+pylint = "^3.3.3"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
 PyQt5 = "^5.15.10"
 PyQt5-stubs = "^5.15.5"
 markdown2 = "^2.5.2"
-pytest = "^8.3.4"
-pytest-cov = "^6.0.0"
 
 
 [build-system]
