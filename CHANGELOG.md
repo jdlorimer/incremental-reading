@@ -5,18 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.12.0]
+## [Unreleased]
 
 ### Fixed
-- Don't switch to deck browser after import (#38)
-- Properly handle importing a page when title is missing (#34)
-- Missing About menu on OSX (#47)
+
+## [4.12.0] - 2024-12-30
+
+### Fixed
+- Don't switch to deck browser after import (#38).
+- Properly handle importing a page when title is missing (#34).
+- Missing About menu on OSX (#47).
 
 ### Changed
-- Various improvements to development process (#43)
+- Various improvements to development process (#43).
 
 ### Removed
-- `maxWidth` configuration
+- Remove `maxWidth` configuration as this should be part of the card's CSS. New
+users will have the correct CSS, but existing users might need to manually
+update their Card template's CSS to
+https://github.com/tvhong/incremental-reading/blob/main/ir/web/model.css
 
 
 ## [4.11.9] - 2023-03-05
