@@ -25,20 +25,25 @@ RELEASE_FILE=$(RELEASE_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
 all: install-deps test
 
 install-deps:
+	@echo "Installing dependencies..."
 	poetry install --sync --no-root
 
 lint:
+	@echo "Linting code..."
 	poetry run pylint "$(PROJECT_SHORT)" tests
 
 format:
+	@echo "Formatting code..."
 	poetry run black "$(PROJECT_SHORT)" tests
 
 test:
+	@echo "Running tests..."
 	poetry run pytest --cov="$(PROJECT_SHORT)" tests -v
 
 check: lint test
 
 clean:
+	@echo "Cleaning up..."
 	rm -rf "$(RELEASE_DIR)"
 	find . -name '*.pyc' -type f -delete
 	find . -name '*~' -type f -delete
@@ -47,6 +52,7 @@ clean:
 	find . -name __pycache__ -type d -exec rm -rf {} +
 
 release: test clean
+	@echo "Creating release file: $(RELEASE_FILE)"
 	mkdir -p "$(RELEASE_DIR)"
 	cd "$(PROJECT_SHORT)" && zip -r "$(RELEASE_FILE)" *
 	zip $(RELEASE_FILE) LICENSE.md

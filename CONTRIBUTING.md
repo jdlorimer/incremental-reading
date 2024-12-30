@@ -62,15 +62,14 @@ make test
 1. Update the version
     ```
     poetry version patch|minor|major
-    nano ir/manifest.json
     ```
-2. Build the `incremental-reading-v{version}.zip` file:
+2. Build the `release/incremental-reading-v{version}.zip` file:
     ```shell
-    make package
+    make release
     ```
 3. Test the zip file in Anki
     * Disable current IR add-on: Open Anki > Tools > Add-ons > Select current IR add-on > Toggle Enabled.
     * Add the zipped add-on: In Add-ons page > Install from file... > Pick the zip file from earlier.
     * Restart Anki to test.
-    * After finish, revert the above steps.
+    * After finish testing, disable the local add-on and re-enable the public add-on.
 4. Upload to https://ankiweb.net/shared/addons/ .
