@@ -22,6 +22,8 @@ DIST_FILE_PATH=$(DIST_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
 
 .PHONY: install-deps test clean package
 
+all: install-deps test
+
 install-deps:
 	poetry install --sync --no-root
 
