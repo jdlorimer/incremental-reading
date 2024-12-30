@@ -20,7 +20,7 @@ PROJECT_LONG=incremental-reading
 DIST_DIR=$(CURDIR)/dist
 DIST_FILE_PATH=$(DIST_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
 
-all: test clean pack
+.PHONY: install-deps test clean package
 
 install-deps:
 	poetry install --sync --no-root
@@ -36,7 +36,7 @@ clean:
 	find . -name .ropeproject -type d -exec rm -rf {} +
 	find . -name __pycache__ -type d -exec rm -rf {} +
 
-pack:
+package: test clean
 	mkdir -p "$(DIST_DIR)"
 	cd "$(PROJECT_SHORT)" && zip -r "$(DIST_FILE_PATH)" *
 	zip $(DIST_FILE_PATH) LICENSE.md
