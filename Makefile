@@ -17,26 +17,36 @@ VERSION=$(shell poetry version -s)
 PROJECT_SHORT=ir
 PROJECT_LONG=incremental-reading
 
-DIST_DIR=$(CURDIR)/dist
-DIST_FILE_PATH=$(DIST_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
+RELEASE_DIR=$(CURDIR)/release
+RELEASE_FILE=$(RELEASE_DIR)/$(PROJECT_LONG)-v$(VERSION).zip
 
-all: test clean pack
+.PHONY: install-deps lint format test clean release
+
+all: install-deps test
 
 install-deps:
 	poetry install --sync --no-root
 
+lint:
+	poetry run pylint "$(PROJECT_SHORT)" tests
+
+format:
+	poetry run black "$(PROJECT_SHORT)" tests
+
 test:
 	poetry run pytest --cov="$(PROJECT_SHORT)" tests -v
 
+check: lint test
+
 clean:
-	rm -rf "$(DIST_DIR)"
+	rm -rf "$(RELEASE_DIR)"
 	find . -name '*.pyc' -type f -delete
 	find . -name '*~' -type f -delete
 	find . -name .mypy_cache -type d -exec rm -rf {} +
 	find . -name .ropeproject -type d -exec rm -rf {} +
 	find . -name __pycache__ -type d -exec rm -rf {} +
 
-pack:
-	mkdir -p "$(DIST_DIR)"
-	cd "$(PROJECT_SHORT)" && zip -r "$(DIST_FILE_PATH)" *
-	zip $(DIST_FILE_PATH) LICENSE.md
+release: test clean
+	mkdir -p "$(RELEASE_DIR)"
+	cd "$(PROJECT_SHORT)" && zip -r "$(RELEASE_FILE)" *
+	zip $(RELEASE_FILE) LICENSE.md

@@ -23,87 +23,85 @@ from requests import post
 
 class Pocket:
     _accessToken = None
-    _redirectURI = 'https://github.com/luoliyan/incremental-reading'
-    _headers = {'X-Accept': 'application/json'}
+    _redirectURI = "https://github.com/luoliyan/incremental-reading"
+    _headers = {"X-Accept": "application/json"}
 
     if is_win:
-        consumerKey = '71462-da4f02100e7e381cbc4a86df'
+        consumerKey = "71462-da4f02100e7e381cbc4a86df"
     elif is_mac:
-        consumerKey = '71462-ed224e5a561a545814023bf9'
+        consumerKey = "71462-ed224e5a561a545814023bf9"
     else:
-        consumerKey = '71462-05fb63bf0314903c7e73c52f'
+        consumerKey = "71462-05fb63bf0314903c7e73c52f"
 
     def getArticles(self):
         if not self._accessToken:
             self._accessToken = self._authenticate()
 
         if not self._accessToken:
-            showCritical('Authentication failed.')
+            showCritical("Authentication failed.")
             return []
 
         response = post(
-            'https://getpocket.com/v3/get',
+            "https://getpocket.com/v3/get",
             json={
-                'consumer_key': self.consumerKey,
-                'access_token': self._accessToken,
-                'contentType': 'article',
-                'count': 30,
-                'detailType': 'complete',
-                'sort': 'newest',
+                "consumer_key": self.consumerKey,
+                "access_token": self._accessToken,
+                "contentType": "article",
+                "count": 30,
+                "detailType": "complete",
+                "sort": "newest",
             },
             headers=self._headers,
         )
 
-        if response.json()['list']:
+        if response.json()["list"]:
             return [
-                {'text': a['resolved_title'], 'data': a}
-                for a in response.json()['list'].values()
+                {"text": a["resolved_title"], "data": a}
+                for a in response.json()["list"].values()
             ]
 
-        showInfo('You have no unread articles remaining.')
+        showInfo("You have no unread articles remaining.")
         return []
 
     def _authenticate(self):
         response = post(
-            'https://getpocket.com/v3/oauth/request',
+            "https://getpocket.com/v3/oauth/request",
             json={
-                'consumer_key': self.consumerKey,
-                'redirect_uri': self._redirectURI,
+                "consumer_key": self.consumerKey,
+                "redirect_uri": self._redirectURI,
             },
             headers=self._headers,
         )
 
-        requestToken = response.json()['code']
+        requestToken = response.json()["code"]
 
-        authUrl = 'https://getpocket.com/auth/authorize?'
+        authUrl = "https://getpocket.com/auth/authorize?"
         authParams = {
-            'request_token': requestToken,
-            'redirect_uri': self._redirectURI,
+            "request_token": requestToken,
+            "redirect_uri": self._redirectURI,
         }
 
         openLink(authUrl + urlencode(authParams))
-        if not askUser('I have authenticated with Pocket.'):
+        if not askUser("I have authenticated with Pocket."):
             return None
 
         response = post(
-            'https://getpocket.com/v3/oauth/authorize',
-            json={'consumer_key': self.consumerKey, 'code': requestToken},
+            "https://getpocket.com/v3/oauth/authorize",
+            json={"consumer_key": self.consumerKey, "code": requestToken},
             headers=self._headers,
         )
 
         try:
-            return response.json()['access_token']
+            return response.json()["access_token"]
         except JSONDecodeError:
             return None
 
     def archive(self, article):
         post(
-            'https://getpocket.com/v3/send',
+            "https://getpocket.com/v3/send",
             json={
-                'consumer_key': self.consumerKey,
-                'access_token': self._accessToken,
-                'actions': [
-                    {'action': 'archive', 'item_id': article['item_id']}
-                ],
+                "consumer_key": self.consumerKey,
+                "access_token": self._accessToken,
+                "actions": [{"action": "archive", "item_id": article["item_id"]}],
             },
         )

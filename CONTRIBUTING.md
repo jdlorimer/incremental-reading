@@ -66,7 +66,7 @@ make test
     ```
 2. Build the `incremental-reading-v{version}.zip` file:
     ```shell
-    make
+    make package
     ```
 3. Test the zip file in Anki
     * Disable current IR add-on: Open Anki > Tools > Add-ons > Select current IR add-on > Toggle Enabled.

@@ -32,22 +32,25 @@ def nov_container_content_filename(filename):
     root = doc.getroot()
     node = root.find(query)
     if node is not None:
-        return node.get('full-path')
+        return node.get("full-path")
     return "OEBPS/Content.opf"
+
 
 def nov_content_version(root):
     """Return the EPUB version for ROOT."""
-    version = root.get('version') if root is not None else None
+    version = root.get("version") if root is not None else None
     if not version:
         raise ValueError("Version not specified")
     return float(version)
+
 
 def nov_content_manifest(directory, root):
     """Extract an alist of manifest files for CONTENT in DIRECTORY.
     Each alist item consists of the identifier and full path."""
     query = "{*}manifest/{*}item"
     nodes = root.findall(query)
-    return {node.get('id'):os.path.join(directory, node.get('href')) for node in nodes}
+    return {node.get("id"): os.path.join(directory, node.get("href")) for node in nodes}
+
 
 def nov_content_epub2_toc_file(root, manifest):
     """Return toc file for EPUB 2."""
@@ -55,7 +58,7 @@ def nov_content_epub2_toc_file(root, manifest):
     if node is None:
         raise ValueError("EPUB 2 NCX ID not found")
 
-    toc_id = node.get('toc')
+    toc_id = node.get("toc")
     if toc_id is None:
         raise ValueError("EPUB 2 NCX ID not found")
 
@@ -73,7 +76,7 @@ def nov_content_epub3_toc_file(root, manifest):
     if node is None:
         raise ValueError("EPUB 3 <nav> ID not found")
 
-    toc_id = node.get('id')
+    toc_id = node.get("id")
     if toc_id is None:
         raise ValueError("EPUB 3 <nav> ID not found")
 
@@ -83,13 +86,15 @@ def nov_content_epub3_toc_file(root, manifest):
         raise ValueError("EPUB 3 <nav> file not found")
 
     return toc_file
+
+
 def nov_content_epub2_files(root, manifest, files):
     """Return updated files list for EPUB 2."""
     node = root.find("{*}spine[@toc]")
     if node is None:
         raise ValueError("EPUB 2 NCX ID not found")
 
-    toc_id = node.get('toc')
+    toc_id = node.get("toc")
     if toc_id is None:
         raise ValueError("EPUB 2 NCX ID not found")
 
@@ -108,7 +113,7 @@ def nov_content_epub3_files(root, manifest, files):
     if node is None:
         raise ValueError("EPUB 3 <nav> ID not found")
 
-    toc_id = node.get('id')
+    toc_id = node.get("id")
     if toc_id is None:
         raise ValueError("EPUB 3 <nav> ID not found")
 
@@ -120,9 +125,10 @@ def nov_content_epub3_files(root, manifest, files):
     files[toc_id] = toc_file
     return files
 
+
 def nov_content_toc_file(content_dir, root):
     "Return toc file from content ROOT"
-    manifest = nov_content_manifest(content_dir,root)
+    manifest = nov_content_manifest(content_dir, root)
     version = nov_content_version(root)
     if version < 3.0:
         toc_filename = nov_content_epub2_toc_file(root, manifest)
@@ -130,60 +136,63 @@ def nov_content_toc_file(content_dir, root):
         toc_filename = nov_content_epub3_toc_file(root, manifest)
     return version, toc_filename
 
+
 def nov_toc_epub2_files(content_dir, root):
-    query = '{*}navMap//{*}navPoint'
+    query = "{*}navMap//{*}navPoint"
     nav_points = root.findall(query)
     files = []
     for point in nav_points:
-        text_node = point.find('{*}navLabel/{*}text')
-        content_node = point.find('{*}content')
+        text_node = point.find("{*}navLabel/{*}text")
+        content_node = point.find("{*}content")
         text = text_node.text
-        href = os.path.join(content_dir, content_node.get('src'))
+        href = os.path.join(content_dir, content_node.get("src"))
         scheme, netloc, path, *_ = urlsplit(href)
-        path=urlunsplit((scheme,netloc,path,'',''))
+        path = urlunsplit((scheme, netloc, path, "", ""))
         data = {"text": text, "href": path}
-        files.append({'text':text, "data": data})
+        files.append({"text": text, "data": data})
     print(files)
     return files
 
+
 def nov_toc_epub3_files(toc_file, root):
     toc_dir = os.path.dirname(toc_file)
-    query = './/{*}nav//{*}ol/{*}li'
+    query = ".//{*}nav//{*}ol/{*}li"
     nav_points = root.findall(query)
     files = []
     for point in nav_points:
-        node = point.find('{*}a')
+        node = point.find("{*}a")
         text = node.text
-        href = node.get('href')
-        if href.startswith('#'):
+        href = node.get("href")
+        if href.startswith("#"):
             path = toc_file
         else:
             path = os.path.join(toc_dir, href)
             scheme, netloc, path, *_ = urlsplit(path)
         data = {"text": text, "href": path}
-        files.append({'text':text, "data": data})
+        files.append({"text": text, "data": data})
     return files
 
+
 def _get_extract_dir(filename):
-    'get extract directory by epub filename.'
+    "get extract directory by epub filename."
     tempdir = tempfile.gettempdir()
     tempdir = Path(tempdir).as_posix()
     basename = os.path.basename(filename)
     nonextension = os.path.splitext(basename)[0]
     return os.path.join(tempdir, nonextension)
 
+
 def _unzip_epub(file_path):
     extract_dir = _get_extract_dir(file_path)
     if not os.path.exists(extract_dir):
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
             zip_ref.extractall(extract_dir)
     return extract_dir
 
 
-
 def get_epub_toc(epub_file_path):
     extract_dir = _unzip_epub(epub_file_path)
-    container_filename = os.path.join(extract_dir,"META-INF","container.xml")
+    container_filename = os.path.join(extract_dir, "META-INF", "container.xml")
     content_filename = nov_container_content_filename(container_filename)
     content_filename = os.path.join(extract_dir, content_filename)
     content_dir = os.path.dirname(content_filename)

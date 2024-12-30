@@ -28,8 +28,16 @@ except ModuleNotFoundError:
 from anki.cards import Card
 from anki.utils import strip_html
 from aqt import mw
-from aqt.qt import (QAbstractItemView, QDialog, QDialogButtonBox, QHBoxLayout,
-                    QListWidget, QListWidgetItem, QPushButton, QVBoxLayout)
+from aqt.qt import (
+    QAbstractItemView,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+)
 from aqt.utils import showInfo, tooltip
 
 from .settings import SettingsManager
@@ -53,12 +61,12 @@ class Scheduler:
         if currentCard:
             self._deckId = currentCard.did
         elif mw._selectedDeck():
-            self._deckId = mw._selectedDeck()['id']
+            self._deckId = mw._selectedDeck()["id"]
         else:
             return
 
         if not self._getCardInfo(self._deckId):
-            showInfo('Please select an Incremental Reading deck.')
+            showInfo("Please select an Incremental Reading deck.")
             return
 
         dialog = QDialog(mw)
@@ -71,21 +79,21 @@ class Scheduler:
         self._cardListWidget.setWordWrap(True)
         self._cardListWidget.itemDoubleClicked.connect(
             lambda: showBrowser(
-                self._cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)['nid']
+                self._cardListWidget.currentItem().data(Qt.ItemDataRole.UserRole)["nid"]
             )
         )
 
         self._updateListItems()
 
-        upButton = QPushButton('Up')
+        upButton = QPushButton("Up")
         upButton.clicked.connect(self._moveUp)
-        downButton = QPushButton('Down')
+        downButton = QPushButton("Down")
         downButton.clicked.connect(self._moveDown)
-        topButton = QPushButton('Top')
+        topButton = QPushButton("Top")
         topButton.clicked.connect(self._moveToTop)
-        bottomButton = QPushButton('Bottom')
+        bottomButton = QPushButton("Bottom")
         bottomButton.clicked.connect(self._moveToBottom)
-        randomizeButton = QPushButton('Randomize')
+        randomizeButton = QPushButton("Randomize")
         randomizeButton.clicked.connect(self._randomize)
 
         controlsLayout = QHBoxLayout()
@@ -116,7 +124,7 @@ class Scheduler:
             cids = []
             for i in range(self._cardListWidget.count()):
                 card = self._cardListWidget.item(i).data(Qt.ItemDataRole.UserRole)
-                cids.append(card['id'])
+                cids.append(card["id"])
 
             self.reorder(cids)
 
@@ -125,14 +133,12 @@ class Scheduler:
         self._cardListWidget.clear()
         posWidth = len(str(len(cardInfo) + 1))
         for i, card in enumerate(cardInfo, start=1):
-            if self._settings['prioEnabled']:
-                info = card['priority']
+            if self._settings["prioEnabled"]:
+                info = card["priority"]
             else:
                 info = str(i).zfill(posWidth)
-            title = sub(r'\s+', ' ', strip_html(card['title']))
-            text = self._settings['organizerFormat'].format(
-                info=info, title=title
-            )
+            title = sub(r"\s+", " ", strip_html(card["title"]))
+            text = self._settings["organizerFormat"].format(info=info, title=title)
             item = QListWidgetItem(text)
             item.setData(Qt.ItemDataRole.UserRole, card)
             self._cardListWidget.addItem(item)
@@ -140,7 +146,7 @@ class Scheduler:
     def _moveToTop(self):
         selected = self._getSelected()
         if not selected:
-            showInfo('Please select one or several items.')
+            showInfo("Please select one or several items.")
             return
 
         selected.reverse()
@@ -154,7 +160,7 @@ class Scheduler:
     def _moveUp(self):
         selected = self._getSelected()
         if not selected:
-            showInfo('Please select one or several items.')
+            showInfo("Please select one or several items.")
             return
 
         if self._cardListWidget.row(selected[0]) == 0:
@@ -170,15 +176,12 @@ class Scheduler:
     def _moveDown(self):
         selected = self._getSelected()
         if not selected:
-            showInfo('Please select one or several items.')
+            showInfo("Please select one or several items.")
             return
 
         selected.reverse()
 
-        if (
-            self._cardListWidget.row(selected[0])
-            == self._cardListWidget.count() - 1
-        ):
+        if self._cardListWidget.row(selected[0]) == self._cardListWidget.count() - 1:
             return
 
         for item in selected:
@@ -191,7 +194,7 @@ class Scheduler:
     def _moveToBottom(self):
         selected = self._getSelected()
         if not selected:
-            showInfo('Please select one or several items.')
+            showInfo("Please select one or several items.")
             return
 
         for item in selected:
@@ -213,16 +216,14 @@ class Scheduler:
             self._cardListWidget.takeItem(0)
             for _ in range(self._cardListWidget.count())
         ]
-        if self._settings['prioEnabled']:
-            maxPrio = len(self._settings['priorities']) - 1
+        if self._settings["prioEnabled"]:
+            maxPrio = len(self._settings["priorities"]) - 1
             for item in allItems:
-                priority = item.data(Qt.ItemDataRole.UserRole)['priority']
-                if priority != '':
-                    item.contNewPos = gauss(
-                        maxPrio - int(priority), maxPrio / 20
-                    )
+                priority = item.data(Qt.ItemDataRole.UserRole)["priority"]
+                if priority != "":
+                    item.contNewPos = gauss(maxPrio - int(priority), maxPrio / 20)
                 else:
-                    item.contNewPos = float('inf')
+                    item.contNewPos = float("inf")
             allItems.sort(key=lambda item: item.contNewPos)
 
         else:
@@ -232,33 +233,33 @@ class Scheduler:
             self._cardListWidget.addItem(item)
 
     def answer(self, card: Card, ease: int):
-        if self._settings['prioEnabled']:
+        if self._settings["prioEnabled"]:
             # reposition the card at the end of the organizer
             cardCount = len(self._getCardInfo(card.did))
             self.reposition(card, cardCount)
             return
 
         if ease == SCHEDULE_EXTRACT:
-            value = self._settings['extractValue']
-            randomize = self._settings['extractRandom']
-            method = self._settings['extractMethod']
+            value = self._settings["extractValue"]
+            randomize = self._settings["extractRandom"]
+            method = self._settings["extractMethod"]
         elif ease == SCHEDULE_SOON:
-            value = self._settings['soonValue']
-            randomize = self._settings['soonRandom']
-            method = self._settings['soonMethod']
+            value = self._settings["soonValue"]
+            randomize = self._settings["soonRandom"]
+            method = self._settings["soonMethod"]
         elif ease == SCHEDULE_LATER:
-            value = self._settings['laterValue']
-            randomize = self._settings['laterRandom']
-            method = self._settings['laterMethod']
+            value = self._settings["laterValue"]
+            randomize = self._settings["laterRandom"]
+            method = self._settings["laterMethod"]
         elif ease == SCHEDULE_CUSTOM:
             self.reposition(card, 1)
             self.showDialog(card)
             return
 
-        if method == 'percent':
-            totalCards = len([c['id'] for c in self._getCardInfo(card.did)])
+        if method == "percent":
+            totalCards = len([c["id"] for c in self._getCardInfo(card.did)])
             newPos = totalCards * (value / 100)
-        elif method == 'count':
+        elif method == "count":
             newPos = value
 
         if randomize:
@@ -268,38 +269,46 @@ class Scheduler:
         self.reposition(card, newPos)
 
         if ease != SCHEDULE_EXTRACT:
-            tooltip('Card moved to position {}'.format(newPos))
+            tooltip("Card moved to position {}".format(newPos))
 
     def reposition(self, card, newPos):
-        cids = [c['id'] for c in self._getCardInfo(card.did)]
+        cids = [c["id"] for c in self._getCardInfo(card.did)]
         mw.col.sched.forgetCards(cids)
         cids.remove(card.id)
         newOrder = cids[: newPos - 1] + [card.id] + cids[newPos - 1 :]
-        mw.col.sched.reposition_new_cards(newOrder, starting_from=1, step_size=1, randomize=False, shift_existing=False)
+        mw.col.sched.reposition_new_cards(
+            newOrder,
+            starting_from=1,
+            step_size=1,
+            randomize=False,
+            shift_existing=False,
+        )
 
     def reorder(self, cids):
         mw.col.sched.forgetCards(cids)
-        mw.col.sched.reposition_new_cards(cids, starting_from=1, step_size=1, randomize=False, shift_existing=False)
+        mw.col.sched.reposition_new_cards(
+            cids, starting_from=1, step_size=1, randomize=False, shift_existing=False
+        )
 
     def _getCardInfo(self, did):
         cardInfo = []
 
         for cid, nid in mw.col.db.execute(
-            'select id, nid from cards where did = ?', did
+            "select id, nid from cards where did = ?", did
         ):
             note = mw.col.get_note(nid)
-            if note.note_type()['name'] == self._settings['modelName']:
-                if self._settings['prioEnabled']:
-                    prio = note[self._settings['prioField']]
+            if note.note_type()["name"] == self._settings["modelName"]:
+                if self._settings["prioEnabled"]:
+                    prio = note[self._settings["prioField"]]
                 else:
                     prio = None
 
                 cardInfo.append(
                     {
-                        'id': cid,
-                        'nid': nid,
-                        'title': note[self._settings['titleField']],
-                        'priority': prio,
+                        "id": cid,
+                        "nid": nid,
+                        "title": note[self._settings["titleField"]],
+                        "priority": prio,
                     }
                 )
 
