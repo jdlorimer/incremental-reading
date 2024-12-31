@@ -70,7 +70,7 @@ class Importer:
         return self._cleanWebpage(html, url)
 
     def _fetchLocalpage(self, filepath):
-        with open(filepath, "r") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             html = f.read()
             url = urlunsplit(("file", "", filepath, None, None))
             return self._cleanWebpage(html, url, True)
