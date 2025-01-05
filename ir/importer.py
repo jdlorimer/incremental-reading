@@ -172,7 +172,7 @@ class Importer:
 
         filepath = Path(filepath).as_posix()  # Convert Windows Path to Linux
         if not os.path.isfile(filepath):
-            showCritical(f"File[{filepath}] Not exists.")
+            showCritical(f"File [{filepath}] Not exists.")
             return
 
         try:
@@ -403,13 +403,13 @@ class Importer:
                 a["href"] = urljoin(url, a["href"])
 
     def _processImgTag(self, url: str, img: PageElement, local=False):
-        if img.get("src"):
-            img["src"] = urljoin(url, img.get("src", ""))
-        print("src=", img["src"])
+        if not img.get("src"):
+            return
+
+        img["src"] = urljoin(url, img.get("src", ""))
         if local and urlsplit(img["src"]).scheme == "file":
             filepath = url2pathname(urlsplit(img["src"]).path)
             mediafilepath = mw.col.media.add_file(filepath)
-            print(filepath, "===>", mediafilepath)
             img["src"] = mediafilepath
 
         # Some webpages send broken base64-encoded URI in srcset attribute.
