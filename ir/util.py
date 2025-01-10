@@ -16,6 +16,8 @@ import os
 import re
 import stat
 import time
+from dataclasses import dataclass
+from typing import Any, List
 from urllib.parse import unquote
 
 from anki.cards import Card
@@ -28,8 +30,25 @@ except ModuleNotFoundError:
     from PyQt5.QtGui import QKeySequence
 
 from aqt import dialogs, mw
-from aqt.qt import QAction, QMenu, QSpinBox
+from aqt.qt import (
+    QAbstractItemView,
+    QAction,
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMenu,
+    QSpinBox,
+    QVBoxLayout,
+)
 from bs4 import BeautifulSoup
+
+
+@dataclass
+class Article:
+    title: str
+    data: Any
 
 
 def isIrCard(card: Card) -> bool:
@@ -190,3 +209,53 @@ def showBrowser(nid):
     browser = dialogs.open("Browser", mw)
     browser.form.searchEdit.lineEdit().setText("nid:" + str(nid))
     browser.onSearchActivated()
+
+
+def selectArticles(articles: List[Article]) -> List[Article]:
+    """Select which articles to import using a dialog.
+
+    Args:
+        choices: List of Article objects to select from
+
+    Returns:
+        List of selected articles
+    """
+    if not articles:
+        return []
+
+    dialog = QDialog(mw)
+    layout = QVBoxLayout()
+
+    textWidget = QLabel()
+    textWidget.setText("Select articles to import: ")
+
+    listWidget = QListWidget()
+    listWidget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+
+    for article in articles:
+        item = QListWidgetItem(article.title)
+        item.setData(Qt.ItemDataRole.UserRole, article)
+        listWidget.addItem(item)
+
+    buttonBox = QDialogButtonBox(
+        QDialogButtonBox.StandardButton.Close | QDialogButtonBox.StandardButton.SaveAll
+    )
+    buttonBox.accepted.connect(dialog.accept)
+    buttonBox.rejected.connect(dialog.reject)
+    buttonBox.setOrientation(Qt.Orientation.Horizontal)
+
+    layout.addWidget(textWidget)
+    layout.addWidget(listWidget)
+    layout.addWidget(buttonBox)
+
+    dialog.setLayout(layout)
+    dialog.setWindowModality(Qt.WindowModality.WindowModal)
+    dialog.resize(500, 500)
+    choice = dialog.exec()
+
+    if choice == 1:
+        res = [
+            item.data(Qt.ItemDataRole.UserRole) for item in listWidget.selectedItems()
+        ]
+        return res
+    return []

@@ -35,6 +35,7 @@ lint:
 format:
 	@echo "Formatting code..."
 	poetry run black "$(PROJECT_SHORT)" tests
+	poetry run isort "$(PROJECT_SHORT)" tests
 
 test:
 	@echo "Running tests..."

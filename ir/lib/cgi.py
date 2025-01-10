@@ -31,17 +31,17 @@ __version__ = "2.6"
 # Imports
 # =======
 
-from io import StringIO, BytesIO, TextIOWrapper
-from collections.abc import Mapping
-import sys
-import os
-import urllib.parse
-from email.parser import FeedParser
-from email.message import Message
-from warnings import warn
 import html
 import locale
+import os
+import sys
 import tempfile
+import urllib.parse
+from collections.abc import Mapping
+from email.message import Message
+from email.parser import FeedParser
+from io import BytesIO, StringIO, TextIOWrapper
+from warnings import warn
 
 __all__ = [
     "MiniFieldStorage",

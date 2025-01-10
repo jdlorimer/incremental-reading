@@ -13,12 +13,14 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from json.decoder import JSONDecodeError
+from typing import List
 from urllib.parse import urlencode
 
 from anki.utils import is_mac, is_win
 from aqt.utils import askUser, openLink, showCritical, showInfo
-
 from requests import post
+
+from ir.util import Article
 
 
 class Pocket:
@@ -33,7 +35,7 @@ class Pocket:
     else:
         consumerKey = "71462-05fb63bf0314903c7e73c52f"
 
-    def getArticles(self):
+    def getArticles(self) -> List[Article]:
         if not self._accessToken:
             self._accessToken = self._authenticate()
 
@@ -56,7 +58,7 @@ class Pocket:
 
         if response.json()["list"]:
             return [
-                {"text": a["resolved_title"], "data": a}
+                Article(title=a["resolved_title"], data=a)
                 for a in response.json()["list"].values()
             ]
 
@@ -96,12 +98,12 @@ class Pocket:
         except JSONDecodeError:
             return None
 
-    def archive(self, article):
+    def archive(self, article: Article) -> None:
         post(
             "https://getpocket.com/v3/send",
             json={
                 "consumer_key": self.consumerKey,
                 "access_token": self._accessToken,
-                "actions": [{"action": "archive", "item_id": article["item_id"]}],
+                "actions": [{"action": "archive", "item_id": article.data["item_id"]}],
             },
         )

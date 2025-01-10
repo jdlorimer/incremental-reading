@@ -13,16 +13,14 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 import os
-import re
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from typing import List
+from urllib.parse import urlsplit, urlunsplit
 
-from anki.utils import is_mac, is_win
-from aqt.utils import askUser, openLink, showCritical, showInfo
-from requests import post
+from ir.util import Article
 
 
 def nov_container_content_filename(filename):
@@ -137,39 +135,38 @@ def nov_content_toc_file(content_dir, root):
     return version, toc_filename
 
 
-def nov_toc_epub2_files(content_dir, root):
+def nov_toc_epub2_files(content_dir, root) -> List[Article]:
     query = "{*}navMap//{*}navPoint"
     nav_points = root.findall(query)
     files = []
     for point in nav_points:
         text_node = point.find("{*}navLabel/{*}text")
         content_node = point.find("{*}content")
-        text = text_node.text
+        title = text_node.text
         href = os.path.join(content_dir, content_node.get("src"))
         scheme, netloc, path, *_ = urlsplit(href)
         path = urlunsplit((scheme, netloc, path, "", ""))
-        data = {"text": text, "href": path}
-        files.append({"text": text, "data": data})
-    print(files)
+        data = {"url": path}
+        files.append(Article(title, data))
     return files
 
 
-def nov_toc_epub3_files(toc_file, root):
+def nov_toc_epub3_files(toc_file, root) -> List[Article]:
     toc_dir = os.path.dirname(toc_file)
     query = ".//{*}nav//{*}ol/{*}li"
     nav_points = root.findall(query)
     files = []
     for point in nav_points:
         node = point.find("{*}a")
-        text = node.text
+        title = node.text
         href = node.get("href")
         if href.startswith("#"):
             path = toc_file
         else:
             path = os.path.join(toc_dir, href)
             scheme, netloc, path, *_ = urlsplit(path)
-        data = {"text": text, "href": path}
-        files.append({"text": text, "data": data})
+        data = {"url": path}
+        files.append(Article(title, data))
     return files
 
 
@@ -184,13 +181,12 @@ def _get_extract_dir(filename):
 
 def _unzip_epub(file_path):
     extract_dir = _get_extract_dir(file_path)
-    if not os.path.exists(extract_dir):
-        with zipfile.ZipFile(file_path, "r") as zip_ref:
-            zip_ref.extractall(extract_dir)
+    with zipfile.ZipFile(file_path, "r") as zip_ref:
+        zip_ref.extractall(extract_dir)
     return extract_dir
 
 
-def get_epub_toc(epub_file_path):
+def getEpubToc(epub_file_path) -> List[Article]:
     extract_dir = _unzip_epub(epub_file_path)
     container_filename = os.path.join(extract_dir, "META-INF", "container.xml")
     content_filename = nov_container_content_filename(container_filename)

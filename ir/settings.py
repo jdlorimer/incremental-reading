@@ -14,9 +14,9 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-from functools import partial
 import json
 import os
+from functools import partial
 
 from anki.hooks import addHook
 from aqt import mw
