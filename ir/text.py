@@ -45,12 +45,12 @@ class TextManager:
         if not textColor:
             textColor = self._settings["highlightTextColor"]
 
-        script = "highlight('%s', '%s')" % (bgColor, textColor)
+        script = f"highlight('{bgColor}', '{textColor}')"
         mw.web.eval(script)
         self.save()
 
     def format(self, style):
-        mw.web.eval('format("%s")' % style)
+        mw.web.eval(f"format('{style}')")
         self.save()
 
     def toggleOverlay(self):
@@ -89,7 +89,7 @@ class TextManager:
             deck = mw.col.decks.by_name(settings["extractDeck"])
             if not deck:
                 showWarning(
-                    "Destination deck no longer exists. " "Please update your settings."
+                    "Destination deck no longer exists. Please update your settings."
                 )
                 return
             did = deck["id"]
