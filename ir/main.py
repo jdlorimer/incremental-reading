@@ -39,6 +39,7 @@ class ReadingManager:
     shortcuts = []
 
     def __init__(self):
+        self.settings = None
         self.importer = Importer()
         self.scheduler = Scheduler()
         self.textManager = TextManager()
@@ -104,7 +105,7 @@ class ReadingManager:
 
         self.settings.loadMenuItems()
 
-    def onPrepareQA(self, text: str, card: Card, kind: str) -> str:
+    def onPrepareQA(self, text: str, card: Card, _kind: str) -> str:
         if self.settings["prioEnabled"]:
             answerShortcuts = ["1", "2", "3", "4"]
         else:
@@ -202,7 +203,7 @@ def buttonTime(self, i: int, v3_labels: Sequence[str], _old: Any) -> str:
     return _old(self, i, v3_labels)
 
 
-def onBrowserClosed(self) -> None:
+def onBrowserClosed(_self) -> None:
     try:
         mw.readingManager.scheduler._updateListItems()
     except:
