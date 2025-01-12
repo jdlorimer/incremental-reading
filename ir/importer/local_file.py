@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlunsplit
 
 from attr import dataclass
@@ -39,6 +40,6 @@ class LocalFile:
                 ErrorLevel.CRITICAL, f"File [{filepath}] Not exists."
             ) from error
 
-    def _constructResponse(self, filepath: str, localPage: BeautifulSoup):
+    def _constructResponse(self, filepath: str, localPage: BeautifulSoup) -> ParsedFile:
         body = "\n".join(map(str, localPage.find("body").children))
         return ParsedFile(body)

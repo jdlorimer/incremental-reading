@@ -17,7 +17,7 @@ from .web import Web
 
 
 class WebpageImporter(BaseImporter):
-    def __init__(self, settings: SettingsManager, web: Web):
+    def __init__(self, settings: SettingsManager, web: Web) -> None:
         super().__init__(settings)
         self.web = web
 
@@ -43,7 +43,7 @@ class WebpageImporter(BaseImporter):
 
 
 class FeedImporter(BaseImporter):
-    def __init__(self, settings: SettingsManager, web: Web):
+    def __init__(self, settings: SettingsManager, web: Web) -> None:
         super().__init__(settings)
         self.web = web
         self.log = settings["feedLog"]
@@ -114,7 +114,7 @@ class FeedImporter(BaseImporter):
 
 
 class EpubImporter(BaseImporter):
-    def __init__(self, settings: SettingsManager, localFile: LocalFile):
+    def __init__(self, settings: SettingsManager, localFile: LocalFile) -> None:
         super().__init__(settings)
         self.localFile = localFile
 
@@ -145,7 +145,7 @@ class EpubImporter(BaseImporter):
 
 
 class PocketImporter(BaseImporter):
-    def __init__(self, settings: SettingsManager, pocket: Pocket, web: Web):
+    def __init__(self, settings: SettingsManager, pocket: Pocket, web: Web) -> None:
         super().__init__(settings)
         self.pocket = pocket
         self.web = web

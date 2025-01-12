@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from anki.notes import Note
 from aqt import mw
@@ -14,10 +14,10 @@ from .models import NoteModel
 
 
 class BaseImporter(ABC):
-    def __init__(self, settings: SettingsManager):
+    def __init__(self, settings: SettingsManager) -> None:
         self.settings = settings
 
-    def importContent(self) -> None:
+    def importContent(self) -> Optional[str]:
         """Template method that defines the import algorithm"""
         try:
             articles = self._getArticles()
@@ -71,7 +71,7 @@ class BaseImporter(ABC):
         """Get the progress label for the import operation"""
         pass
 
-    def _getPriority(self) -> str:
+    def _getPriority(self) -> Optional[str]:
         prompt = "Select priority for import"
         return self.settings["priorities"][
             chooseList(prompt, self.settings["priorities"])

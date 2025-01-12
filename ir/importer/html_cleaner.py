@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Set, Optional
 from urllib.parse import urljoin, urlsplit
 from urllib.request import url2pathname
 
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup, Comment, Tag
 
 
 class HtmlCleaner:
-    _BAD_TAGS = ["iframe", "script"]
+    _BAD_TAGS: Set[str] = {"iframe", "script"}
 
     def clean(
         self, html: Union[bytes, str], url: str, local: bool = False
@@ -32,7 +32,7 @@ class HtmlCleaner:
 
         return webpage
 
-    def _processATag(self, url: str, a: Tag):
+    def _processATag(self, url: str, a: Tag) -> None:
         if a.get("href"):
             if a["href"].startswith("#"):
                 # Need to override onclick for named anchor to work
@@ -44,7 +44,7 @@ class HtmlCleaner:
             else:
                 a["href"] = urljoin(url, a["href"])
 
-    def _processImgTag(self, url: str, img: Tag, local: bool = False):
+    def _processImgTag(self, url: str, img: Tag, local: bool = False) -> None:
         """
         Copy image from local storage to Anki media folder and replace src with local path
         """
@@ -62,7 +62,7 @@ class HtmlCleaner:
         # Remove them for now.
         del img["srcset"]
 
-    def _processLinkTag(self, url: str, link: Tag, local: bool = False):
+    def _processLinkTag(self, url: str, link: Tag, local: bool = False) -> None:
         if link.get("href"):
             link["href"] = urljoin(url, link.get("href", ""))
         if local and urlsplit(link["href"]).scheme == "file":
