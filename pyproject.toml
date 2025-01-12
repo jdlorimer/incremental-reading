@@ -50,7 +50,7 @@ replace = '[{new_version}]'
 
 [tool.isort]
 profile = "black"
-line_length = 80
+line_length = 88
 multi_line_output = 3 # Vertical Hanging Indent
 include_trailing_comma = true
 force_grid_wrap = 0
@@ -61,3 +61,11 @@ sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 default_section = "THIRDPARTY"
 known_first_party = ["ir"]
 known_third_party = ["anki", "aqt", "bs4", "requests"]
+
+[tool.black]
+line-length = 88
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+^/ir/lib/
+'''
