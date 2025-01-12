@@ -1,4 +1,4 @@
-from typing import List, Optional, Set, Union
+from typing import Set, Union
 from urllib.parse import urljoin, urlsplit
 from urllib.request import url2pathname
 

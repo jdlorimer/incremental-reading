@@ -23,8 +23,7 @@ try:
 except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
 
-from ir.settings import SettingsManager
-
+from ..settings import SettingsManager
 from .concrete_importers import (
     EpubImporter,
     FeedImporter,
