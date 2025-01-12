@@ -84,7 +84,7 @@ class SettingsManager:
         "titleField": "Title",
         "underlineSeq": "Ctrl+U",
         "undoKey": "u",
-        "userAgent": "IR/{} (+{})".format(__version__, IR_GITHUB_URL),
+        "userAgent": f"IR/{__version__} (+{IR_GITHUB_URL})",
         "version": __version__,
         "zoom": {},
         "zoomStep": 0.1,
@@ -93,6 +93,7 @@ class SettingsManager:
     def __init__(self):
         addHook("unloadProfile", self._unload)
         self.load()
+        self.settings = None
 
     def __setitem__(self, key, value):
         if self.settings[key] != value and key not in self.settings["modified"]:
@@ -211,10 +212,7 @@ class SettingsManager:
             mw.customMenus[path].clear()
 
         for keyCombo, settings in self.settings["quickKeys"].items():
-            text = "Add Card [%s -> %s]" % (
-                settings["modelName"],
-                settings["extractDeck"],
-            )
+            text = f"Add Card [{settings['modelName']} -> {settings['extractDeck']}]"
             func = partial(mw.readingManager.textManager.extract, settings)
             addMenuItem(path, text, func, keyCombo)
 
