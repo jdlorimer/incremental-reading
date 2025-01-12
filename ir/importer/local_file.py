@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 from urllib.parse import urlunsplit
 
 from attr import dataclass
@@ -29,7 +28,7 @@ class LocalFile:
         url = urlunsplit(("file", "", filepath, None, None))
         page = self._htmlCleaner.clean(html, url, True)
 
-        return self._constructResponse(filepath, page)
+        return self._constructResponse(page)
 
     def _fetchLocalPage(self, filepath: str) -> str:
         try:
@@ -40,6 +39,6 @@ class LocalFile:
                 ErrorLevel.CRITICAL, f"File [{filepath}] Not exists."
             ) from error
 
-    def _constructResponse(self, filepath: str, localPage: BeautifulSoup) -> ParsedFile:
+    def _constructResponse(self, localPage: BeautifulSoup) -> ParsedFile:
         body = "\n".join(map(str, localPage.find("body").children))
         return ParsedFile(body)
