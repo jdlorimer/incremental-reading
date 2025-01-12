@@ -4,5 +4,6 @@ disable=
     C0114, # missing-module-docstring
     C0115, # missing-class-docstring
     C0116, # missing-function-docstring
+    E0611, # no-name-in-module because of aqt.qt
 
 ignore=lib
