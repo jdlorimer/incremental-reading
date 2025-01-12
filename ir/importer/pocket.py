@@ -13,7 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from json.decoder import JSONDecodeError
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urlencode
 
 from anki.utils import is_mac, is_win
