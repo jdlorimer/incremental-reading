@@ -6,6 +6,7 @@ disable=
     C0116, # missing-function-docstring
     R0903, # too-few-public-methods
     W0107, # unnecessary-pass
+    W0212, # protected-access, because we hack Anki quite a bit
     E0611, # no-name-in-module because of aqt.qt
 
 ignore=lib
