@@ -41,7 +41,8 @@ class Web:
         except HTTPError as error:
             raise ImporterError(
                 ErrorLevel.WARNING,
-                f"The remote server has returned an error: HTTP Error {error.code} ({error.reason})",
+                "The remote server has returned an error:"
+                f"HTTP Error {error.code} ({error.reason})",
             ) from error
         except ConnectionError as error:
             raise ImporterError(
