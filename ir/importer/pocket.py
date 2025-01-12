@@ -55,6 +55,7 @@ class Pocket:
                 "sort": "newest",
             },
             headers=self._headers,
+            timeout=5,
         )
 
         if response.json()["list"]:
@@ -74,6 +75,7 @@ class Pocket:
                 "redirect_uri": self._redirectURI,
             },
             headers=self._headers,
+            timeout=5,
         )
 
         requestToken = response.json()["code"]
@@ -92,6 +94,7 @@ class Pocket:
             "https://getpocket.com/v3/oauth/authorize",
             json={"consumer_key": self.consumerKey, "code": requestToken},
             headers=self._headers,
+            timeout=5,
         )
 
         try:
@@ -107,4 +110,5 @@ class Pocket:
                 "access_token": self._accessToken,
                 "actions": [{"action": "archive", "item_id": article.data["item_id"]}],
             },
+            timeout=5,
         )
