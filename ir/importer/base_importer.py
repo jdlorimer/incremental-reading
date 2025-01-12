@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 from anki.notes import Note
 from aqt import mw
@@ -14,16 +14,16 @@ from .models import NoteModel
 
 
 class BaseImporter(ABC):
-    def __init__(self, settings: SettingsManager) -> None:
+    def __init__(self, settings: SettingsManager):
         self.settings = settings
 
-    def importContent(self) -> Optional[str]:
+    def importContent(self) -> None:
         """Template method that defines the import algorithm"""
         try:
             articles = self._getArticles()
             selected = self._selectArticles(articles)
             if not selected:
-                return None
+                return
 
             priority = self._getPriority() if self.settings["prioEnabled"] else None
             mw.progress.start(
@@ -41,11 +41,11 @@ class BaseImporter(ABC):
 
             tooltip(f"Added {len(selected)} item(s) to deck: {deckName}")
 
-            return deckName
+            return
 
         except ImporterError as e:
             self._handleError(e)
-            return None
+            return
 
     @abstractmethod
     def _getArticles(self) -> List[Article]:
@@ -71,7 +71,7 @@ class BaseImporter(ABC):
         """Get the progress label for the import operation"""
         pass
 
-    def _getPriority(self) -> Optional[str]:
+    def _getPriority(self) -> str:
         prompt = "Select priority for import"
         return self.settings["priorities"][
             chooseList(prompt, self.settings["priorities"])
@@ -85,7 +85,7 @@ class BaseImporter(ABC):
                 showWarning(
                     f'Destination deck "{deck}" no longer exists. Please update your settings.'
                 )
-                return
+                return ""
             deckId = deck["id"]
         else:
             deckId = mw.col.conf["curDeck"]

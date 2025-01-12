@@ -26,7 +26,6 @@ except ModuleNotFoundError:
     from PyQt5.QtCore import Qt
     from PyQt5.QtGui import QFont
 
-from anki.notes import Note
 from aqt import mw
 from aqt.qt import (
     QButtonGroup,
@@ -902,7 +901,7 @@ class SettingsDialog:
             tooltip("Shortcut updated")
         else:
             self.quickKeysComboBox.addItem(keyCombo)
-            tooltip("New shortcut added: %s" % keyCombo)
+            tooltip(f"New shortcut added: {keyCombo}")
 
         self.settings["quickKeys"][keyCombo] = settings
         setComboBoxItem(self.quickKeysComboBox, keyCombo)
