@@ -65,7 +65,8 @@ def viewingIrText():
     )
 
 
-def addMenu(fullPath):
+def addMenu(fullPath: str):
+    # FIXME: Subpath doesn't work as quick keys don't show up
     if not hasattr(mw, "customMenus"):
         mw.customMenus = {}
 
@@ -97,7 +98,7 @@ def setMenuVisibility(path):
         mw.customMenus[path].menuAction().setVisible(True)
 
 
-def addMenuItem(path, text, function, keys=None):
+def addMenuItem(path: str, text: str, function, keys=None):
     action = QAction(text, mw)
 
     if keys:

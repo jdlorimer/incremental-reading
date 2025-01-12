@@ -36,7 +36,7 @@ class ViewManager:
     def changeProfile(self, settings: SettingsManager):
         self._settings = settings
 
-    def resetZoom(self, state, *args):
+    def resetZoom(self, state, *_args):
         if not self._settings:
             return
 
@@ -108,7 +108,7 @@ class ViewManager:
 
         return html
 
-    def _saveScroll(self, event=None):
+    def _saveScroll(self, _event=None):
         if viewingIrText() and mw.reviewer.card is not None:
 
             def callback(currentPos):

@@ -26,7 +26,7 @@ def showAbout():
     label = QLabel()
     label.setStyleSheet("QLabel { font-size: 14px; }")
     contributors = [
-        "Joseph Lorimer <joseph@lorimer.me>" "Timothée Chauvin",
+        "Joseph Lorimer <joseph@lorimer.me> Timothée Chauvin",
         "Christian Weiß",
         "Aleksej",
         "Frank Kmiec",
